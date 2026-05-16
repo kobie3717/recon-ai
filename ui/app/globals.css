@@ -1,0 +1,142 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0A0E1A;
+  --foreground: #F8FAFC;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0E1A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #64748B;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Smooth markdown rendering */
+.markdown-content h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #F8FAFC;
+  margin-top: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2563EB;
+  margin-top: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.markdown-content h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #06B6D4;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.markdown-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+  color: #e2e8f0;
+}
+
+.markdown-content strong {
+  color: #F8FAFC;
+  font-weight: 600;
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+  color: #e2e8f0;
+}
+
+.markdown-content table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 1rem;
+  background: #0f1729;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.markdown-content thead {
+  background: #2563EB;
+}
+
+.markdown-content th {
+  padding: 0.75rem;
+  text-align: left;
+  color: #F8FAFC;
+  font-weight: 600;
+}
+
+.markdown-content td {
+  padding: 0.75rem;
+  border-top: 1px solid #1e293b;
+  color: #e2e8f0;
+}
+
+.markdown-content code {
+  background: #0f1729;
+  color: #10B981;
+  padding: 0.2rem 0.4rem;
+  border-radius: 3px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: #0f1729;
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 1rem;
+}
+
+.markdown-content pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.markdown-content a {
+  color: #06B6D4;
+  text-decoration: underline;
+}
+
+.markdown-content a:hover {
+  color: #22d3ee;
+}
