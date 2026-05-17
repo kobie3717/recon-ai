@@ -1,5 +1,7 @@
 # Recon — Multi-Agent Competitive Intelligence
 
+![Recon Dashboard](./cover.jpg)
+
 > **Bright Data AI Agents Web Data Hackathon** · May 2026
 > Live demo: [ui-beta-green.vercel.app](https://ui-beta-green.vercel.app) · GitHub: [kobie3717/recon-ai](https://github.com/kobie3717/recon-ai)
 
