@@ -258,11 +258,14 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
       if (anthropic) {
+        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
         try {
           report = await synthesizeRedteamWithClaude(domain, {});
         } catch (synthErr) {
           console.error('[redteam] Claude synthesis failed, using mock:', synthErr.message);
           report = generateMockRedteamReport(domain);
+        } finally {
+          clearInterval(ping);
         }
       } else {
         report = generateMockRedteamReport(domain);
@@ -310,11 +313,14 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
       if (anthropic) {
+        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
         try {
           report = await synthesizeSeoWithClaude(domain, {});
         } catch (synthErr) {
           console.error('[seo] Claude synthesis failed, using mock:', synthErr.message);
           report = generateMockSeoReport(domain);
+        } finally {
+          clearInterval(ping);
         }
       } else {
         report = generateMockSeoReport(domain);
