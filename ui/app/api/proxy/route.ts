@@ -1,3 +1,6 @@
+export const runtime = 'edge';
+export const maxDuration = 60;
+
 export async function GET(request: Request) {
   const origin = request.headers.get('origin');
   const referer = request.headers.get('referer');
