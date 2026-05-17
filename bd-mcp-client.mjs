@@ -1,6 +1,8 @@
 /**
  * Bright Data MCP Client — calls BD hosted MCP server via StreamableHTTP
  * Tools used: search_engine (free tier), scrape_as_markdown (free tier)
+ *
+ * Main export: mcpFetch(domain, mode) — runs both tools in parallel with mode-aware queries
  */
 
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -19,19 +21,150 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 // Tracked: replace ?token= with Authorization header once BD supports it.
 
 /**
- * Search via BD MCP search_engine tool
- * @param {string} query - Search query
- * @param {string} domain - Target domain (for mock mode)
- * @returns {Promise<Object>}
+ * Build mode-specific search query
+ * @param {string} domain - Target domain
+ * @param {string} mode - Recon mode (redteam|seo|person|bundle|deep|standard)
+ * @returns {string}
  */
-export async function mcpSearch(query, domain) {
-  await sleep(1800);
+function buildQuery(domain, mode) {
+  const slug = domain.split('.')[0];
+  switch(mode) {
+    case 'redteam':
+      return `${slug} security vulnerabilities CVE breach data leak 2024 2025`;
+    case 'seo':
+      return `${slug} site ranking keywords backlinks SEO competitors SERP`;
+    case 'person':
+      return `${domain} background career companies founded investors`;
+    case 'bundle':
+      return `${slug} company funding competitors news acquisitions 2025 2026`;
+    case 'deep':
+      return `${slug} company deep analysis technology stack funding team 2026`;
+    default:
+      return `${slug} company funding competitors news hiring 2026`;
+  }
+}
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    const slug = domain.split('.')[0];
-    return {
-      query,
-      results: [
+/**
+ * Generate mode-aware mock data
+ * @param {string} domain - Target domain
+ * @param {string} mode - Recon mode
+ * @returns {Object}
+ */
+function generateMock(domain, mode) {
+  const slug = domain.split('.')[0];
+  const query = buildQuery(domain, mode);
+
+  let searchResults;
+  let scrapedMarkdown;
+
+  switch(mode) {
+    case 'redteam':
+      searchResults = [
+        {
+          title: `CVE-2024-8372: ${slug} authentication bypass vulnerability`,
+          snippet: `Critical security flaw in ${slug} API authentication. CVSS score 9.1. Patch released March 2025.`,
+          url: `https://nvd.nist.gov/vuln/detail/CVE-2024-8372`
+        },
+        {
+          title: `${slug} data breach incident — 2024 security report`,
+          snippet: `Unauthorized access to ${slug} customer database discovered in Q4 2024. 150K records potentially exposed.`,
+          url: `https://securityaffairs.com/${slug}-breach-2024`
+        },
+        {
+          title: `${slug} bug bounty program — HackerOne`,
+          snippet: `Active bounty program. 47 vulnerabilities disclosed and patched since 2023. Average payout $2,400.`,
+          url: `https://hackerone.com/${slug}`
+        }
+      ];
+      scrapedMarkdown = `# ${slug.charAt(0).toUpperCase() + slug.slice(1)} Security Center\n\n## Vulnerability Disclosure\nWe take security seriously. Report issues to security@${domain}\n\n## Recent patches\n- CVE-2024-8372: Auth bypass (patched)\n- CVE-2024-7219: XSS in dashboard (patched)\n\n## Compliance\nSOC 2 Type II certified, GDPR compliant`;
+      break;
+
+    case 'seo':
+      searchResults = [
+        {
+          title: `${slug} SEO analysis — Domain Authority 72`,
+          snippet: `${slug}.com ranks for 14,200 organic keywords. Top positions: "enterprise software" (rank 4), "cloud platform" (rank 7).`,
+          url: `https://ahrefs.com/site-explorer/${domain}`
+        },
+        {
+          title: `${slug} backlink profile — 8,400+ referring domains`,
+          snippet: `High-quality backlinks from TechCrunch, Forbes, Product Hunt. DR 71, organic traffic est. 420K/month.`,
+          url: `https://moz.com/link-explorer/${domain}`
+        },
+        {
+          title: `${slug} vs competitors SERP comparison 2026`,
+          snippet: `${slug} gaining market share in enterprise SaaS keywords, outranking legacy competitors in 62% of target terms.`,
+          url: `https://semrush.com/analytics/overview/${domain}`
+        }
+      ];
+      scrapedMarkdown = `# ${slug.charAt(0).toUpperCase() + slug.slice(1)} — Enterprise Software Platform\n\n## Leading the industry\n5,000+ customers, 72 domain authority, 14K organic keywords\n\n## Products\n- Core Platform (ranks #3 for "enterprise workflow")\n- Analytics Suite (ranks #5 for "business intelligence")\n\n## Featured in\nTechCrunch, Forbes, Wall Street Journal`;
+      break;
+
+    case 'person':
+      searchResults = [
+        {
+          title: `${domain} — LinkedIn Profile`,
+          snippet: `Co-founder at Acme Inc, former VP Engineering at MegaCorp. Stanford CS '14. Angel investor in 12 startups.`,
+          url: `https://linkedin.com/in/${slug}`
+        },
+        {
+          title: `${slug} portfolio companies — Crunchbase`,
+          snippet: `Active investments: DataCo ($5M Series A), CloudStart ($2M seed), AILabs ($8M Series B).`,
+          url: `https://crunchbase.com/person/${slug}`
+        },
+        {
+          title: `Interview: ${domain} on founding ${slug}Corp`,
+          snippet: `"We saw a gap in enterprise tooling and built what we needed ourselves." Company now valued at $120M.`,
+          url: `https://techcrunch.com/interview-${slug}`
+        }
+      ];
+      scrapedMarkdown = `# ${domain}\n\n## Background\nEntrepreneur, investor, and software engineer\n\n## Career\n- 2022-present: Co-founder & CTO, ${slug}Corp\n- 2018-2022: VP Engineering, MegaCorp\n- 2014-2018: Senior Engineer, StartupXYZ\n\n## Investments\n12 early-stage companies, 3 exits\n\n## Education\nStanford University, BS Computer Science 2014`;
+      break;
+
+    case 'bundle':
+      searchResults = [
+        {
+          title: `${slug} raises $45M Series C led by Sequoia`,
+          snippet: `${slug} closed $45M Series C at $320M valuation. Funds will accelerate enterprise expansion and R&D.`,
+          url: `https://techcrunch.com/${slug}-series-c-2026`
+        },
+        {
+          title: `${slug} acquires CompetitorX for $18M`,
+          snippet: `Strategic acquisition expands ${slug}'s market reach. CompetitorX brings 1,200 customers and integration tech.`,
+          url: `https://techcrunch.com/${slug}-acquires-competitorx`
+        },
+        {
+          title: `${slug} vs AlternativeCo — competitive analysis`,
+          snippet: `${slug} leads in enterprise features, AlternativeCo stronger in SMB pricing. Market share: ${slug} 23%, AlternativeCo 19%.`,
+          url: `https://g2.com/compare/${slug}-vs-alternativeco`
+        }
+      ];
+      scrapedMarkdown = `# ${slug.charAt(0).toUpperCase() + slug.slice(1)} Company\n\n## Overview\nEnterprise SaaS platform serving 5,000+ customers globally\n\n## Recent news\n- Series C: $45M at $320M valuation (March 2026)\n- Acquisition of CompetitorX for $18M (Jan 2026)\n- Expanded to EMEA with London office (Nov 2025)\n\n## Competitors\nAlternativeCo, LegacySoft, NewStartup\n\n## Team size\n240 employees, hiring 50+ in 2026`;
+      break;
+
+    case 'deep':
+      searchResults = [
+        {
+          title: `${slug} technology stack — BuiltWith analysis`,
+          snippet: `${slug} runs on AWS, uses React + Node.js, PostgreSQL backend. Kubernetes orchestration, DataDog monitoring.`,
+          url: `https://builtwith.com/${domain}`
+        },
+        {
+          title: `Inside ${slug}: engineering culture and team structure`,
+          snippet: `60-person engineering team split into 8 product squads. Bi-weekly sprints, ship-on-green CI/CD.`,
+          url: `https://blog.${domain}/engineering-culture`
+        },
+        {
+          title: `${slug} funding history and investor deck analysis`,
+          snippet: `$78M total raised across Seed ($2M), A ($12M), B ($19M), C ($45M). Top investors: Sequoia, a16z, Index.`,
+          url: `https://pitchbook.com/profiles/company/${slug}`
+        }
+      ];
+      scrapedMarkdown = `# ${slug.charAt(0).toUpperCase() + slug.slice(1)} — Deep Company Profile\n\n## Technology\n- Stack: React, Node.js, PostgreSQL, Redis\n- Infrastructure: AWS (us-east-1, eu-west-1)\n- Architecture: Microservices on Kubernetes\n- Monitoring: DataDog, Sentry, PagerDuty\n\n## Team\n- Total: 240 employees\n- Engineering: 60 (8 product squads)\n- Sales: 45\n- Customer Success: 30\n\n## Funding\n- Total: $78M\n- Series C: $45M @ $320M valuation (2026)\n- Series B: $19M @ $95M valuation (2024)\n- Series A: $12M (2022)\n- Seed: $2M (2021)\n\n## Traction\n- Customers: 5,000+\n- ARR: $32M (2025)\n- Growth: 180% YoY`;
+      break;
+
+    default: // standard
+      searchResults = [
         {
           title: `${slug.charAt(0).toUpperCase() + slug.slice(1)} Company Overview & Funding`,
           snippet: `${slug} has raised significant venture funding and is expanding rapidly. Latest round led by top-tier VCs.`,
@@ -47,10 +180,39 @@ export async function mcpSearch(query, domain) {
           snippet: `${slug} posted 47 new engineering roles in Q1 2026, suggesting major product investment ahead.`,
           url: `https://linkedin.com/company/${slug}/jobs`
         }
-      ],
-      tool: 'search_engine',
-      via: 'bd-mcp'
-    };
+      ];
+      scrapedMarkdown = `# ${slug.charAt(0).toUpperCase() + slug.slice(1)} Company\n\nLeading enterprise software company serving 5,000+ customers globally.\n\n## Products\n- Core platform\n- Analytics suite\n- Integration hub\n\n## Recent news\n- Series D funding round completed\n- Expanded to European market\n- New executive hires announced`;
+  }
+
+  return {
+    domain,
+    mode,
+    search: {
+      query,
+      raw: JSON.stringify(searchResults, null, 2),
+      results: searchResults,
+      tool: 'search_engine'
+    },
+    scraped: {
+      url: `https://${domain}`,
+      markdown: scrapedMarkdown,
+      tool: 'scrape_as_markdown'
+    },
+    via: 'bd-mcp-mock'
+  };
+}
+
+/**
+ * Main export: Fetch domain intelligence using both BD MCP tools in parallel
+ * @param {string} domain - Target domain
+ * @param {string} mode - Recon mode (redteam|seo|person|bundle|deep|standard)
+ * @returns {Promise<Object>}
+ */
+export async function mcpFetch(domain, mode = 'standard') {
+  await sleep(1800);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    return generateMock(domain, mode);
   }
 
   const MCP_TIMEOUT_MS = 30000;
@@ -64,56 +226,65 @@ export async function mcpSearch(query, domain) {
 
   try {
     await Promise.race([client.connect(transport), timeout]);
-    const result = await Promise.race([
-      client.callTool({ name: 'search_engine', arguments: { query, num: 8 } }),
+
+    const query = buildQuery(domain, mode);
+    const homepageUrl = `https://${domain}`;
+
+    // Run both tools in parallel
+    const [searchResult, scrapeResult] = await Promise.race([
+      Promise.all([
+        client.callTool({ name: 'search_engine', arguments: { query, num: 8 } }),
+        client.callTool({ name: 'scrape_as_markdown', arguments: { url: homepageUrl } })
+      ]),
       timeout
     ]);
-    const text = Array.isArray(result.content)
-      ? result.content.map(c => c.text || '').join('\n')
-      : String(result.content || '');
-    return { query, raw: text, tool: 'search_engine', via: 'bd-mcp' };
+
+    const searchText = Array.isArray(searchResult.content)
+      ? searchResult.content.map(c => c.text || '').join('\n')
+      : String(searchResult.content || '');
+
+    const markdown = Array.isArray(scrapeResult.content)
+      ? scrapeResult.content.map(c => c.text || '').join('\n')
+      : String(scrapeResult.content || '');
+
+    return {
+      domain,
+      mode,
+      search: {
+        query,
+        raw: searchText,
+        tool: 'search_engine'
+      },
+      scraped: {
+        url: homepageUrl,
+        markdown,
+        tool: 'scrape_as_markdown'
+      },
+      via: 'bd-mcp'
+    };
   } finally {
     await client.close().catch(() => {});
   }
 }
 
 /**
- * Scrape URL as clean markdown via BD MCP
+ * Legacy export: Search via BD MCP search_engine tool
+ * @param {string} query - Search query
+ * @param {string} domain - Target domain (for mock mode)
+ * @returns {Promise<Object>}
+ */
+export async function mcpSearch(query, domain) {
+  const result = await mcpFetch(domain || 'example.com', 'standard');
+  return result.search;
+}
+
+/**
+ * Legacy export: Scrape URL as clean markdown via BD MCP
  * @param {string} url - Target URL
  * @returns {Promise<Object>}
  */
 export async function mcpScrape(url) {
-  await sleep(2100);
-
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    return {
-      url,
-      markdown: `# Company Page\n\nLeading enterprise software company serving 5,000+ customers globally.\n\n## Products\n- Core platform\n- Analytics suite\n- Integration hub\n\n## Recent news\n- Series D funding round completed\n- Expanded to European market`,
-      tool: 'scrape_as_markdown',
-      via: 'bd-mcp'
-    };
-  }
-
-  const MCP_TIMEOUT_MS = 30000;
-  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
-  const transport = new StreamableHTTPClientTransport(mcpUrl);
-  const client = new Client({ name: 'recon', version: '1.0.0' }, { capabilities: {} });
-
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS)
-  );
-
-  try {
-    await Promise.race([client.connect(transport), timeout]);
-    const result = await Promise.race([
-      client.callTool({ name: 'scrape_as_markdown', arguments: { url } }),
-      timeout
-    ]);
-    const markdown = Array.isArray(result.content)
-      ? result.content.map(c => c.text || '').join('\n')
-      : String(result.content || '');
-    return { url, markdown, tool: 'scrape_as_markdown', via: 'bd-mcp' };
-  } finally {
-    await client.close().catch(() => {});
-  }
+  const domain = new URL(url).hostname;
+  const result = await mcpFetch(domain, 'standard');
+  return result.scraped;
 }
