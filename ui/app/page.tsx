@@ -34,6 +34,7 @@ export default function Home() {
   const [isRunning2, setIsRunning2] = useState(false);
   const [compareActive, setCompareActive] = useState(false);
   const completedRef2 = useRef(false);
+  const creditDeductedRef = useRef(false);
 
   const extractDomain = (input: string): string => {
     try {
@@ -173,9 +174,15 @@ export default function Home() {
     const domain1 = extractDomain(urlA);
     const domain2 = extractDomain(urlB);
 
+    if (domain1 === domain2) {
+      alert('Please enter two different company URLs');
+      return;
+    }
+
     // Reset state
     completedRef.current = false;
     completedRef2.current = false;
+    creditDeductedRef.current = false;
     setIsRunning(true);
     setIsRunning2(true);
     setCompareActive(true);
@@ -226,7 +233,8 @@ export default function Home() {
           evtSource1.close();
 
           // Deduct credits only when both complete
-          if (completedRef2.current) {
+          if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
+            creditDeductedRef.current = true;
             setCredits(prev => prev - cost);
           }
         } else if (event.type === 'complete') {
@@ -234,7 +242,8 @@ export default function Home() {
           completedRef.current = true;
           evtSource1.close();
 
-          if (completedRef2.current) {
+          if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
+            creditDeductedRef.current = true;
             setCredits(prev => prev - cost);
           }
         } else if (event.type === 'error') {
@@ -288,7 +297,8 @@ export default function Home() {
           evtSource2.close();
 
           // Deduct credits only when both complete
-          if (completedRef.current) {
+          if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
+            creditDeductedRef.current = true;
             setCredits(prev => prev - cost);
           }
         } else if (event.type === 'complete') {
@@ -296,7 +306,8 @@ export default function Home() {
           completedRef2.current = true;
           evtSource2.close();
 
-          if (completedRef.current) {
+          if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
+            creditDeductedRef.current = true;
             setCredits(prev => prev - cost);
           }
         } else if (event.type === 'error') {

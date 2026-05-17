@@ -12,7 +12,7 @@ export default function Header({ credits }: HeaderProps) {
         <p className="text-recon-cyan text-sm">Competitive Intelligence</p>
       </div>
       <div className="text-recon-green font-semibold whitespace-nowrap">
-        Credits: ${credits.toFixed(2)}
+        Credits: ${credits % 1 === 0 ? credits.toFixed(0) : credits.toFixed(2)}
       </div>
     </header>
   );

@@ -162,9 +162,11 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                         <div className="flex-1">
                           <div className="text-xs text-recon-grey mb-1">Score</div>
                           <div className={`text-2xl font-bold ${
-                            reportData.technical.coreWebVitals.score >= 90 ? 'text-green-400' :
-                            reportData.technical.coreWebVitals.score >= 70 ? 'text-amber-400' :
-                            'text-red-400'
+                            typeof reportData.technical.coreWebVitals.score === 'number'
+                              ? (reportData.technical.coreWebVitals.score >= 90 ? 'text-green-400' :
+                                 reportData.technical.coreWebVitals.score >= 70 ? 'text-amber-400' :
+                                 'text-red-400')
+                              : 'text-white'
                           }`}>{reportData.technical.coreWebVitals.score}</div>
                         </div>
                       </div>
@@ -302,10 +304,16 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                       <div>
                         <span className="text-recon-grey block text-xs mb-1">Link Velocity</span>
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                          reportData.backlinks.linkVelocity.includes('↑') ? 'bg-green-500/20 text-green-400' :
-                          reportData.backlinks.linkVelocity.includes('↓') ? 'bg-red-500/20 text-red-400' :
+                          reportData.backlinks.linkVelocity === 'growing' ? 'bg-green-500/20 text-green-400' :
+                          reportData.backlinks.linkVelocity === 'declining' ? 'bg-red-500/20 text-red-400' :
+                          reportData.backlinks.linkVelocity === 'stable' ? 'bg-amber-500/20 text-amber-400' :
                           'bg-gray-500/20 text-gray-400'
-                        }`}>{reportData.backlinks.linkVelocity}</span>
+                        }`}>{
+                          reportData.backlinks.linkVelocity === 'growing' ? '↑' :
+                          reportData.backlinks.linkVelocity === 'declining' ? '↓' :
+                          reportData.backlinks.linkVelocity === 'stable' ? '→' :
+                          '→'
+                        }</span>
                       </div>
                     )}
                   </div>

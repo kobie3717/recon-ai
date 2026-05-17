@@ -183,14 +183,16 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                       <span className="text-recon-grey">Revenue</span>
                       <span className="text-white">{reportData.financials.revenue}</span>
                     </div>
-                    <div className="mt-3 pt-3 border-t border-recon-blue/20">
-                      <div className="text-recon-grey text-xs mb-1">Key Investors</div>
-                      <div className="text-white text-xs space-y-1">
-                        {reportData.financials.investors.map((inv: string, idx: number) => (
-                          <div key={idx}>• {inv}</div>
-                        ))}
+                    {reportData.financials.investors?.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-recon-blue/20">
+                        <div className="text-recon-grey text-xs mb-1">Key Investors</div>
+                        <div className="text-white text-xs space-y-1">
+                          {reportData.financials.investors.map((inv: string, idx: number) => (
+                            <div key={idx}>• {inv}</div>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               )}

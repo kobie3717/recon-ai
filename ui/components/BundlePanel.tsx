@@ -88,7 +88,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
               <h1 className="text-2xl font-bold text-white">{standard.meta?.companyName || standard.meta?.domain}</h1>
               <p className="text-recon-grey text-sm">{standard.meta?.analysisDate}</p>
             </div>
-            {standard.signals && (
+            {standard.signals?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {standard.signals.map((s: any, i: number) => (
                   <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
@@ -109,7 +109,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 </div>
               </div>
             )}
-            {standard.competitive && standard.competitive.length > 0 && (
+            {standard.competitive?.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Competitive Intel</h3>
                 {standard.competitive.map((c: any, i: number) => (
@@ -120,7 +120,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 ))}
               </div>
             )}
-            {standard.strategic && (
+            {standard.strategic?.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Strategic Direction</h3>
                 <ul className="space-y-1">{standard.strategic.map((s: string, i: number) => <li key={i} className="text-white text-sm flex gap-2"><span className="text-recon-cyan">→</span>{s}</li>)}</ul>
@@ -135,7 +135,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
               <h1 className="text-2xl font-bold text-white">SEO Analysis</h1>
               <p className="text-green-400 text-sm">Domain Authority {seo.snapshot?.domainAuthority} · {seo.snapshot?.organicTraffic} organic</p>
             </div>
-            {seo.signals && (
+            {seo.signals?.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {seo.signals.map((s: any, i: number) => (
                   <div key={i} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${
@@ -146,7 +146,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 ))}
               </div>
             )}
-            {seo.topKeywords && seo.topKeywords.length > 0 && (
+            {seo.topKeywords?.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-green-400 font-bold text-sm uppercase mb-3">Top Keywords</h3>
                 <table className="w-full text-sm">
@@ -161,7 +161,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 </table>
               </div>
             )}
-            {seo.opportunities && seo.opportunities.length > 0 && (
+            {seo.opportunities?.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-green-400 font-bold text-sm uppercase mb-3">Opportunities</h3>
                 {seo.opportunities.map((o: any, i: number) => (
@@ -178,7 +178,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
               <h1 className="text-2xl font-bold text-white">Security Assessment</h1>
               <p className="text-red-400 text-sm">Red team analysis · {redteam.meta?.analysisDate}</p>
             </div>
-            {redteam.recommendations && redteam.recommendations.length > 0 && (
+            {redteam.recommendations?.length > 0 && (
               <div className="bg-recon-navy/40 border border-red-500/20 rounded-lg p-4">
                 <h3 className="text-red-400 font-bold text-sm uppercase mb-3">Priorities</h3>
                 {redteam.recommendations.map((r: any, i: number) => (
@@ -189,7 +189,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 ))}
               </div>
             )}
-            {redteam.exposures && redteam.exposures.length > 0 && (
+            {redteam.exposures?.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-red-400 font-bold text-sm uppercase mb-3">Exposures</h3>
                 {redteam.exposures.map((e: any, i: number) => (
@@ -206,7 +206,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
             {redteam.attackSurface && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-red-400 font-bold text-sm uppercase mb-3">Attack Surface</h3>
-                {redteam.attackSurface.techStack?.length > 0 && (
+                {redteam.attackSurface?.techStack?.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-2">
                     {redteam.attackSurface.techStack.map((t: string, i: number) => (
                       <span key={i} className="bg-recon-blue/20 border border-recon-blue/30 text-recon-cyan px-2 py-0.5 rounded text-xs">{t}</span>
@@ -224,15 +224,6 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
           </div>
         )}
 
-        {reportData && tab === 'intelligence' && !standard && (
-          <div className="flex items-center justify-center h-64 text-recon-grey">Intelligence report not available</div>
-        )}
-        {reportData && tab === 'seo' && !seo && (
-          <div className="flex items-center justify-center h-64 text-recon-grey">SEO report not available</div>
-        )}
-        {reportData && tab === 'security' && !redteam && (
-          <div className="flex items-center justify-center h-64 text-recon-grey">Security report not available</div>
-        )}
       </div>
     </div>
   );
