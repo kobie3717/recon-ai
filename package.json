@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "description": "Multi-agent competitive intelligence platform with real-time SSE streaming",
   "scripts": {
+    "start": "node sse-server.mjs",
     "dev": "node sse-server.mjs",
     "test": "node test-worker.mjs"
   },
