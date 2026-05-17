@@ -219,13 +219,25 @@ export async function scrapingBrowser(urls) {
     });
   }
 
-  // Real BD Scraping Browser with Playwright
-  // Wire Playwright + BD proxy on May 25
-  // const { chromium } = await import('playwright');
-  // const browser = await chromium.connectOverCDP(`wss://brd-customer-${BD_CUSTOMER_ID}:${BD_API_KEY}@brd.superproxy.io:9222`);
-  // ... scrape each URL
-
-  throw new Error('Scraping Browser real implementation pending May 25');
+  // Real BD Scraping Browser via Playwright CDP
+  const { chromium } = await import('playwright-core');
+  const wsEndpoint = `wss://brd-customer-${BD_CUSTOMER_ID}:${BD_API_KEY}@brd.superproxy.io:9222`;
+  const browser = await chromium.connectOverCDP(wsEndpoint, { timeout: 30000 });
+  const results = [];
+  for (const url of urls) {
+    const page = await browser.newPage();
+    try {
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      const text = await page.evaluate(() => document.body.innerText);
+      results.push({ url, text, status: 200 });
+    } catch (err) {
+      results.push({ url, text: '', status: 500, error: err.message });
+    } finally {
+      await page.close();
+    }
+  }
+  await browser.close();
+  return results;
 }
 
 /**
@@ -266,9 +278,28 @@ export async function webScraperApi(url) {
     };
   }
 
-  // Real BD Web Scraper API
-  // POST https://api.brightdata.com/datasets/v3/trigger
-  // Wire on May 25 with proper dataset configuration
-
-  throw new Error('Web Scraper API real implementation pending May 25');
+  // Real implementation: use Web Unlocker on company About page
+  const aboutUrl = url.replace(/\/$/, '') + '/about';
+  const [homeResp, aboutResp] = await Promise.allSettled([
+    fetch('https://api.brightdata.com/request', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${BD_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone: 'unlocker', url, format: 'raw' })
+    }),
+    fetch('https://api.brightdata.com/request', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${BD_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone: 'unlocker', url: aboutUrl, format: 'raw' })
+    })
+  ]);
+  const homeText = homeResp.status === 'fulfilled' ? await homeResp.value.text() : '';
+  const aboutText = aboutResp.status === 'fulfilled' ? await aboutResp.value.text() : '';
+  return {
+    url,
+    company: {
+      homepage: homeText.substring(0, 3000),
+      about: aboutText.substring(0, 3000),
+      scraped: true
+    }
+  };
 }
