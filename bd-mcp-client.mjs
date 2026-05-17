@@ -209,7 +209,7 @@ function generateMock(domain, mode) {
  * @returns {Promise<Object>}
  */
 export async function mcpFetch(domain, mode = 'standard') {
-  await sleep(1800);
+  await sleep(300);
 
   if (!BD_API_KEY || BD_API_KEY === 'STUB') {
     return generateMock(domain, mode);

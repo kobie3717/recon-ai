@@ -201,9 +201,16 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 2, elapsed: 3.5 });
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
 
-      report = anthropic
-        ? await synthesizePersonWithClaude(personName)
-        : generateMockPersonReport(personName);
+      if (anthropic) {
+        try {
+          report = await synthesizePersonWithClaude(personName);
+        } catch (synthErr) {
+          console.error('[person] Claude synthesis failed, using mock:', synthErr.message);
+          report = generateMockPersonReport(personName);
+        }
+      } else {
+        report = generateMockPersonReport(personName);
+      }
 
       const elapsed = (Date.now() - startTime) / 1000;
 
@@ -250,9 +257,16 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       await new Promise(r => setTimeout(r, 300));
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
-      report = anthropic
-        ? await synthesizeRedteamWithClaude(domain, {})
-        : generateMockRedteamReport(domain);
+      if (anthropic) {
+        try {
+          report = await synthesizeRedteamWithClaude(domain, {});
+        } catch (synthErr) {
+          console.error('[redteam] Claude synthesis failed, using mock:', synthErr.message);
+          report = generateMockRedteamReport(domain);
+        }
+      } else {
+        report = generateMockRedteamReport(domain);
+      }
 
       const elapsed = (Date.now() - startTime) / 1000;
       result = { elapsed, domain, mode: 'redteam', cost: 12.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 } };
@@ -295,9 +309,16 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       await new Promise(r => setTimeout(r, 300));
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
-      report = anthropic
-        ? await synthesizeSeoWithClaude(domain, {})
-        : generateMockSeoReport(domain);
+      if (anthropic) {
+        try {
+          report = await synthesizeSeoWithClaude(domain, {});
+        } catch (synthErr) {
+          console.error('[seo] Claude synthesis failed, using mock:', synthErr.message);
+          report = generateMockSeoReport(domain);
+        }
+      } else {
+        report = generateMockSeoReport(domain);
+      }
 
       const elapsed = (Date.now() - startTime) / 1000;
       result = { elapsed, domain, mode: 'seo', cost: 5.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 } };
@@ -352,15 +373,29 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
-      report = anthropic
-        ? await synthesizeWithClaude(domain, factsData, mode)
-        : generateReport(domain, factsData, mode);
+      if (anthropic) {
+        try {
+          report = await synthesizeWithClaude(domain, factsData, mode);
+        } catch (synthErr) {
+          console.error('[deep] Claude synthesis failed, using mock:', synthErr.message);
+          report = generateReport(domain, factsData, mode);
+        }
+      } else {
+        report = generateReport(domain, factsData, mode);
+      }
     } else {
       result = await runStandardWorker(domain, emitter, mode);
       const factsData = result.facts || result.scouts || {};
-      report = anthropic
-        ? await synthesizeWithClaude(domain, factsData, mode)
-        : generateReport(domain, factsData, mode);
+      if (anthropic) {
+        try {
+          report = await synthesizeWithClaude(domain, factsData, mode);
+        } catch (synthErr) {
+          console.error('[standard] Claude synthesis failed, using mock:', synthErr.message);
+          report = generateReport(domain, factsData, mode);
+        }
+      } else {
+        report = generateReport(domain, factsData, mode);
+      }
     }
 
     clearTimeout(timeout);
@@ -575,7 +610,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{ role: 'user', content: prompt }]
   });
@@ -676,7 +711,7 @@ async function synthesizeSeoWithClaude(domain, facts) {
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -766,7 +801,7 @@ async function synthesizeRedteamWithClaude(domain, facts) {
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
