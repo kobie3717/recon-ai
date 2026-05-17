@@ -81,9 +81,10 @@ export default function Home() {
     setReportData2(null);
     setErrorMessage('');
 
-    // Connect to SSE via proxy
+    // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
     const evtSource = new EventSource(
-      `/api/proxy?domain=${encodeURIComponent(domain)}&mode=${mode}`
+      `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`
     );
 
     evtSource.onmessage = (e) => {
@@ -188,9 +189,10 @@ export default function Home() {
     setCacheTime(undefined);
     setFreshTime(undefined);
     setCostBreakdown(undefined);
-    // Connect to first SSE stream
+    // Connect to first SSE stream (direct to Railway)
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
     const evtSource1 = new EventSource(
-      `/api/proxy?domain=${encodeURIComponent(domain1)}&mode=${mode}`
+      `${backendUrl}/api/report?domain=${encodeURIComponent(domain1)}&mode=${mode}`
     );
 
     evtSource1.onmessage = (e) => {
@@ -252,9 +254,9 @@ export default function Home() {
       evtSource1.close();
     };
 
-    // Connect to second SSE stream
+    // Connect to second SSE stream (direct to Railway)
     const evtSource2 = new EventSource(
-      `/api/proxy?domain=${encodeURIComponent(domain2)}&mode=${mode}`
+      `${backendUrl}/api/report?domain=${encodeURIComponent(domain2)}&mode=${mode}`
     );
 
     evtSource2.onmessage = (e) => {
