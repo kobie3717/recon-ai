@@ -44,16 +44,21 @@ export async function mcpSearch(query, domain) {
     };
   }
 
+  const MCP_TIMEOUT_MS = 30000;
   const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon', version: '1.0.0' }, { capabilities: {} });
 
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS)
+  );
+
   try {
-    await client.connect(transport);
-    const result = await client.callTool({
-      name: 'search_engine',
-      arguments: { query, num: 8 }
-    });
+    await Promise.race([client.connect(transport), timeout]);
+    const result = await Promise.race([
+      client.callTool({ name: 'search_engine', arguments: { query, num: 8 } }),
+      timeout
+    ]);
     const text = Array.isArray(result.content)
       ? result.content.map(c => c.text || '').join('\n')
       : String(result.content || '');
@@ -80,16 +85,21 @@ export async function mcpScrape(url) {
     };
   }
 
+  const MCP_TIMEOUT_MS = 30000;
   const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon', version: '1.0.0' }, { capabilities: {} });
 
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS)
+  );
+
   try {
-    await client.connect(transport);
-    const result = await client.callTool({
-      name: 'scrape_as_markdown',
-      arguments: { url }
-    });
+    await Promise.race([client.connect(transport), timeout]);
+    const result = await Promise.race([
+      client.callTool({ name: 'scrape_as_markdown', arguments: { url } }),
+      timeout
+    ]);
     const markdown = Array.isArray(result.content)
       ? result.content.map(c => c.text || '').join('\n')
       : String(result.content || '');

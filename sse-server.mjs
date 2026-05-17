@@ -61,6 +61,14 @@ const anthropic = process.env.ANTHROPIC_API_KEY
 const reportCache = new Map();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
+// Purge expired entries every 30 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of reportCache) {
+    if (now - val.timestamp > CACHE_TTL_MS) reportCache.delete(key);
+  }
+}, 30 * 60 * 1000).unref();
+
 /**
  * Health check
  */
@@ -377,11 +385,14 @@ app.post('/api/synthesize', reportLimiter, async (req, res) => {
     return res.status(400).json({ error: e.message });
   }
 
-  const report = anthropic
-    ? await synthesizeWithClaude(domain, facts, mode)
-    : generateMockReport(domain, facts, mode);
-
-  res.json({ domain, mode, report, claudeEnabled: !!anthropic });
+  try {
+    const report = anthropic
+      ? await synthesizeWithClaude(domain, facts, mode)
+      : generateReport(domain, facts || {}, mode);
+    res.json({ domain, mode, report, claudeEnabled: !!anthropic });
+  } catch (err) {
+    res.status(500).json({ error: 'synthesis failed' });
+  }
 });
 
 /**

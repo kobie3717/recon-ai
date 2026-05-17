@@ -33,8 +33,6 @@ export default function Home() {
   const [reportData2, setReportData2] = useState<any>(null);
   const [isRunning2, setIsRunning2] = useState(false);
   const [compareActive, setCompareActive] = useState(false);
-  const [domain1Label, setDomain1Label] = useState('');
-  const [domain2Label, setDomain2Label] = useState('');
   const completedRef2 = useRef(false);
 
   const extractDomain = (input: string): string => {
@@ -190,9 +188,6 @@ export default function Home() {
     setCacheTime(undefined);
     setFreshTime(undefined);
     setCostBreakdown(undefined);
-    setDomain1Label(domain1);
-    setDomain2Label(domain2);
-
     // Connect to first SSE stream
     const evtSource1 = new EventSource(
       `/api/proxy?domain=${encodeURIComponent(domain1)}&mode=${mode}`
