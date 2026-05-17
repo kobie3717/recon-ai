@@ -23,9 +23,9 @@ const reportModes = [
 
 function looksLikePerson(input: string): boolean {
   const t = input.trim();
-  if (!t.includes(' ') || t.includes('/') || t.includes('@')) return false;
-  const parts = t.split(/\s+/);
-  return parts.length >= 2 && parts.length <= 4 && parts.every(p => /^[A-Za-z'.'-]+$/.test(p));
+  if (t.length < 2 || t.length > 100 || t.includes('/') || t.includes('@')) return false;
+  // Support Unicode names (e.g., José, François, 李明)
+  return /^[\p{L}'\s-]+$/u.test(t) && t.includes(' ');
 }
 
 export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlChange }: UrlInputProps) {

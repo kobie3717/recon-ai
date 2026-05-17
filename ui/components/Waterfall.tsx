@@ -48,9 +48,12 @@ const scoutIcons: Array<[string, string]> = [
 ];
 
 function getAgentIcon(name: string): string {
-  if (agentIcons[name]) return agentIcons[name];
-  if (name.startsWith('scout-')) {
-    const suffix = name.slice('scout-'.length);
+  // In compare mode, agent names are prefixed with domain like "stripe.com: bd-serp"
+  const cleanName = name.includes(': ') ? name.split(': ')[1] : name;
+
+  if (agentIcons[cleanName]) return agentIcons[cleanName];
+  if (cleanName.startsWith('scout-')) {
+    const suffix = cleanName.slice('scout-'.length);
     const match = scoutIcons.find(([prefix]) => suffix.startsWith(prefix));
     if (match) return match[1];
     return '🔭';

@@ -6,6 +6,15 @@ interface PersonPanelProps {
   onDrillDown: (q: string) => void;
 }
 
+function handlePrint(reportData: any) {
+  const name = reportData?.meta?.name || reportData?.profile?.name || 'person';
+  const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
+  const prev = document.title;
+  document.title = `Recon Person - ${name} - ${date}`;
+  window.print();
+  setTimeout(() => { document.title = prev; }, 1000);
+}
+
 export default function PersonPanel({ reportData, isRunning }: PersonPanelProps) {
   const showPlaceholder = !reportData;
   const showLoading = isRunning && !reportData;
@@ -18,6 +27,14 @@ export default function PersonPanel({ reportData, isRunning }: PersonPanelProps)
         </h2>
         {reportData?.meta?.name && (
           <span className="text-white text-sm font-semibold">{reportData.meta.name}</span>
+        )}
+        {reportData && (
+          <button
+            onClick={() => handlePrint(reportData)}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+          >
+            ↓ PDF
+          </button>
         )}
       </div>
 

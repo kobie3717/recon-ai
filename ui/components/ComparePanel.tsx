@@ -8,8 +8,8 @@ interface ComparePanelProps {
 }
 
 function handlePrint(report1: any, report2: any) {
-  const company1 = report1?.meta?.companyName || report1?.snapshot?.companyName || 'Company A';
-  const company2 = report2?.meta?.companyName || report2?.snapshot?.companyName || 'Company B';
+  const company1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
+  const company2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
   const date = new Date().toISOString().split('T')[0];
   const prev = document.title;
   document.title = `Recon Compare - ${company1} vs ${company2} - ${date}`;
@@ -18,8 +18,8 @@ function handlePrint(report1: any, report2: any) {
 }
 
 export default function ComparePanel({ report1, report2, isLoading1, isLoading2 }: ComparePanelProps) {
-  const company1 = report1?.meta?.companyName || report1?.snapshot?.companyName || 'Company A';
-  const company2 = report2?.meta?.companyName || report2?.snapshot?.companyName || 'Company B';
+  const company1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
+  const company2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
 
   return (
     <div className="flex flex-col h-full bg-recon-dark" id="compare-panel">

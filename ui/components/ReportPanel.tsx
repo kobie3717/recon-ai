@@ -456,31 +456,31 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3 font-sans">Cost Breakdown</h3>
                 <div className="space-y-1 text-recon-grey">
-                  {reportData.cost.webUnlocker != null && typeof reportData.cost.webUnlocker === 'number' && (
+                  {reportData.cost.webUnlocker != null && typeof reportData.cost.webUnlocker === 'number' && Number(reportData.cost.webUnlocker) > 0 && (
                     <div className="flex justify-between">
                       <span>Web Unlocker</span>
                       <span>${reportData.cost.webUnlocker.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.serpApi != null && typeof reportData.cost.serpApi === 'number' && (
+                  {reportData.cost.serpApi != null && typeof reportData.cost.serpApi === 'number' && Number(reportData.cost.serpApi) > 0 && (
                     <div className="flex justify-between">
                       <span>SERP API</span>
                       <span>${reportData.cost.serpApi.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.scrapingBrowser != null && typeof reportData.cost.scrapingBrowser === 'number' && (
+                  {reportData.cost.scrapingBrowser != null && typeof reportData.cost.scrapingBrowser === 'number' && Number(reportData.cost.scrapingBrowser) > 0 && (
                     <div className="flex justify-between">
                       <span>Scraping Browser</span>
                       <span>${reportData.cost.scrapingBrowser.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.webScraperApi != null && typeof reportData.cost.webScraperApi === 'number' && (
+                  {reportData.cost.webScraperApi != null && typeof reportData.cost.webScraperApi === 'number' && Number(reportData.cost.webScraperApi) > 0 && (
                     <div className="flex justify-between">
                       <span>Web Scraper API</span>
                       <span>${reportData.cost.webScraperApi.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.claude != null && typeof reportData.cost.claude === 'number' && (
+                  {reportData.cost.claude != null && typeof reportData.cost.claude === 'number' && Number(reportData.cost.claude) > 0 && (
                     <div className="flex justify-between">
                       <span>Claude Synthesis</span>
                       <span>${reportData.cost.claude.toFixed(2)}</span>
