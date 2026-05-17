@@ -1,4 +1,8 @@
 export async function POST(request: Request) {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
+    return new Response(JSON.stringify({ error: 'payload too large' }), { status: 413, headers: { 'Content-Type': 'application/json' } });
+  }
   const body = await request.json();
 
   try {

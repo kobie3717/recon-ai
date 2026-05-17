@@ -11,6 +11,10 @@ export async function GET(request: Request) {
   const domain = searchParams.get('domain') || '';
   const mode = searchParams.get('mode') || 'standard';
 
+  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
+    return new Response(JSON.stringify({ error: 'invalid mode' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  }
+
   try {
     const upstream = await fetch(
       `${process.env.RECON_SERVER_URL || 'http://localhost:3001'}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`,
