@@ -5,8 +5,11 @@ import Header from '@/components/Header';
 import UrlInput from '@/components/UrlInput';
 import Waterfall, { AgentState, AgentStatus } from '@/components/Waterfall';
 import ReportPanel from '@/components/ReportPanel';
+import ComparePanel from '@/components/ComparePanel';
+import PersonPanel from '@/components/PersonPanel';
+import RedteamPanel from '@/components/RedteamPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -22,6 +25,14 @@ export default function Home() {
   const [freshTime, setFreshTime] = useState<number>();
   const [costBreakdown, setCostBreakdown] = useState<any>();
   const completedRef = useRef(false);
+
+  // Compare mode state
+  const [reportData2, setReportData2] = useState<any>(null);
+  const [isRunning2, setIsRunning2] = useState(false);
+  const [compareActive, setCompareActive] = useState(false);
+  const [domain1Label, setDomain1Label] = useState('');
+  const [domain2Label, setDomain2Label] = useState('');
+  const completedRef2 = useRef(false);
 
   const extractDomain = (input: string): string => {
     try {
@@ -51,7 +62,7 @@ export default function Home() {
       return;
     }
 
-    const domain = extractDomain(url);
+    const domain = mode === 'person' ? url.trim() : extractDomain(url);
 
     // Reset state
     completedRef.current = false;
@@ -65,6 +76,8 @@ export default function Home() {
     setCacheTime(undefined);
     setFreshTime(undefined);
     setCostBreakdown(undefined);
+    setCompareActive(false);
+    setReportData2(null);
 
     // Connect to SSE via proxy
     const evtSource = new EventSource(
@@ -100,6 +113,12 @@ export default function Home() {
           // Final event — contains structured report data + cost breakdown
           if (typeof event.report === 'object') {
             setReportData(event.report);
+            // Auto-save to backend
+            fetch('/api/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ domain, report: event.report, mode }),
+            }).catch(() => {});
           } else {
             // Fallback for old markdown format
             setReportContent(event.report || event.content || '');
@@ -135,36 +154,223 @@ export default function Home() {
     };
   };
 
+  const handleCompare = (urlA: string, urlB: string, mode: 'standard' | 'deep') => {
+    if (!urlA.trim() || !urlB.trim()) {
+      alert('Please enter both company URLs');
+      return;
+    }
+
+    const cost = mode === 'standard' ? 4.0 : 30.0;
+
+    if (credits < cost) {
+      alert('Insufficient credits');
+      return;
+    }
+
+    const domain1 = extractDomain(urlA);
+    const domain2 = extractDomain(urlB);
+
+    // Reset state
+    completedRef.current = false;
+    completedRef2.current = false;
+    setIsRunning(true);
+    setIsRunning2(true);
+    setCompareActive(true);
+    setCurrentMode(mode);
+    setAgents([]);
+    setTotalElapsed(0);
+    setReportContent('');
+    setReportData(null);
+    setReportData2(null);
+    setCacheHit(false);
+    setCacheTime(undefined);
+    setFreshTime(undefined);
+    setCostBreakdown(undefined);
+    setDomain1Label(domain1);
+    setDomain2Label(domain2);
+
+    // Connect to first SSE stream
+    const evtSource1 = new EventSource(
+      `/api/proxy?domain=${encodeURIComponent(domain1)}&mode=${mode}`
+    );
+
+    evtSource1.onmessage = (e) => {
+      try {
+        const event = JSON.parse(e.data);
+
+        if (event.agent) {
+          setAgents((prev) => {
+            const agentName = `${domain1}: ${event.agent}`;
+            const existing = prev.find((a) => a.name === agentName);
+            if (existing) {
+              return prev.map((a) =>
+                a.name === agentName
+                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
+                  : a
+              );
+            }
+            return [
+              ...prev,
+              { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
+            ];
+          });
+        } else if (event.type === 'report') {
+          if (typeof event.report === 'object') {
+            setReportData(event.report);
+          } else {
+            setReportContent(event.report || event.content || '');
+          }
+          setIsRunning(false);
+          completedRef.current = true;
+          evtSource1.close();
+
+          // Deduct credits only when both complete
+          if (completedRef2.current) {
+            setCredits(prev => prev - cost);
+          }
+        } else if (event.type === 'complete') {
+          setIsRunning(false);
+          completedRef.current = true;
+          evtSource1.close();
+
+          if (completedRef2.current) {
+            setCredits(prev => prev - cost);
+          }
+        } else if (event.type === 'error') {
+          console.error('Report 1 error:', event.message);
+          setIsRunning(false);
+          evtSource1.close();
+        }
+      } catch (err) {
+        console.error('Failed to parse SSE event (stream 1):', err);
+      }
+    };
+
+    evtSource1.onerror = () => {
+      if (!completedRef.current) {
+        setIsRunning(false);
+      }
+      evtSource1.close();
+    };
+
+    // Connect to second SSE stream
+    const evtSource2 = new EventSource(
+      `/api/proxy?domain=${encodeURIComponent(domain2)}&mode=${mode}`
+    );
+
+    evtSource2.onmessage = (e) => {
+      try {
+        const event = JSON.parse(e.data);
+
+        if (event.agent) {
+          setAgents((prev) => {
+            const agentName = `${domain2}: ${event.agent}`;
+            const existing = prev.find((a) => a.name === agentName);
+            if (existing) {
+              return prev.map((a) =>
+                a.name === agentName
+                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
+                  : a
+              );
+            }
+            return [
+              ...prev,
+              { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
+            ];
+          });
+        } else if (event.type === 'report') {
+          if (typeof event.report === 'object') {
+            setReportData2(event.report);
+          }
+          setIsRunning2(false);
+          completedRef2.current = true;
+          evtSource2.close();
+
+          // Deduct credits only when both complete
+          if (completedRef.current) {
+            setCredits(prev => prev - cost);
+          }
+        } else if (event.type === 'complete') {
+          setIsRunning2(false);
+          completedRef2.current = true;
+          evtSource2.close();
+
+          if (completedRef.current) {
+            setCredits(prev => prev - cost);
+          }
+        } else if (event.type === 'error') {
+          console.error('Report 2 error:', event.message);
+          setIsRunning2(false);
+          evtSource2.close();
+        }
+      } catch (err) {
+        console.error('Failed to parse SSE event (stream 2):', err);
+      }
+    };
+
+    evtSource2.onerror = () => {
+      if (!completedRef2.current) {
+        setIsRunning2(false);
+      }
+      evtSource2.close();
+    };
+  };
+
   return (
     <div className="flex flex-col h-screen">
-      <Header credits={credits} />
+      <div id="recon-header"><Header credits={credits} /></div>
 
-      <UrlInput
-        onGenerate={handleGenerate}
-        isRunning={isRunning}
-        url={url}
-        onUrlChange={setUrl}
-      />
+      <div id="url-input-bar">
+        <UrlInput
+          onGenerate={handleGenerate}
+          onCompare={handleCompare}
+          isRunning={isRunning || isRunning2}
+          url={url}
+          onUrlChange={setUrl}
+        />
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/2 h-full">
+        <div className="w-1/2 h-full" id="waterfall-panel">
           <Waterfall
             agents={agents}
             totalElapsed={totalElapsed}
             cacheHit={cacheHit}
             cacheTime={cacheTime}
             freshTime={freshTime}
-            isRunning={isRunning}
+            isRunning={isRunning || isRunning2}
             mode={currentMode}
           />
         </div>
         <div className="w-1/2 h-full">
-          <ReportPanel
-            content={reportContent}
-            reportData={reportData}
-            costBreakdown={costBreakdown}
-            isRunning={isRunning}
-          />
+          {compareActive && (reportData || isRunning || reportData2 || isRunning2) ? (
+            <ComparePanel
+              report1={reportData}
+              report2={reportData2}
+              isLoading1={isRunning}
+              isLoading2={isRunning2}
+            />
+          ) : currentMode === 'redteam' ? (
+            <RedteamPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
+            />
+          ) : currentMode === 'person' ? (
+            <PersonPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
+            />
+          ) : (
+            <ReportPanel
+              content={reportContent}
+              reportData={reportData}
+              costBreakdown={costBreakdown}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
+            />
+          )}
         </div>
       </div>
     </div>

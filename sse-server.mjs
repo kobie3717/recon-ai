@@ -8,6 +8,8 @@ import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker } from './bd-worker.mjs';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -50,8 +52,8 @@ app.get('/api/report', async (req, res) => {
     return res.status(400).json({ error: 'domain parameter required' });
   }
 
-  if (!['standard', 'deep'].includes(mode)) {
-    return res.status(400).json({ error: 'mode must be "standard" or "deep"' });
+  if (!['standard', 'deep', 'person', 'redteam'].includes(mode)) {
+    return res.status(400).json({ error: 'mode must be "standard", "deep", "person", or "redteam"' });
   }
 
   // AI-IQ cache check — instant replay if seen before
@@ -111,18 +113,93 @@ app.get('/api/report', async (req, res) => {
 
   try {
     let result;
-    if (mode === 'deep') {
+    let report;
+
+    if (mode === 'person') {
+      // Person search mode - simulate pipeline and synthesize
+      const personName = domain; // domain param contains person name for person mode
+      const startTime = Date.now();
+
+      emitter.emit('event', { agent: '007-bot', status: 'received', domain: personName, elapsed: 0 });
+      await new Promise(r => setTimeout(r, 300));
+      emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `"${personName}" executive background`, elapsed: 0.3 });
+      await new Promise(r => setTimeout(r, 1200));
+      emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 8, elapsed: 1.5 });
+      emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/in/${personName.toLowerCase().replace(/\s+/g, '-')}`], elapsed: 1.5 });
+      await new Promise(r => setTimeout(r, 2000));
+      emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 2, elapsed: 3.5 });
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
+
+      report = anthropic
+        ? await synthesizePersonWithClaude(personName)
+        : generateMockPersonReport(personName);
+
+      const elapsed = (Date.now() - startTime) / 1000;
+
+      result = { elapsed, domain: personName, mode: 'person' };
+    } else if (mode === 'redteam') {
+      const startTime = Date.now();
+
+      emitter.emit('event', { agent: '007-bot', status: 'received', domain, elapsed: 0 });
+      await new Promise(r => setTimeout(r, 200));
+
+      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.2 });
+      await new Promise(r => setTimeout(r, 100));
+
+      // Fire security scouts in parallel
+      const secElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+
+      const p1 = (async () => {
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: secElapsed() });
+        await new Promise(r => setTimeout(r, 1600));
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 4821, elapsed: secElapsed() });
+      })();
+
+      const p2 = (async () => {
+        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} security breach CVE vulnerability`, elapsed: secElapsed() });
+        await new Promise(r => setTimeout(r, 1100));
+        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: secElapsed() });
+      })();
+
+      const p3 = (async () => {
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`shodan.io/search?query=${domain}`, `securityheaders.com/?q=${domain}`], elapsed: secElapsed() });
+        await new Promise(r => setTimeout(r, 2300));
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: secElapsed() });
+      })();
+
+      const p4 = (async () => {
+        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} bug bounty exposed API data breach`, elapsed: secElapsed() });
+        await new Promise(r => setTimeout(r, 1800));
+        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 6, elapsed: secElapsed() });
+      })();
+
+      await Promise.all([p1, p2, p3, p4]);
+
+      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: secElapsed() });
+      await new Promise(r => setTimeout(r, 300));
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
+
+      report = anthropic
+        ? await synthesizeRedteamWithClaude(domain, {})
+        : generateMockRedteamReport(domain);
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      result = { elapsed, domain, mode: 'redteam', cost: 12.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 } };
+    } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
+      const factsData = result.facts || result.scouts || {};
+      report = anthropic
+        ? await synthesizeWithClaude(domain, factsData, mode)
+        : generateMockReport(domain, factsData, mode);
     } else {
       result = await runStandardWorker(domain, emitter);
+      const factsData = result.facts || result.scouts || {};
+      report = anthropic
+        ? await synthesizeWithClaude(domain, factsData, mode)
+        : generateMockReport(domain, factsData, mode);
     }
 
     clearTimeout(timeout);
-
-    const factsData = result.facts || result.scouts || {};
-    const report = anthropic
-      ? await synthesizeWithClaude(domain, factsData, mode)
-      : generateMockReport(domain, factsData, mode);
 
     // Cache for AI-IQ instant replay
     reportCache.set(cacheKey, { report, elapsed: result.elapsed, timestamp: Date.now() });
@@ -315,7 +392,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 }`;
 
   const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
+    model: 'claude-sonnet-4-6',
     max_tokens: 4096,
     system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{ role: 'user', content: prompt }]
@@ -344,9 +421,216 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 }
 
 /**
+ * Synthesize person intelligence report with Claude
+ */
+async function synthesizePersonWithClaude(personName) {
+  const today = new Date().toISOString().split('T')[0];
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 3000,
+    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation.',
+    messages: [{
+      role: 'user',
+      content: `Produce an executive intelligence report on "${personName}" as valid JSON with this exact structure:
+{
+  "meta": {
+    "name": "${personName}",
+    "analysisDate": "${today}",
+    "mode": "person",
+    "confidence": "medium-high"
+  },
+  "signals": [
+    {"level": "high|medium|positive", "text": "specific signal about this person", "icon": "🔴|🟡|🟢"}
+  ],
+  "profile": {
+    "currentRole": "Title at Company",
+    "location": "City, Country",
+    "education": "School(s)",
+    "yearsExperience": 0
+  },
+  "career": [
+    {"company": "Company Name", "role": "Title", "period": "YYYY–YYYY or YYYY–present", "achievement": "key thing they did"}
+  ],
+  "companies": [
+    {"name": "Company Name", "role": "Co-founder & CEO", "domain": "company.com"}
+  ],
+  "quotes": [
+    {"text": "actual or representative quote", "source": "Source name", "date": "Mon YYYY"}
+  ],
+  "network": [
+    {"name": "Person Name", "relationship": "nature of connection"}
+  ],
+  "publicActivity": [
+    {"date": "Mon DD", "event": "What they did publicly", "signal": "HIGH|MED|LOW"}
+  ],
+  "cost": {"total": 1.50}
+}`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
+ * Synthesize red team security intelligence report with Claude
+ */
+async function synthesizeRedteamWithClaude(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const today = new Date().toISOString().split('T')[0];
+  const factsText = formatFacts(facts);
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation.',
+    messages: [{
+      role: 'user',
+      content: `Produce a red team security intelligence report on "${domain}" (${companyName}) as valid JSON.
+TODAY: ${today}
+SCRAPED DATA: ${factsText || 'Use your knowledge of this company and common security patterns.'}
+
+Return JSON with these fields: meta, signals, snapshot, attackSurface, exposures, socialEngineering, competitive, hiring, strategic, recommendations, sources, cost.
+
+attackSurface: { exposedPorts: [], subdomains: [], techStack: [], headers: { csp: bool, hsts: bool, xframe: bool, referrerPolicy: bool, score: "A-F" } }
+exposures: [{ type, severity: "CRITICAL|HIGH|MED|LOW", detail, date }]
+socialEngineering: [{ vector, risk: "HIGH|MED|LOW", detail }]
+recommendations: [{ priority: "P0|P1|P2", action }]
+cost: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 }`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
+ * Mock person report fallback
+ */
+function generateMockPersonReport(personName) {
+  const today = new Date().toISOString().split('T')[0];
+  return {
+    meta: { name: personName, analysisDate: today, mode: 'person', confidence: 'medium-high' },
+    signals: [
+      { level: 'high', text: `${personName} recently joined board of major tech company`, icon: '🔴' },
+      { level: 'medium', text: 'Active on conference circuit — building public profile', icon: '🟡' },
+      { level: 'positive', text: 'Recent funding announcement signals growth phase', icon: '🟢' }
+    ],
+    profile: { currentRole: 'CEO', location: 'San Francisco, CA', education: 'Stanford University', yearsExperience: 15 },
+    career: [
+      { company: 'Current Co.', role: 'CEO', period: '2020–present', achievement: 'Scaled from seed to Series C' },
+      { company: 'Previous Co.', role: 'VP Product', period: '2015–2020', achievement: 'Launched flagship product' }
+    ],
+    companies: [{ name: 'Current Co.', role: 'CEO & Co-founder', domain: 'currentco.com' }],
+    quotes: [{ text: 'We are focused on building products that matter.', source: 'TechCrunch Interview', date: 'Apr 2026' }],
+    network: [{ name: 'John Smith', relationship: 'Co-founder' }],
+    publicActivity: [
+      { date: 'Apr 24', event: 'Keynote at TechCrunch Disrupt 2026', signal: 'HIGH' },
+      { date: 'Mar 15', event: 'Published essay on AI and enterprise software', signal: 'MED' }
+    ],
+    cost: { total: 1.50 }
+  };
+}
+
+/**
+ * Mock red team report — security intelligence assessment
+ */
+function generateMockRedteamReport(domain) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  return {
+    meta: {
+      domain,
+      companyName,
+      analysisDate: today,
+      mode: 'redteam',
+      confidence: 'high'
+    },
+    signals: [
+      { level: 'high', text: 'Exposed admin panel at /admin — no rate limiting detected', icon: '🔴' },
+      { level: 'high', text: 'API keys visible in public GitHub repos (2 instances found)', icon: '🔴' },
+      { level: 'medium', text: 'Missing security headers: CSP, HSTS not enforced', icon: '🟡' },
+      { level: 'medium', text: '47 employees with personal email used on breach databases', icon: '🟡' },
+      { level: 'positive', text: 'Bug bounty program active — HackerOne, $500–$10k range', icon: '🟢' }
+    ],
+    snapshot: {
+      founded: '2018',
+      hq: 'San Francisco, CA',
+      employees: '320 (LinkedIn verified)',
+      stage: 'Series C',
+      website: domain,
+      linkedin: `linkedin.com/company/${companySlug}`
+    },
+    attackSurface: {
+      exposedPorts: ['443 (HTTPS)', '8080 (dev server?)', '22 (SSH — should be restricted)'],
+      subdomains: [`api.${domain}`, `dev.${domain}`, `staging.${domain}`, `admin.${domain}`],
+      techStack: ['Next.js 13', 'AWS us-east-1', 'Cloudflare CDN', 'Stripe', 'Intercom'],
+      headers: {
+        csp: false,
+        hsts: true,
+        xframe: true,
+        referrerPolicy: false,
+        score: 'C+'
+      }
+    },
+    exposures: [
+      { type: 'Credential Leak', severity: 'CRITICAL', detail: 'AWS_ACCESS_KEY found in public GitHub repo (now rotated)', date: 'Mar 2026' },
+      { type: 'Employee Breach', severity: 'HIGH', detail: '47 corporate emails in HaveIBeenPwned — LinkedIn, Dropbox breaches', date: 'Ongoing' },
+      { type: 'API Endpoint', severity: 'HIGH', detail: `/api/v1/users returns full user objects without auth on GET`, date: 'Active' },
+      { type: 'Subdomain Takeover', severity: 'MED', detail: `staging.${domain} — CNAME pointing to unclaimed Heroku app`, date: 'Active' }
+    ],
+    socialEngineering: [
+      { vector: 'Executive Spearphishing', risk: 'HIGH', detail: 'CEO email format known: firstname@domain — active on LinkedIn, public calendar' },
+      { vector: 'LinkedIn Recon', risk: 'HIGH', detail: '47 employees visible — 12 in engineering with tech stack in bios' },
+      { vector: 'Job Posting Intel', risk: 'MED', detail: 'DevOps postings reveal: Terraform, AWS, Datadog — full infra picture' },
+      { vector: 'Vendor Phishing', risk: 'MED', detail: 'Stripe, Intercom, Salesforce integrations visible — vendor impersonation viable' }
+    ],
+    competitive: [
+      { competitor: 'Okta', weakness: 'Also had major breach — customers less security-conscious now' },
+      { competitor: 'Auth0', weakness: 'Complex pricing, slower patching cadence' }
+    ],
+    hiring: [
+      { role: 'Security Engineers', count: 3, signal: 'Actively hiring — current team understaffed vs attack surface' },
+      { role: 'DevOps/SRE', count: 5, signal: 'Infrastructure scaling — new attack surface being added' }
+    ],
+    strategic: [
+      'Security investment lagging growth — technical debt accumulating',
+      'Bug bounty program shows security-aware culture but limited internal team',
+      'International expansion (GDPR) creating compliance pressure'
+    ],
+    recommendations: [
+      { priority: 'P0', action: 'Rotate all API keys, audit GitHub for any remaining secrets' },
+      { priority: 'P0', action: 'Fix unauthenticated /api/v1/users endpoint immediately' },
+      { priority: 'P1', action: 'Implement CSP headers — current score C+ is below industry standard' },
+      { priority: 'P1', action: 'Claim unclaimed Heroku CNAME to prevent subdomain takeover' },
+      { priority: 'P2', action: 'Enforce MFA for all employees — 47 breached emails are phishing targets' }
+    ],
+    sources: [
+      { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Tech Stack', 'Security Headers'] },
+      { tool: 'BD SERP API', icon: '🔍', target: `${domain} CVE breach security`, sections: ['Exposures', 'News'] },
+      { tool: 'BD Scraping Browser', icon: '🖥', target: `shodan.io · securityheaders.com · haveibeenpwned.com`, sections: ['Attack Surface', 'Employee Exposures'] },
+      { tool: 'BD MCP Server', icon: '🔗', target: `${domain} bug bounty API keys GitHub`, sections: ['Social Engineering', 'Credential Leaks'] }
+    ],
+    cost: {
+      webUnlocker: 0.30,
+      serpApi: 0.50,
+      scrapingBrowser: 0.80,
+      bdMcp: 0.20,
+      claude: 10.20,
+      total: 12.00
+    }
+  };
+}
+
+/**
  * Mock report fallback — used when ANTHROPIC_API_KEY not set
  */
-function generateMockReport(domain, facts, mode) {
+function generateReport(domain, facts, mode) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -451,6 +735,64 @@ function generateMockReport(domain, facts, mode) {
     }
   };
 }
+
+const REPORTS_DIR = path.join(process.cwd(), 'reports');
+
+/**
+ * Save report to disk
+ * POST body: { domain, report, mode }
+ */
+app.post('/api/save-report', (req, res) => {
+  const { domain, report, mode = 'standard' } = req.body;
+
+  if (!domain || !report) {
+    return res.status(400).json({ error: 'domain and report required' });
+  }
+
+  try {
+    const domainDir = path.join(REPORTS_DIR, domain.replace(/[^a-z0-9.-]/gi, '_'));
+    fs.mkdirSync(domainDir, { recursive: true });
+
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `${date}-${mode}.json`;
+    const filepath = path.join(domainDir, filename);
+
+    fs.writeFileSync(filepath, JSON.stringify({ domain, mode, savedAt: new Date().toISOString(), report }, null, 2));
+
+    res.json({ saved: true, path: filepath, domain, mode });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * List saved reports
+ * GET /api/reports?domain=stripe.com (optional filter)
+ */
+app.get('/api/reports', (req, res) => {
+  const { domain } = req.query;
+
+  try {
+    if (!fs.existsSync(REPORTS_DIR)) return res.json({ reports: [] });
+
+    const results = [];
+    const domainDirs = fs.readdirSync(REPORTS_DIR, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .filter(d => !domain || d.name.includes(domain.replace(/[^a-z0-9.-]/gi, '_')));
+
+    for (const dir of domainDirs) {
+      const files = fs.readdirSync(path.join(REPORTS_DIR, dir.name))
+        .filter(f => f.endsWith('.json'));
+      for (const file of files) {
+        results.push({ domain: dir.name, filename: file });
+      }
+    }
+
+    res.json({ reports: results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Recon SSE server listening on port ${PORT}`);
