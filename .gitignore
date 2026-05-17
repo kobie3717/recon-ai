@@ -3,7 +3,8 @@ node_modules/
 .next/
 dist/
 *.log
-.vercel/
+/.vercel/
+recon-ui/.vercel/
 recon-repo/
 recon-cover-1280x720.jpg
 CLAUDE.md
