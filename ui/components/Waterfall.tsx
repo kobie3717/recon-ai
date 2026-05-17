@@ -30,17 +30,32 @@ const agentIcons: Record<string, string> = {
   'bd-web-scraper': '📊',
   'ai-iq': '🧠',
   'claude': '✨',
-  'scout-01-homepage': '🌐',
-  'scout-02-serp-news': '🔍',
-  'scout-03-competitors': '🎯',
-  'scout-04-linkedin': '💼',
-  'scout-05-crunchbase': '💰',
-  'scout-06-github': '🐙',
-  'scout-07-g2': '⭐',
-  'scout-08-trustpilot': '📊',
-  'scout-09-glassdoor': '👥',
-  'scout-10-techcrunch': '📰',
 };
+
+const scoutIcons: Array<[string, string]> = [
+  ['homepage', '🌐'],
+  ['serp-news', '🔍'],
+  ['serp-competitors', '🎯'],
+  ['serp', '🔍'],
+  ['linkedin', '💼'],
+  ['crunchbase', '💰'],
+  ['github', '🐙'],
+  ['g2', '⭐'],
+  ['trustpilot', '📊'],
+  ['glassdoor', '👥'],
+  ['techcrunch', '📰'],
+];
+
+function getAgentIcon(name: string): string {
+  if (agentIcons[name]) return agentIcons[name];
+  if (name.startsWith('scout-')) {
+    const suffix = name.slice('scout-'.length);
+    const match = scoutIcons.find(([prefix]) => suffix.startsWith(prefix));
+    if (match) return match[1];
+    return '🔭';
+  }
+  return '📌';
+}
 
 const statusColors = {
   fetching: 'text-recon-amber',
@@ -96,7 +111,7 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
         {agents.length > 0 && (
           <div className="space-y-1">
             {agents.map((agent, index) => {
-              const icon = agentIcons[agent.name] || '📌';
+              const icon = getAgentIcon(agent.name);
               const colorClass = statusColors[agent.status] || 'text-recon-grey';
 
               return (

@@ -140,3 +140,30 @@ body {
 .markdown-content a:hover {
   color: #22d3ee;
 }
+
+@media print {
+  /* Print the report cleanly — hide chrome, show only report panel */
+  #waterfall-panel,
+  #url-input-bar,
+  #recon-header {
+    display: none !important;
+  }
+
+  #report-panel {
+    width: 100vw !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+  }
+
+  body {
+    background: #0A0E1A !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Prevent cards from splitting across pages */
+  #report-panel > div > div > div {
+    page-break-inside: avoid;
+  }
+}
