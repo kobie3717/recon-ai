@@ -15,9 +15,18 @@ interface ReportPanelProps {
   isRunning: boolean;
 }
 
-function handlePrint(reportData: any) {
+async function handlePrint(reportData: any) {
   const domain = reportData?.meta?.domain || 'report';
+  const mode = reportData?.meta?.mode || 'standard';
   const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
+
+  // Save to backend (fire-and-forget)
+  fetch('/api/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ domain, report: reportData, mode }),
+  }).catch(() => {});
+
   const prevTitle = document.title;
   document.title = `Recon - ${domain} - ${date}`;
   window.print();

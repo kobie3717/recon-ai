@@ -8,6 +8,8 @@ import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker } from './bd-worker.mjs';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -451,6 +453,64 @@ function generateMockReport(domain, facts, mode) {
     }
   };
 }
+
+const REPORTS_DIR = path.join(process.cwd(), 'reports');
+
+/**
+ * Save report to disk
+ * POST body: { domain, report, mode }
+ */
+app.post('/api/save-report', (req, res) => {
+  const { domain, report, mode = 'standard' } = req.body;
+
+  if (!domain || !report) {
+    return res.status(400).json({ error: 'domain and report required' });
+  }
+
+  try {
+    const domainDir = path.join(REPORTS_DIR, domain.replace(/[^a-z0-9.-]/gi, '_'));
+    fs.mkdirSync(domainDir, { recursive: true });
+
+    const date = new Date().toISOString().split('T')[0];
+    const filename = `${date}-${mode}.json`;
+    const filepath = path.join(domainDir, filename);
+
+    fs.writeFileSync(filepath, JSON.stringify({ domain, mode, savedAt: new Date().toISOString(), report }, null, 2));
+
+    res.json({ saved: true, path: filepath, domain, mode });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * List saved reports
+ * GET /api/reports?domain=stripe.com (optional filter)
+ */
+app.get('/api/reports', (req, res) => {
+  const { domain } = req.query;
+
+  try {
+    if (!fs.existsSync(REPORTS_DIR)) return res.json({ reports: [] });
+
+    const results = [];
+    const domainDirs = fs.readdirSync(REPORTS_DIR, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .filter(d => !domain || d.name.includes(domain.replace(/[^a-z0-9.-]/gi, '_')));
+
+    for (const dir of domainDirs) {
+      const files = fs.readdirSync(path.join(REPORTS_DIR, dir.name))
+        .filter(f => f.endsWith('.json'));
+      for (const file of files) {
+        results.push({ domain: dir.name, filename: file });
+      }
+    }
+
+    res.json({ reports: results });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`🚀 Recon SSE server listening on port ${PORT}`);
