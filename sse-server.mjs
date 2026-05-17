@@ -85,7 +85,15 @@ setInterval(() => {
  * Health check
  */
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', agent: 'recon-sse', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    agent: 'recon-sse',
+    timestamp: new Date().toISOString(),
+    uptime: Math.round(process.uptime()),
+    synthesis: anthropic ? 'claude' : 'mock',
+    brightData: process.env.BD_API_KEY && process.env.BD_API_KEY !== 'STUB' ? 'configured' : 'mock',
+    cacheEntries: reportCache.size,
+  });
 });
 
 /**
@@ -158,7 +166,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = mode === 'bundle' ? 150000 : (mode === 'deep' ? 120000 : 60000);
+  const timeoutMs = mode === 'bundle' ? 240000 : (mode === 'deep' ? 120000 : 60000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
@@ -383,7 +391,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
  * Synthesize report endpoint
  * POST body: { domain, facts, mode }
  */
-app.post('/api/synthesize', reportLimiter, async (req, res) => {
+app.post('/api/synthesize', reportLimiter, express.json({ limit: '2mb' }), async (req, res) => {
   let { domain, facts, mode = 'standard' } = req.body;
 
   if (!domain || !facts) {
@@ -1214,9 +1222,23 @@ app.get('/api/reports', reportLimiter, (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Recon SSE server listening on port ${PORT}`);
   console.log(`   Claude synthesis: ${anthropic ? 'ENABLED' : 'MOCK (set ANTHROPIC_API_KEY)'}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Report: http://localhost:${PORT}/api/report?domain=stripe.com&mode=standard`);
+});
+
+// Graceful shutdown — lets in-flight SSE streams finish during Railway deploys
+process.on('SIGTERM', () => {
+  console.log('[shutdown] SIGTERM received — closing server gracefully');
+  server.close(() => {
+    console.log('[shutdown] Server closed cleanly');
+    process.exit(0);
+  });
+  // Force exit after 30s if streams are still open
+  setTimeout(() => {
+    console.warn('[shutdown] Forced exit after 30s timeout');
+    process.exit(1);
+  }, 30000).unref();
 });

@@ -134,7 +134,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   })();
 
   // Wait for all to complete
-  const [webPage, serpResults, browserPages, structuredData, mcpData] = await Promise.all([
+  const settled = await Promise.allSettled([
     webUnlockerPromise,
     serpPromise,
     scrapingBrowserPromise,
@@ -142,13 +142,23 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
     mcpPromise
   ]);
 
-  // Collect facts
-  facts.homepage = webPage;
-  facts.news = serpResults;
-  facts.linkedin = browserPages.find(p => p.url.includes('linkedin'));
-  facts.crunchbase = browserPages.find(p => p.url.includes('crunchbase'));
-  facts.structured = structuredData;
-  facts.mcp = mcpData;
+  const [webPage, serpResults, browserPages, structuredData, mcpData] = settled.map((r, i) => {
+    if (r.status === 'fulfilled') return r.value;
+    const names = ['bd-web-unlocker', 'bd-serp', 'bd-scraping-browser', 'bd-web-scraper', 'bd-mcp'];
+    console.error(`[bd-worker] ${names[i]} failed:`, r.reason?.message);
+    emitter.emit('event', { agent: names[i], status: 'error', elapsed: parseFloat(elapsed()) });
+    return null;
+  });
+
+  // Collect facts (skip null results from failed BD calls)
+  if (webPage) facts.homepage = webPage;
+  if (serpResults) facts.news = serpResults;
+  if (browserPages) {
+    facts.linkedin = browserPages.find(p => p.url.includes('linkedin'));
+    facts.crunchbase = browserPages.find(p => p.url.includes('crunchbase'));
+  }
+  if (structuredData) facts.structured = structuredData;
+  if (mcpData) facts.mcp = mcpData;
 
   const factCount = Object.keys(facts).length;
 
@@ -286,9 +296,10 @@ export async function runDeepWorker(domain, emitter) {
       emitter.emit('event', {
         agent: `scout-${scout.name}`,
         status: 'error',
+        message: error.message,
         elapsed: parseFloat(elapsed())
       });
-      return { scout: scout.name, error: 'scout failed' };
+      return { scout: scout.name, error: error.message || 'scout failed' };
     }
   });
 
