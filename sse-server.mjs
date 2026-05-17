@@ -65,13 +65,7 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
  * Health check
  */
 app.get('/health', (req, res) => {
-  res.json({
-    status: 'ok',
-    agent: 'recon-sse',
-    timestamp: new Date().toISOString(),
-    claudeEnabled: !!anthropic,
-    cacheEntries: reportCache.size
-  });
+  res.json({ status: 'ok', agent: 'recon-sse', timestamp: new Date().toISOString() });
 });
 
 /**
@@ -107,7 +101,6 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
 
     await new Promise(r => setTimeout(r, 200));
 
@@ -138,7 +131,6 @@ app.get('/api/report', reportLimiter, async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
-  res.setHeader('Access-Control-Allow-Origin', '*');
 
   const emitter = new EventEmitter();
 
@@ -327,13 +319,13 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       const factsData = result.facts || result.scouts || {};
       report = anthropic
         ? await synthesizeWithClaude(domain, factsData, mode)
-        : generateMockReport(domain, factsData, mode);
+        : generateReport(domain, factsData, mode);
     } else {
       result = await runStandardWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
       report = anthropic
         ? await synthesizeWithClaude(domain, factsData, mode)
-        : generateMockReport(domain, factsData, mode);
+        : generateReport(domain, factsData, mode);
     }
 
     clearTimeout(timeout);
@@ -1105,7 +1097,12 @@ const REPORTS_DIR = path.join(process.cwd(), 'reports');
  */
 app.post('/api/save-report', (req, res) => {
   let domain = req.body.domain;
-  const { report, mode = 'standard' } = req.body;
+  const { report } = req.body;
+  const mode = req.body.mode || 'standard';
+
+  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
+    return res.status(400).json({ error: 'invalid mode' });
+  }
 
   try {
     if (mode === 'person') {
@@ -1135,9 +1132,9 @@ app.post('/api/save-report', (req, res) => {
 
     fs.writeFileSync(filepath, JSON.stringify({ domain, mode, savedAt: new Date().toISOString(), report }, null, 2));
 
-    res.json({ saved: true, path: filepath, domain, mode });
+    res.json({ saved: true, domain, mode });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'save failed' });
   }
 });
 
@@ -1145,7 +1142,7 @@ app.post('/api/save-report', (req, res) => {
  * List saved reports
  * GET /api/reports?domain=stripe.com (optional filter)
  */
-app.get('/api/reports', (req, res) => {
+app.get('/api/reports', reportLimiter, (req, res) => {
   const { domain } = req.query;
 
   try {
@@ -1166,7 +1163,7 @@ app.get('/api/reports', (req, res) => {
 
     res.json({ reports: results });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'failed to list reports' });
   }
 });
 
