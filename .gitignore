@@ -3,3 +3,11 @@ node_modules/
 .next/
 dist/
 *.log
+recon-repo/
+recon-cover-1280x720.jpg
+CLAUDE.md
+hydrabot-report.*
+gen_pdf.py
+gen_deep_pdf.py
+generate_pitch_deck.py
+pitch-deck.html
