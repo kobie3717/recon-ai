@@ -69,6 +69,7 @@ export async function webUnlocker(url) {
     })
   });
 
+  if (!response.ok) throw new Error(`BD Web Unlocker ${response.status}`);
   const text = await response.text();
   return {
     url,
@@ -139,6 +140,7 @@ export async function serpApi(query) {
     })
   });
 
+  if (!response.ok) throw new Error(`BD SERP API ${response.status}`);
   const data = await response.json();
   return {
     query,
@@ -224,19 +226,22 @@ export async function scrapingBrowser(urls) {
   const wsEndpoint = `wss://brd-customer-${BD_CUSTOMER_ID}:${BD_API_KEY}@brd.superproxy.io:9222`;
   const browser = await chromium.connectOverCDP(wsEndpoint, { timeout: 30000 });
   const results = [];
-  for (const url of urls) {
-    const page = await browser.newPage();
-    try {
-      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
-      const text = await page.evaluate(() => document.body.innerText);
-      results.push({ url, text, status: 200 });
-    } catch (err) {
-      results.push({ url, text: '', status: 500, error: err.message });
-    } finally {
-      await page.close();
+  try {
+    for (const url of urls) {
+      const page = await browser.newPage();
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+        const text = await page.evaluate(() => document.body.innerText);
+        results.push({ url, text, status: 200 });
+      } catch (err) {
+        results.push({ url, text: '', status: 500 });
+      } finally {
+        await page.close();
+      }
     }
+  } finally {
+    await browser.close().catch(() => {});
   }
-  await browser.close();
   return results;
 }
 

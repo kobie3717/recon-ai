@@ -9,6 +9,7 @@ import ComparePanel from '@/components/ComparePanel';
 import RedteamPanel from '@/components/RedteamPanel';
 import SeoPanel from '@/components/SeoPanel';
 import BundlePanel from '@/components/BundlePanel';
+import PersonPanel from '@/components/PersonPanel';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
@@ -25,6 +26,7 @@ export default function Home() {
   const [cacheTime, setCacheTime] = useState<number>();
   const [freshTime, setFreshTime] = useState<number>();
   const [costBreakdown, setCostBreakdown] = useState<any>();
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const completedRef = useRef(false);
 
   // Compare mode state
@@ -79,6 +81,7 @@ export default function Home() {
     setCostBreakdown(undefined);
     setCompareActive(false);
     setReportData2(null);
+    setErrorMessage('');
 
     // Connect to SSE via proxy
     const evtSource = new EventSource(
@@ -137,7 +140,7 @@ export default function Home() {
           completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'error') {
-          console.error('Report error:', event.message);
+          setErrorMessage(event.message || 'Report generation failed');
           setIsRunning(false);
           evtSource.close();
         }
@@ -331,6 +334,13 @@ export default function Home() {
         />
       </div>
 
+      {errorMessage && (
+        <div className="bg-red-500/10 border-b border-red-500/30 px-6 py-2 flex items-center justify-between text-sm">
+          <span className="text-red-400">⚠ {errorMessage}</span>
+          <button onClick={() => setErrorMessage('')} className="text-red-400/60 hover:text-red-400 ml-4">✕</button>
+        </div>
+      )}
+
       <div className="flex flex-1 overflow-hidden">
         <div className="w-1/2 h-full" id="waterfall-panel">
           <Waterfall
@@ -365,6 +375,12 @@ export default function Home() {
             />
           ) : currentMode === 'bundle' ? (
             <BundlePanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
+            />
+          ) : currentMode === 'person' ? (
+            <PersonPanel
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => setUrl(q)}
