@@ -28,6 +28,7 @@ const agentIcons: Record<string, string> = {
   'bd-serp': '🔍',
   'bd-scraping-browser': '🖥',
   'bd-web-scraper': '📊',
+  'bd-mcp': '🔗',
   'ai-iq': '🧠',
   'claude': '✨',
 };
@@ -74,6 +75,11 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
   const showPlaceholder = !isRunning && agents.length === 0;
   const showFooter = !isRunning && agents.length > 0;
   const isDeepMode = mode === 'deep';
+  const isBundleMode = mode === 'bundle';
+  const isRedteamMode = mode === 'redteam';
+  const isSeoMode = mode === 'seo';
+  const isPersonMode = mode === 'person';
+  const shouldShowBotDetection = mode && mode !== 'person';
 
   return (
     <div className="flex flex-col h-full bg-recon-dark">
@@ -83,6 +89,26 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
           {isDeepMode && (
             <div className="text-indigo-400 text-xs mt-1 font-semibold">
               DEEP SEARCH MODE — 10 parallel scouts
+            </div>
+          )}
+          {isBundleMode && (
+            <div className="text-amber-400 text-xs mt-1 font-semibold">
+              BUNDLE MODE — intelligence + SEO + security
+            </div>
+          )}
+          {isRedteamMode && (
+            <div className="text-red-400 text-xs mt-1 font-semibold">
+              REDTEAM MODE — attack surface analysis
+            </div>
+          )}
+          {isSeoMode && (
+            <div className="text-green-400 text-xs mt-1 font-semibold">
+              SEO MODE — search intelligence
+            </div>
+          )}
+          {isPersonMode && (
+            <div className="text-purple-400 text-xs mt-1 font-semibold">
+              PERSON INTEL — executive profile
             </div>
           )}
         </div>
@@ -147,8 +173,12 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
         <div className="bg-recon-navy/50 px-6 py-3 border-t border-recon-blue/30 text-sm text-recon-grey">
           <div className="flex items-center gap-4">
             <span>Total time: {totalElapsed.toFixed(1)}s</span>
-            <span>•</span>
-            <span>Bypassed bot detection</span>
+            {shouldShowBotDetection && (
+              <>
+                <span>•</span>
+                <span>Bypassed bot detection</span>
+              </>
+            )}
             <span>•</span>
             <span>{agents.length} events logged</span>
             <span>•</span>

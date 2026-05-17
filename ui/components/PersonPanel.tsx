@@ -7,7 +7,7 @@ interface PersonPanelProps {
 }
 
 export default function PersonPanel({ reportData, isRunning }: PersonPanelProps) {
-  const showPlaceholder = !isRunning && !reportData;
+  const showPlaceholder = !reportData;
   const showLoading = isRunning && !reportData;
 
   return (

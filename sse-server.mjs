@@ -30,7 +30,7 @@ const PORT = process.env.PORT || 3001;
 app.set('trust proxy', 1);
 
 // CORS lockdown
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
@@ -103,10 +103,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     if (mode === 'person') {
       // Person mode: domain param is a person name, not a URL
       const name = (req.query.domain || '').trim();
-      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+      if (name.trim().length < 2 || name.trim().length > 100) {
         return res.status(400).json({ error: 'invalid person name' });
       }
-      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+      domain = name.substring(0, 100);
     } else {
       domain = validateDomain(req.query.domain);
     }
@@ -158,7 +158,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = (mode === 'bundle' || mode === 'deep') ? 120000 : 60000;
+  const timeoutMs = mode === 'bundle' ? 150000 : (mode === 'deep' ? 120000 : 60000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
@@ -393,10 +393,10 @@ app.post('/api/synthesize', reportLimiter, async (req, res) => {
   try {
     if (mode === 'person') {
       const name = (domain || '').trim();
-      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+      if (name.trim().length < 2 || name.trim().length > 100) {
         return res.status(400).json({ error: 'invalid person name' });
       }
-      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+      domain = name.substring(0, 100);
     } else {
       domain = validateDomain(domain);
     }
@@ -884,7 +884,7 @@ function generateMockSeoReport(domain) {
       contentGaps: ['Comparison pages vs top 3 competitors', 'ROI calculators', 'Integration guides']
     },
     technical: {
-      coreWebVitals: { lcp: '1.8s', fid: '12ms', cls: '0.02', score: 'Good' },
+      coreWebVitals: { lcp: '1.8s', fid: '12ms', cls: '0.02', score: 88 },
       mobileScore: 91,
       pageSpeed: 87,
       issues: [
@@ -1154,10 +1154,10 @@ app.post('/api/save-report', (req, res) => {
   try {
     if (mode === 'person') {
       const name = (domain || '').trim();
-      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+      if (name.trim().length < 2 || name.trim().length > 100) {
         return res.status(400).json({ error: 'invalid person name' });
       }
-      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+      domain = name.substring(0, 100);
     } else {
       domain = validateDomain(domain);
     }
