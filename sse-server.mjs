@@ -81,14 +81,23 @@ app.get('/health', (req, res) => {
 app.get('/api/report', reportLimiter, async (req, res) => {
   let domain, mode;
   try {
-    domain = validateDomain(req.query.domain);
     mode = req.query.mode || 'standard';
+    if (!['standard', 'deep', 'person', 'redteam', 'seo'].includes(mode)) {
+      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, or seo' });
+    }
+
+    if (mode === 'person') {
+      // Person mode: domain param is a person name, not a URL
+      const name = (req.query.domain || '').trim();
+      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+        return res.status(400).json({ error: 'invalid person name' });
+      }
+      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+    } else {
+      domain = validateDomain(req.query.domain);
+    }
   } catch (e) {
     return res.status(400).json({ error: e.message });
-  }
-
-  if (!['standard', 'deep', 'person', 'redteam', 'seo'].includes(mode)) {
-    return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, or seo' });
   }
 
   // AI-IQ cache check — instant replay if seen before
@@ -308,10 +317,24 @@ app.get('/api/report', reportLimiter, async (req, res) => {
  * POST body: { domain, facts, mode }
  */
 app.post('/api/synthesize', reportLimiter, async (req, res) => {
-  const { domain, facts, mode = 'standard' } = req.body;
+  let { domain, facts, mode = 'standard' } = req.body;
 
   if (!domain || !facts) {
     return res.status(400).json({ error: 'domain and facts required' });
+  }
+
+  try {
+    if (mode === 'person') {
+      const name = (domain || '').trim();
+      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+        return res.status(400).json({ error: 'invalid person name' });
+      }
+      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+    } else {
+      domain = validateDomain(domain);
+    }
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
   }
 
   const report = anthropic
@@ -1037,7 +1060,15 @@ app.post('/api/save-report', (req, res) => {
   const { report, mode = 'standard' } = req.body;
 
   try {
-    domain = validateDomain(domain);
+    if (mode === 'person') {
+      const name = (domain || '').trim();
+      if (!name || name.length > 100 || !/^[\w\s'.,-]{2,100}$/i.test(name)) {
+        return res.status(400).json({ error: 'invalid person name' });
+      }
+      domain = name.replace(/[^\w\s'.,-]/g, '').substring(0, 100);
+    } else {
+      domain = validateDomain(domain);
+    }
   } catch (e) {
     return res.status(400).json({ error: e.message });
   }
