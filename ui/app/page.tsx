@@ -137,17 +137,19 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen">
-      <Header credits={credits} />
+      <div id="recon-header"><Header credits={credits} /></div>
 
-      <UrlInput
-        onGenerate={handleGenerate}
-        isRunning={isRunning}
-        url={url}
-        onUrlChange={setUrl}
-      />
+      <div id="url-input-bar">
+        <UrlInput
+          onGenerate={handleGenerate}
+          isRunning={isRunning}
+          url={url}
+          onUrlChange={setUrl}
+        />
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/2 h-full">
+        <div className="w-1/2 h-full" id="waterfall-panel">
           <Waterfall
             agents={agents}
             totalElapsed={totalElapsed}

@@ -15,15 +15,19 @@ interface ReportPanelProps {
   isRunning: boolean;
 }
 
+function handlePrint() {
+  window.print();
+}
+
 export default function ReportPanel({ content, reportData, costBreakdown, isRunning }: ReportPanelProps) {
   const showPlaceholder = !isRunning && !content && !reportData;
   const showLoading = isRunning && !content && !reportData;
 
-  // If we have old-style markdown content, render it
+  // Old-style markdown content fallback
   if (content && !reportData) {
     return (
-      <div className="flex flex-col h-full bg-recon-dark">
-        <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30">
+      <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
+        <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
           <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Report</h2>
         </div>
 
@@ -48,9 +52,18 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
   }
 
   return (
-    <div className="flex flex-col h-full bg-recon-dark">
-      <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30">
+    <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
+      <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Report</h2>
+        {reportData && (
+          <button
+            onClick={handlePrint}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+            title="Download as PDF"
+          >
+            ↓ PDF
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -104,7 +117,6 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
             {/* Snapshot + Financials Grid */}
             <div className="grid grid-cols-2 gap-4">
-              {/* Snapshot */}
               {reportData.snapshot && (
                 <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                   <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Company Snapshot</h3>
@@ -137,7 +149,6 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                 </div>
               )}
 
-              {/* Financials */}
               {reportData.financials && (
                 <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                   <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Financials</h3>
@@ -187,7 +198,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <tbody>
                       {reportData.news.map((item: any, idx: number) => (
                         <tr key={idx} className="border-b border-recon-blue/10">
-                          <td className="py-2 text-recon-grey">{item.date}</td>
+                          <td className="py-2 text-recon-grey whitespace-nowrap">{item.date}</td>
                           <td className="py-2 text-white">{item.headline}</td>
                           <td className="py-2">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${
@@ -236,7 +247,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <tbody>
                       {reportData.competitive.map((comp: any, idx: number) => (
                         <tr key={idx} className={idx % 2 === 0 ? 'bg-recon-navy/20' : ''}>
-                          <td className="py-2 text-white">{comp.competitor}</td>
+                          <td className="py-2 text-white font-medium">{comp.competitor}</td>
                           <td className="py-2 text-recon-grey">{comp.weakness}</td>
                         </tr>
                       ))}
@@ -270,7 +281,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                 <div className="space-y-3">
                   {reportData.strategic.map((strategy: string, idx: number) => (
                     <div key={idx} className="flex gap-3 text-sm">
-                      <span className="text-recon-cyan font-bold text-lg">{idx + 1}</span>
+                      <span className="text-recon-cyan font-bold text-lg leading-none">{idx + 1}</span>
                       <span className="text-white">{strategy}</span>
                     </div>
                   ))}
@@ -397,6 +408,33 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               </div>
             )}
 
+            {/* Intelligence Sources — shows judges exactly which BD product found each section */}
+            {reportData.sources && (
+              <div className="bg-recon-navy/60 border border-recon-blue/40 rounded-lg p-4">
+                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Sources</h3>
+                <div className="space-y-3">
+                  {reportData.sources.map((src: any, idx: number) => (
+                    <div key={idx} className="text-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-base">{src.icon}</span>
+                        <span className="text-white font-semibold">{src.tool}</span>
+                      </div>
+                      <div className="pl-6 text-xs text-recon-grey mb-1 font-mono">
+                        → {src.target}
+                      </div>
+                      <div className="pl-6 flex flex-wrap gap-1">
+                        {src.sections.map((section: string, sIdx: number) => (
+                          <span key={sIdx} className="bg-recon-blue/15 text-recon-cyan/80 px-2 py-0.5 rounded text-xs border border-recon-blue/20">
+                            {section}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Cost Breakdown */}
             {reportData.cost && (
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
@@ -424,7 +462,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <span>${reportData.cost.total.toFixed(2)}</span>
                   </div>
                   <div className="text-recon-cyan text-xs mt-3">
-                    Intelligence now in AI-IQ memory. Next query instant.
+                    Intelligence stored in AI-IQ memory. Next query instant. ⚡
                   </div>
                 </div>
               </div>
