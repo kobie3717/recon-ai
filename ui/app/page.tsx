@@ -6,9 +6,9 @@ import UrlInput from '@/components/UrlInput';
 import Waterfall, { AgentState, AgentStatus } from '@/components/Waterfall';
 import ReportPanel from '@/components/ReportPanel';
 import ComparePanel from '@/components/ComparePanel';
-import PersonPanel from '@/components/PersonPanel';
 import RedteamPanel from '@/components/RedteamPanel';
 import SeoPanel from '@/components/SeoPanel';
+import BundlePanel from '@/components/BundlePanel';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
@@ -363,8 +363,8 @@ export default function Home() {
               isRunning={isRunning}
               onDrillDown={(q) => setUrl(q)}
             />
-          ) : currentMode === 'person' ? (
-            <PersonPanel
+          ) : currentMode === 'bundle' ? (
+            <BundlePanel
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => setUrl(q)}
@@ -375,7 +375,6 @@ export default function Home() {
               reportData={reportData}
               costBreakdown={costBreakdown}
               isRunning={isRunning}
-              onDrillDown={(q) => setUrl(q)}
             />
           )}
         </div>

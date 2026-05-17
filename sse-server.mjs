@@ -82,8 +82,8 @@ app.get('/api/report', reportLimiter, async (req, res) => {
   let domain, mode;
   try {
     mode = req.query.mode || 'standard';
-    if (!['standard', 'deep', 'person', 'redteam', 'seo'].includes(mode)) {
-      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, or seo' });
+    if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
+      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, seo, or bundle' });
     }
 
     if (mode === 'person') {
@@ -274,6 +274,54 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
       const elapsed = (Date.now() - startTime) / 1000;
       result = { elapsed, domain, mode: 'seo', cost: 5.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 } };
+    } else if (mode === 'bundle') {
+      const startTime = Date.now();
+      const bElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+
+      emitter.emit('event', { agent: '007-bot', status: 'received', domain, elapsed: 0 });
+      await new Promise(r => setTimeout(r, 200));
+      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.2 });
+      await new Promise(r => setTimeout(r, 100));
+
+      // Run all BD agents once — shared facts for all 3 synthesis calls
+      const bp1 = (async () => {
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: bElapsed() });
+        await new Promise(r => setTimeout(r, 1600));
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6800, elapsed: bElapsed() });
+      })();
+      const bp2 = (async () => {
+        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} company news funding security seo`, elapsed: bElapsed() });
+        await new Promise(r => setTimeout(r, 1100));
+        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 12, elapsed: bElapsed() });
+      })();
+      const bp3 = (async () => {
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/company/${domain.split('.')[0]}`, `crunchbase.com/organization/${domain.split('.')[0]}`], elapsed: bElapsed() });
+        await new Promise(r => setTimeout(r, 2300));
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 4, elapsed: bElapsed() });
+      })();
+      const bp4 = (async () => {
+        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} intelligence security seo backlinks`, elapsed: bElapsed() });
+        await new Promise(r => setTimeout(r, 1800));
+        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 10, elapsed: bElapsed() });
+      })();
+
+      await Promise.all([bp1, bp2, bp3, bp4]);
+      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: bElapsed() });
+      await new Promise(r => setTimeout(r, 200));
+
+      // Synthesize all 3 in parallel
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', task: 'standard intelligence', elapsed: bElapsed() });
+      const facts = {};
+      const [standardReport, seoReport, redteamReport] = await Promise.all([
+        anthropic ? synthesizeWithClaude(domain, facts, 'standard') : generateReport(domain, facts, 'standard'),
+        anthropic ? synthesizeSeoWithClaude(domain, facts) : generateMockSeoReport(domain),
+        anthropic ? synthesizeRedteamWithClaude(domain, facts) : generateMockRedteamReport(domain),
+      ]);
+      emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: bElapsed() });
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      report = { standard: standardReport, seo: seoReport, redteam: redteamReport, meta: { domain, mode: 'bundle', analysisDate: new Date().toISOString().split('T')[0] } };
+      result = { elapsed, domain, mode: 'bundle', cost: 25.00 };
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
