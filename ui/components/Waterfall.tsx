@@ -18,6 +18,7 @@ interface WaterfallProps {
   cacheTime?: number;
   freshTime?: number;
   isRunning: boolean;
+  mode?: string;
 }
 
 const agentIcons: Record<string, string> = {
@@ -29,6 +30,16 @@ const agentIcons: Record<string, string> = {
   'bd-web-scraper': '📊',
   'ai-iq': '🧠',
   'claude': '✨',
+  'scout-01-homepage': '🌐',
+  'scout-02-serp-news': '🔍',
+  'scout-03-competitors': '🎯',
+  'scout-04-linkedin': '💼',
+  'scout-05-crunchbase': '💰',
+  'scout-06-github': '🐙',
+  'scout-07-g2': '⭐',
+  'scout-08-trustpilot': '📊',
+  'scout-09-glassdoor': '👥',
+  'scout-10-techcrunch': '📰',
 };
 
 const statusColors = {
@@ -38,7 +49,7 @@ const statusColors = {
   routing: 'text-recon-cyan',
 };
 
-export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, freshTime, isRunning }: WaterfallProps) {
+export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, freshTime, isRunning, mode }: WaterfallProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -47,11 +58,19 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
 
   const showPlaceholder = !isRunning && agents.length === 0;
   const showFooter = !isRunning && agents.length > 0;
+  const isDeepMode = mode === 'deep';
 
   return (
     <div className="flex flex-col h-full bg-recon-dark">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
-        <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Intelligence Pipeline</h2>
+        <div className="flex flex-col">
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Intelligence Pipeline</h2>
+          {isDeepMode && (
+            <div className="text-indigo-400 text-xs mt-1 font-semibold">
+              DEEP SEARCH MODE — 10 parallel scouts
+            </div>
+          )}
+        </div>
         {isRunning && (
           <div className="text-recon-amber font-mono text-sm">
             {totalElapsed.toFixed(1)}s

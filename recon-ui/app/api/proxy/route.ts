@@ -5,7 +5,7 @@ export async function GET(request: Request) {
 
   try {
     const upstream = await fetch(
-      `http://localhost:3001/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`,
+      `${process.env.RECON_SERVER_URL || 'http://localhost:3001'}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`,
       {
         headers: { Accept: 'text/event-stream' },
       }
