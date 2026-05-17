@@ -359,7 +359,16 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
       // Synthesize all 3 in parallel
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', task: 'standard intelligence', elapsed: bElapsed() });
-      const facts = {};
+
+      // Get facts from standard worker for proper synthesis
+      let facts = {};
+      try {
+        const workerResult = await runStandardWorker(domain, new (await import('events')).EventEmitter(), 'standard');
+        facts = workerResult.facts || {};
+      } catch (e) {
+        console.error('[bundle] facts collection failed:', e.message);
+      }
+
       const [standardReport, seoReport, redteamReport] = await Promise.all([
         anthropic ? synthesizeWithClaude(domain, facts, 'standard') : generateReport(domain, facts, 'standard'),
         anthropic ? synthesizeSeoWithClaude(domain, facts) : generateMockSeoReport(domain),

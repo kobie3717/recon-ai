@@ -136,6 +136,7 @@ export default function Home() {
           setCacheHit(true);
           setCacheTime(event.cache_time || event.elapsed);
           setFreshTime(event.fresh_time || 9.0);
+          // Cache hit — don't deduct credits, stream still sends report event
         } else if (event.type === 'report') {
           // Final event — contains structured report data + cost breakdown
           if (typeof event.report === 'object') {
@@ -155,7 +156,7 @@ export default function Home() {
             setCostBreakdown(event.costBreakdown || { total: event.cost });
           }
           setIsRunning(false);
-          setCredits(prev => prev - cost);
+          if (!cacheHit) setCredits(prev => prev - cost);
           completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'complete') {
@@ -386,6 +387,11 @@ export default function Home() {
                     setReportData(entry.report);
                     setUrl(entry.domain);
                     setShowHistory(false);
+                    setCompareActive(false);
+                    setReportData2(null);
+                    setIsRunning(false);
+                    setIsRunning2(false);
+                    setErrorMessage('');
                   }}
                   className="w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group"
                 >

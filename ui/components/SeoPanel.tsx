@@ -84,10 +84,10 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
             {reportData.snapshot && (
               <div className="grid grid-cols-4 gap-4">
                 {[
-                  { label: 'Domain Authority', value: reportData.snapshot.domainAuthority, suffix: '/100' },
-                  { label: 'Organic Traffic', value: reportData.snapshot.organicTraffic?.toLocaleString(), suffix: '/mo' },
-                  { label: 'Ranking Keywords', value: reportData.snapshot.rankingKeywords?.toLocaleString(), suffix: '' },
-                  { label: 'Backlinks', value: reportData.snapshot.backlinks?.toLocaleString(), suffix: '' },
+                  { label: 'Domain Authority', value: reportData.snapshot?.domainAuthority ?? '-', suffix: reportData.snapshot?.domainAuthority != null ? '/100' : '' },
+                  { label: 'Organic Traffic', value: reportData.snapshot?.organicTraffic?.toLocaleString?.() ?? '-', suffix: '' },
+                  { label: 'Ranking Keywords', value: reportData.snapshot?.rankingKeywords?.toLocaleString?.() ?? '-', suffix: '' },
+                  { label: 'Backlinks', value: reportData.snapshot?.backlinks?.toLocaleString?.() ?? '-', suffix: '' },
                 ].map((metric, i) => (
                   <div key={i} className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                     <div className="text-recon-grey text-xs mb-1">{metric.label}</div>
@@ -179,10 +179,10 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                         <span className="text-white font-bold">{reportData.technical.mobileScore}/100</span>
                       </div>
                     )}
-                    {reportData.technical.pageSpeed && (
+                    {reportData.technical.pageSpeed !== undefined && (
                       <div>
                         <span className="text-recon-grey block text-xs mb-1">Page Speed</span>
-                        <span className="text-white font-bold">{reportData.technical.pageSpeed}</span>
+                        <span className="text-white font-bold">{reportData.technical.pageSpeed}/100</span>
                       </div>
                     )}
                   </div>
@@ -375,7 +375,10 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                     <div key={i} className="flex items-start gap-3 text-sm">
                       <span
                         className="text-recon-cyan font-medium cursor-pointer hover:underline whitespace-nowrap"
-                        onClick={() => onDrillDown?.(c.competitor.toLowerCase().replace(/\s+/g, '') + '.com')}
+                        onClick={() => {
+                          const d = c.competitor.toLowerCase().replace(/\s+/g, '');
+                          onDrillDown?.(d.includes('.') ? d : `${d}.com`);
+                        }}
                       >{c.competitor}</span>
                       <span className="text-recon-grey">{c.weakness}</span>
                     </div>

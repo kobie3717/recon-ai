@@ -130,8 +130,8 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                       <span className="text-recon-grey block text-xs mb-1">Security Headers</span>
                       <div className="flex items-center gap-4">
                         <span className={`text-2xl font-bold ${
-                          reportData.attackSurface.headers.score?.startsWith('A') ? 'text-green-400' :
-                          reportData.attackSurface.headers.score?.startsWith('B') ? 'text-amber-400' : 'text-red-400'
+                          String(reportData.attackSurface.headers.score || 'F').startsWith('A') ? 'text-green-400' :
+                          String(reportData.attackSurface.headers.score || 'F').startsWith('B') ? 'text-amber-400' : 'text-red-400'
                         }`}>{reportData.attackSurface.headers.score}</span>
                         <div className="flex gap-2 flex-wrap">
                           {[['CSP', reportData.attackSurface.headers.csp], ['HSTS', reportData.attackSurface.headers.hsts], ['X-Frame', reportData.attackSurface.headers.xframe], ['Referrer', reportData.attackSurface.headers.referrerPolicy]].map(([label, ok]) => (
@@ -193,7 +193,10 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                     <div key={i} className="flex items-start gap-3 text-sm">
                       <span
                         className="text-recon-cyan font-medium cursor-pointer hover:underline whitespace-nowrap"
-                        onClick={() => onDrillDown?.(c.competitor.toLowerCase().replace(/\s+/g, '') + '.com')}
+                        onClick={() => {
+                          const d = c.competitor.toLowerCase().replace(/\s+/g, '');
+                          onDrillDown?.(d.includes('.') ? d : `${d}.com`);
+                        }}
                       >{c.competitor}</span>
                       <span className="text-recon-grey">{c.weakness}</span>
                     </div>

@@ -99,7 +99,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 ))}
               </div>
             )}
-            {standard.snapshot && (
+            {standard?.snapshot && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Snapshot</h3>
                 <div className="grid grid-cols-2 gap-2 text-sm">
@@ -114,7 +114,10 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Competitive Intel</h3>
                 {standard.competitive.map((c: any, i: number) => (
                   <div key={i} className="flex gap-3 text-sm mb-2">
-                    <span className="text-recon-cyan font-medium cursor-pointer hover:underline" onClick={() => onDrillDown?.(c.competitor?.toLowerCase().replace(/\s+/g,'') + '.com')}>{c.competitor}</span>
+                    <span className="text-recon-cyan font-medium cursor-pointer hover:underline" onClick={() => {
+                      const d = c.competitor?.toLowerCase().replace(/\s+/g,'') || '';
+                      onDrillDown?.(d.includes('.') ? d : `${d}.com`);
+                    }}>{c.competitor}</span>
                     <span className="text-recon-grey">{c.weakness}</span>
                   </div>
                 ))}
@@ -215,7 +218,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 )}
                 {redteam.attackSurface.headers && (
                   <div className="flex items-center gap-2 mt-2">
-                    <span className={`text-xl font-bold ${redteam.attackSurface.headers.score?.startsWith('A') ? 'text-green-400' : redteam.attackSurface.headers.score?.startsWith('B') ? 'text-amber-400' : 'text-red-400'}`}>{redteam.attackSurface.headers.score}</span>
+                    <span className={`text-xl font-bold ${String(redteam.attackSurface.headers.score || 'F').startsWith('A') ? 'text-green-400' : String(redteam.attackSurface.headers.score || 'F').startsWith('B') ? 'text-amber-400' : 'text-red-400'}`}>{redteam.attackSurface.headers.score}</span>
                     <span className="text-recon-grey text-xs">security headers</span>
                   </div>
                 )}
