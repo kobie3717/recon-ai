@@ -17,6 +17,9 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Trust Railway/Vercel proxy so rate-limit sees real client IPs, not proxy IP
+app.set('trust proxy', 1);
+
 // CORS lockdown
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app').split(',');
 app.use(cors({

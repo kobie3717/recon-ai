@@ -454,26 +454,40 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3 font-sans">Cost Breakdown</h3>
                 <div className="space-y-1 text-recon-grey">
-                  <div className="flex justify-between">
-                    <span>Web Unlocker</span>
-                    <span>${reportData.cost.webUnlocker.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>SERP API</span>
-                    <span>${reportData.cost.serpApi.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Scraping Browser</span>
-                    <span>${reportData.cost.scrapingBrowser.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Web Scraper API</span>
-                    <span>${reportData.cost.webScraperApi.toFixed(2)}</span>
-                  </div>
+                  {reportData.cost.webUnlocker != null && (
+                    <div className="flex justify-between">
+                      <span>Web Unlocker</span>
+                      <span>${reportData.cost.webUnlocker.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {reportData.cost.serpApi != null && (
+                    <div className="flex justify-between">
+                      <span>SERP API</span>
+                      <span>${reportData.cost.serpApi.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {reportData.cost.scrapingBrowser != null && (
+                    <div className="flex justify-between">
+                      <span>Scraping Browser</span>
+                      <span>${reportData.cost.scrapingBrowser.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {reportData.cost.webScraperApi != null && (
+                    <div className="flex justify-between">
+                      <span>Web Scraper API</span>
+                      <span>${reportData.cost.webScraperApi.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {reportData.cost.claude != null && (
+                    <div className="flex justify-between">
+                      <span>Claude Synthesis</span>
+                      <span>${reportData.cost.claude.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="border-t border-recon-blue/30 my-2"></div>
                   <div className="flex justify-between text-white font-semibold">
                     <span>Total</span>
-                    <span>${reportData.cost.total.toFixed(2)}</span>
+                    <span>${(reportData.cost.total ?? 0).toFixed(2)}</span>
                   </div>
                   <div className="text-recon-cyan text-xs mt-3">
                     Intelligence stored in AI-IQ memory. Next query instant. ⚡
