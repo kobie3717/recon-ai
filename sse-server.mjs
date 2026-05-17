@@ -348,7 +348,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 /**
  * Mock report fallback — used when ANTHROPIC_API_KEY not set
  */
-function generateMockReport(domain, facts, mode) {
+function generateReport(domain, facts, mode) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
