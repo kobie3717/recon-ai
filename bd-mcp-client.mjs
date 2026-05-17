@@ -9,6 +9,15 @@ import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/
 const BD_API_KEY = process.env.BD_API_KEY;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// SECURITY: BD_API_KEY is sent as a URL query param (?token=...) because
+// StreamableHTTPClientTransport does not support custom auth headers.
+// This means the key appears in Node.js HTTP debug logs, proxy access logs,
+// and any network inspection tool. Mitigations:
+//   1. Scope the BD API key to MCP-only permissions (not full account access)
+//   2. Rotate the key immediately if any log aggregator is attached
+//   3. Check https://brightdata.com/mcp docs for header-auth support when it ships
+// Tracked: replace ?token= with Authorization header once BD supports it.
+
 /**
  * Search via BD MCP search_engine tool
  * @param {string} query - Search query
