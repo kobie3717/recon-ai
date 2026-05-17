@@ -4,11 +4,12 @@
 
 import { EventEmitter } from 'events';
 import { webUnlocker, serpApi, scrapingBrowser, webScraperApi } from './bright-data-connector.mjs';
+import { mcpSearch } from './bd-mcp-client.mjs';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Standard recon worker - 4 parallel BD calls
+ * Standard recon worker - 5 parallel BD calls (including MCP)
  * @param {string} domain - Target domain (e.g. "chain.link")
  * @param {EventEmitter} emitter - Event stream for real-time updates
  * @returns {Promise<Object>} - Final report data
@@ -43,7 +44,7 @@ export async function runStandardWorker(domain, emitter) {
   const crunchbaseUrl = `https://crunchbase.com/organization/${companySlug}`;
   const searchQuery = `${companySlug} company news`;
 
-  // Fire all 4 BD calls in parallel with individual event tracking
+  // Fire all 5 BD calls in parallel with individual event tracking
   const facts = {};
 
   const webUnlockerPromise = (async () => {
@@ -114,12 +115,31 @@ export async function runStandardWorker(domain, emitter) {
     return result;
   })();
 
+  const mcpPromise = (async () => {
+    const searchQuery = `${companySlug} company funding competitors news 2026`;
+    emitter.emit('event', {
+      agent: 'bd-mcp',
+      status: 'searching',
+      query: searchQuery,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await mcpSearch(searchQuery, domain);
+    emitter.emit('event', {
+      agent: 'bd-mcp',
+      status: 'complete',
+      results: result.results?.length || 0,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
   // Wait for all to complete
-  const [webPage, serpResults, browserPages, structuredData] = await Promise.all([
+  const [webPage, serpResults, browserPages, structuredData, mcpData] = await Promise.all([
     webUnlockerPromise,
     serpPromise,
     scrapingBrowserPromise,
-    webScraperPromise
+    webScraperPromise,
+    mcpPromise
   ]);
 
   // Collect facts
@@ -128,6 +148,7 @@ export async function runStandardWorker(domain, emitter) {
   facts.linkedin = browserPages.find(p => p.url.includes('linkedin'));
   facts.crunchbase = browserPages.find(p => p.url.includes('crunchbase'));
   facts.structured = structuredData;
+  facts.mcp = mcpData;
 
   const factCount = Object.keys(facts).length;
 
@@ -161,7 +182,8 @@ export async function runStandardWorker(domain, emitter) {
     webUnlocker: 0.30,
     serpApi: 0.50,
     scrapingBrowser: 0.80,
-    webScraperApi: 0.40
+    webScraperApi: 0.40,
+    bdMcp: 0.20
   };
   const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
 
