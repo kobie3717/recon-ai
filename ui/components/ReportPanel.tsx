@@ -15,8 +15,13 @@ interface ReportPanelProps {
   isRunning: boolean;
 }
 
-function handlePrint() {
+function handlePrint(reportData: any) {
+  const domain = reportData?.meta?.domain || 'report';
+  const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
+  const prevTitle = document.title;
+  document.title = `Recon - ${domain} - ${date}`;
   window.print();
+  setTimeout(() => { document.title = prevTitle; }, 1000);
 }
 
 export default function ReportPanel({ content, reportData, costBreakdown, isRunning }: ReportPanelProps) {
@@ -57,7 +62,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
         <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Report</h2>
         {reportData && (
           <button
-            onClick={handlePrint}
+            onClick={() => handlePrint(reportData)}
             className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
             title="Download as PDF"
           >
