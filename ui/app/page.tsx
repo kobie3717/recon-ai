@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import Header from '@/components/Header';
 import UrlInput from '@/components/UrlInput';
 import Waterfall, { AgentState, AgentStatus } from '@/components/Waterfall';
@@ -19,6 +19,7 @@ export default function Home() {
   const [cacheTime, setCacheTime] = useState<number>();
   const [freshTime, setFreshTime] = useState<number>();
   const [costBreakdown, setCostBreakdown] = useState<any>();
+  const completedRef = useRef(false);
 
   const extractDomain = (input: string): string => {
     try {
@@ -51,6 +52,7 @@ export default function Home() {
     const domain = extractDomain(url);
 
     // Reset state
+    completedRef.current = false;
     setIsRunning(true);
     setAgents([]);
     setTotalElapsed(0);
@@ -69,43 +71,42 @@ export default function Home() {
       try {
         const event = JSON.parse(e.data);
 
-        if (event.type === 'agent_update') {
+        // Agent pipeline events — backend sends { agent, status, elapsed } with no type field
+        if (event.agent) {
           setAgents((prev) => {
             const existing = prev.find((a) => a.name === event.agent);
             if (existing) {
               return prev.map((a) =>
                 a.name === event.agent
-                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed || a.elapsed, message: event.message }
+                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
                   : a
               );
-            } else {
-              return [
-                ...prev,
-                { name: event.agent, status: event.status as AgentStatus, elapsed: event.elapsed || 0, message: event.message },
-              ];
             }
+            return [
+              ...prev,
+              { name: event.agent, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
+            ];
           });
-
-          if (event.elapsed) {
-            setTotalElapsed(event.elapsed);
-          }
+          if (event.elapsed) setTotalElapsed(event.elapsed);
         } else if (event.type === 'cache-hit' || event.type === 'cache_hit') {
           setCacheHit(true);
           setCacheTime(event.cache_time || event.elapsed);
           setFreshTime(event.fresh_time || 9.0);
         } else if (event.type === 'report') {
-          setReportContent(event.content || event.report || '');
-        } else if (event.type === 'cost') {
-          setCostBreakdown({
-            webUnlocker: event.web_unlocker,
-            serp: event.serp,
-            scrapingBrowser: event.scraping_browser,
-            webScraper: event.web_scraper,
-            total: event.total || cost,
-          });
+          // Final event — contains report markdown + cost breakdown
+          const markdown = event.report || event.content || '';
+          setReportContent(markdown);
+          if (event.cost) {
+            setCostBreakdown(event.costBreakdown || { total: event.cost });
+          }
+          setIsRunning(false);
+          setCredits(prev => prev - cost);
+          completedRef.current = true;
+          evtSource.close();
         } else if (event.type === 'complete') {
           setIsRunning(false);
           setCredits(prev => prev - cost);
+          completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'error') {
           console.error('Report error:', event.message);
@@ -117,9 +118,11 @@ export default function Home() {
       }
     };
 
-    evtSource.onerror = (err) => {
-      console.error('SSE error:', err);
-      setIsRunning(false);
+    evtSource.onerror = () => {
+      // Stream closing after res.end() triggers onerror — ignore if already completed
+      if (!completedRef.current) {
+        setIsRunning(false);
+      }
       evtSource.close();
     };
   };
