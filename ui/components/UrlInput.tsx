@@ -12,6 +12,7 @@ interface UrlInputProps {
   onUrlChange: (url: string) => void;
   url2?: string;
   onUrl2Change?: (url: string) => void;
+  onCompareToggle?: (open: boolean) => void;
 }
 
 const reportModes = [
@@ -30,7 +31,7 @@ function looksLikePerson(input: string): boolean {
   return /^[\p{L}'\s-]+$/u.test(t) && t.includes(' ');
 }
 
-export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlChange, url2: externalUrl2, onUrl2Change }: UrlInputProps) {
+export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlChange, url2: externalUrl2, onUrl2Change, onCompareToggle }: UrlInputProps) {
   const [compareMode, setCompareMode] = useState(false);
   const url2 = externalUrl2 ?? '';
 
@@ -65,7 +66,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               className="flex-1 px-4 py-2 bg-recon-dark border border-recon-grey/30 rounded-lg text-white placeholder-recon-grey focus:outline-none focus:border-recon-cyan focus:ring-1 focus:ring-recon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
-              onClick={() => setCompareMode(true)}
+              onClick={() => { setCompareMode(true); onCompareToggle?.(true); }}
               disabled={isRunning}
               className="border border-recon-blue/50 text-recon-cyan px-3 py-2 rounded-lg text-sm hover:border-recon-cyan hover:bg-recon-cyan/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
             >
@@ -92,7 +93,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               className="flex-1 px-4 py-2 bg-recon-dark border border-recon-grey/30 rounded-lg text-white placeholder-recon-grey focus:outline-none focus:border-recon-cyan focus:ring-1 focus:ring-recon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
-              onClick={() => { setCompareMode(false); onUrl2Change?.(''); }}
+              onClick={() => { setCompareMode(false); onUrl2Change?.(''); onCompareToggle?.(false); }}
               disabled={isRunning}
               className="border border-recon-blue/50 text-recon-grey px-3 py-2 rounded-lg text-sm hover:border-red-500 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >

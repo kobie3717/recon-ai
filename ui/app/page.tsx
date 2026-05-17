@@ -34,6 +34,7 @@ export default function Home() {
   const [reportData2, setReportData2] = useState<any>(null);
   const [isRunning2, setIsRunning2] = useState(false);
   const [compareActive, setCompareActive] = useState(false);
+  const [compareInputOpen, setCompareInputOpen] = useState(false);
   const completedRef2 = useRef(false);
   const creditDeductedRef = useRef(false);
 
@@ -367,6 +368,7 @@ export default function Home() {
           onUrlChange={setUrl}
           url2={url2}
           onUrl2Change={setUrl2}
+          onCompareToggle={setCompareInputOpen}
         />
       </div>
 
@@ -442,7 +444,7 @@ export default function Home() {
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => {
-                if (compareActive && url.trim()) {
+                if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
                 } else {
                   setUrl(q);
@@ -454,7 +456,7 @@ export default function Home() {
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => {
-                if (compareActive && url.trim()) {
+                if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
                 } else {
                   setUrl(q);
@@ -466,7 +468,7 @@ export default function Home() {
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => {
-                if (compareActive && url.trim()) {
+                if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
                 } else {
                   setUrl(q);
@@ -478,7 +480,7 @@ export default function Home() {
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => {
-                if (compareActive && url.trim()) {
+                if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
                 } else {
                   setUrl(q);
@@ -492,7 +494,7 @@ export default function Home() {
               costBreakdown={costBreakdown}
               isRunning={isRunning}
               onDrillDown={(q) => {
-                if (compareActive && url.trim()) {
+                if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
                 } else {
                   setUrl(q);
