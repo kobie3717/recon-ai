@@ -285,10 +285,9 @@ export async function runDeepWorker(domain, emitter) {
       emitter.emit('event', {
         agent: `scout-${scout.name}`,
         status: 'error',
-        error: error.message,
         elapsed: parseFloat(elapsed())
       });
-      return { scout: scout.name, error: error.message };
+      return { scout: scout.name, error: 'scout failed' };
     }
   });
 
