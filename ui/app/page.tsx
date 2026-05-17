@@ -8,6 +8,7 @@ import ReportPanel from '@/components/ReportPanel';
 import ComparePanel from '@/components/ComparePanel';
 import PersonPanel from '@/components/PersonPanel';
 import RedteamPanel from '@/components/RedteamPanel';
+import SeoPanel from '@/components/SeoPanel';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
@@ -349,6 +350,12 @@ export default function Home() {
               report2={reportData2}
               isLoading1={isRunning}
               isLoading2={isRunning2}
+            />
+          ) : currentMode === 'seo' ? (
+            <SeoPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
             />
           ) : currentMode === 'redteam' ? (
             <RedteamPanel
