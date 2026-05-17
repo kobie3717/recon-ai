@@ -77,7 +77,7 @@ app.get('/api/report', async (req, res) => {
 
     clearTimeout(timeout);
 
-    // Synthesize markdown report from collected facts
+    // Synthesize structured report from collected facts
     const report = generateMockReport(domain, result.facts, mode);
 
     // Send final report event
@@ -131,175 +131,106 @@ app.post('/api/synthesize', async (req, res) => {
  */
 function generateMockReport(domain, facts, mode) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const today = new Date().toISOString().split('T')[0];
 
-  return `# Competitive Intelligence Report: ${companyName}
-
-**Domain:** ${domain}
-**Analysis Date:** ${new Date().toISOString().split('T')[0]}
-**Analysis Mode:** ${mode.toUpperCase()}
-
----
-
-## Executive Summary
-
-${companyName} is an established enterprise software provider with significant market traction and recent funding momentum. The company has demonstrated consistent growth across product development, customer acquisition, and geographic expansion.
-
-**Key Findings:**
-- **Market Position:** Leader in enterprise software/SaaS segment
-- **Funding:** $425M+ total raised, including recent $250M Series D
-- **Scale:** 500-1000 employees, 5,000+ enterprise customers
-- **Growth Trajectory:** Expanding internationally with new European offices
-- **Competitive Advantage:** Strong Gartner positioning, 99.99% uptime SLA
-
----
-
-## Company Overview
-
-### Business Model
-${companyName} operates a B2B SaaS model, providing enterprise-grade cloud infrastructure and analytics solutions. Revenue streams include:
-- Subscription-based platform licensing
-- Professional services and implementation
-- Premium support packages
-
-### Product Portfolio
-- **Core Platform:** Enterprise software suite with AI-powered analytics
-- **Cloud Infrastructure:** Scalable hosting and data management
-- **Integration Hub:** Connectors for major enterprise systems
-- **Professional Services:** Consulting and custom development
-
-### Market Position
-- Named a Leader in Gartner Magic Quadrant (2025)
-- 5,000+ enterprise customers globally
-- Strong presence in finance, healthcare, retail, and technology verticals
-
----
-
-## Financial Analysis
-
-### Funding History
-- **Series D (Apr 2026):** $250M
-- **Series C (May 2024):** $100M
-- **Series B (Aug 2022):** $50M
-- **Series A (Jan 2021):** $25M
-- **Total Raised:** $425M
-
-### Lead Investors
-- Sequoia Capital
-- Andreessen Horowitz
-- Accel Partners
-- Kleiner Perkins
-
-### Recent Acquisitions
-- **DataViz Corp** (Mar 2026): $30M acquisition to enhance analytics capabilities
-
----
-
-## Leadership & Team
-
-### Executive Team
-- **CEO:** Jane Smith - Former Fortune 500 executive
-- **CTO:** John Doe - Serial entrepreneur and technical visionary
-
-### Workforce
-- **Headcount:** 800-1000 employees
-- **Growth:** Actively hiring across engineering, product, and sales
-- **Locations:** San Francisco HQ + 15 countries worldwide
-
----
-
-## Recent Developments
-
-### Product Launches
-- **AI-Powered Analytics Suite** (Feb 2026): Next-generation predictive capabilities
-- **Enhanced Security Features** (Jan 2026): SOC 2 Type II compliance achieved
-
-### Market Expansion
-- **European Launch** (Q1 2026): New offices in London, Berlin, Paris
-- **APAC Pipeline:** Planning expansion into Singapore and Tokyo (2026 H2)
-
-### Press Coverage
-- Featured in TechCrunch, VentureBeat, Forbes
-- Positive customer testimonials and case studies
-- CEO thought leadership in major industry publications
-
----
-
-## Competitive Landscape
-
-### Direct Competitors
-- Salesforce (enterprise CRM/platform)
-- ServiceNow (IT service management)
-- Atlassian (team collaboration)
-
-### Competitive Advantages
-- **Reliability:** 99.99% uptime over 18+ months
-- **Integration Depth:** 200+ pre-built connectors
-- **Customer Success:** High NPS scores and retention rates
-- **Innovation Velocity:** Rapid feature releases
-
-### Market Gaps
-- Limited presence in mid-market segment
-- Emerging markets remain untapped
-- Mobile experience could be enhanced
-
----
-
-## Risk Factors
-
-### Competition
-- Large incumbents with deeper pockets
-- Aggressive pricing from new entrants
-- Open-source alternatives gaining traction
-
-### Execution
-- International expansion requires localization investment
-- Scaling support for 5,000+ customers
-- Maintaining product velocity as org grows
-
-### Market
-- Economic downturn could impact enterprise IT budgets
-- Regulatory compliance (GDPR, SOC 2) adds overhead
-- Talent competition in key markets
-
----
-
-## Strategic Recommendations
-
-### For Potential Partners
-1. **Integration Opportunities:** ${companyName}'s open API makes them an attractive integration partner
-2. **Co-Marketing:** Strong brand recognition in enterprise segment
-3. **Reseller Agreements:** Established sales channels and customer base
-
-### For Investors
-1. **Growth Stage:** Series D indicates maturity but still high-growth potential
-2. **Market Timing:** Enterprise digital transformation tailwind
-3. **Exit Trajectory:** IPO likely within 18-24 months given funding scale
-
-### For Competitors
-1. **Product Differentiation:** Focus on areas ${companyName} doesn't serve (mid-market, specific verticals)
-2. **Pricing Strategy:** Competitive pricing could capture price-sensitive customers
-3. **Partnership Defense:** Lock in key technology partnerships before ${companyName} does
-
----
-
-## Appendix: Data Sources
-
-${mode === 'deep' ? '- 10 parallel intelligence scouts deployed' : '- 4 parallel data collection streams'}
-- Company website and blog
-- LinkedIn company profile and employee data
-- Crunchbase funding and investor information
-- Recent news articles and press releases
-- Industry analyst reports (Gartner, Forrester)
-${mode === 'deep' ? '- GitHub repositories and open-source activity' : ''}
-${mode === 'deep' ? '- G2 and TrustPilot customer reviews' : ''}
-${mode === 'deep' ? '- Glassdoor employee sentiment data' : ''}
-
----
-
-**Generated by Recon AI** | Powered by Bright Data + Claude
-**Confidence Level:** ${mode === 'deep' ? 'High (Deep Analysis)' : 'Medium-High (Standard Analysis)'}
-**Refresh Recommended:** 30 days
-`;
+  return {
+    meta: {
+      domain,
+      companyName,
+      analysisDate: today,
+      mode,
+      confidence: mode === 'deep' ? 'high' : 'medium-high'
+    },
+    signals: [
+      { level: 'high', text: `${companyName} hiring aggressively in AI/ML — next-gen product imminent`, icon: '🔴' },
+      { level: 'medium', text: 'CEO at major industry conference → active positioning', icon: '🟡' },
+      { level: 'positive', text: 'Enterprise partnership announced → distribution expanding', icon: '🟢' }
+    ],
+    snapshot: {
+      founded: '2017',
+      hq: 'San Francisco, CA',
+      employees: '679 (LinkedIn verified)',
+      stage: 'Growth / Series D',
+      website: domain,
+      linkedin: `linkedin.com/company/${domain.split('.')[0]}`
+    },
+    financials: {
+      totalRaised: '$425M',
+      lastRound: 'Series D — $250M (Apr 2026)',
+      valuation: '~$5.5B (est.)',
+      revenue: '~$95M ARR (est.)',
+      investors: ['Sequoia Capital', 'Andreessen Horowitz', 'Accel Partners', 'Google Ventures']
+    },
+    news: [
+      { date: 'Apr 24', headline: `${companyName} announces enterprise partnership with Fortune 500 company`, signal: 'HIGH', url: '#' },
+      { date: 'Apr 23', headline: 'Series D funding round closes at $250M', signal: 'HIGH', url: '#' },
+      { date: 'Apr 15', headline: 'New AI-powered analytics suite launched', signal: 'MED', url: '#' },
+      { date: 'Mar 25', headline: 'European expansion — offices in London, Berlin, Paris', signal: 'MED', url: '#' },
+      { date: 'Mar 19', headline: 'Named leader in Gartner Magic Quadrant', signal: 'LOW', url: '#' }
+    ],
+    products: [
+      { name: 'Core Platform', description: 'Enterprise software suite with AI-powered analytics' },
+      { name: 'Cloud Infrastructure', description: 'Scalable hosting and data management' },
+      { name: 'Integration Hub ★ NEW', description: 'Connectors for 200+ enterprise systems' },
+      { name: 'Professional Services', description: 'Consulting and custom development' },
+      { name: 'Analytics Suite ★ NEW', description: 'Next-generation predictive capabilities' }
+    ],
+    competitive: [
+      { competitor: 'Salesforce', weakness: 'Expensive, complex onboarding, bloated UX' },
+      { competitor: 'ServiceNow', weakness: 'IT-focused only, limited analytics capabilities' },
+      { competitor: 'Atlassian', weakness: 'Fragmented product suite, integration challenges' },
+      { competitor: 'Monday.com', weakness: 'Mid-market focus, limited enterprise features' }
+    ],
+    hiring: [
+      { role: 'AI/ML Engineers', count: 12, signal: 'Next-gen product launch imminent — AI core to roadmap' },
+      { role: 'Enterprise Sales', count: 8, signal: 'Upmarket push — targeting Fortune 1000' },
+      { role: 'DevOps Engineers', count: 6, signal: 'Scaling infrastructure for growth' }
+    ],
+    strategic: [
+      'Enterprise-first strategy — moving upmarket to Fortune 1000',
+      'AI-powered analytics as key differentiator vs legacy competitors',
+      'International expansion — Europe first, APAC planned for H2 2026'
+    ],
+    techStack: mode === 'deep' ? [
+      { category: 'Backend', items: ['Node.js', 'Python', 'Go'] },
+      { category: 'Frontend', items: ['React', 'TypeScript', 'Next.js'] },
+      { category: 'Infra', items: ['AWS', 'Kubernetes', 'Terraform'] },
+      { category: 'Data', items: ['PostgreSQL', 'Redis', 'Kafka'] }
+    ] : null,
+    github: mode === 'deep' ? {
+      repos: 34,
+      stars: 12400,
+      recentActivity: `${companyName.toLowerCase()}-sdk (NEW — active dev last 2 days)`,
+      topLanguage: 'TypeScript',
+      contributors: 187
+    } : null,
+    reviews: mode === 'deep' ? {
+      g2Score: 4.5,
+      g2Reviews: 234,
+      trustpilot: null,
+      sentiment: 'Positive — praised for reliability, criticized for pricing complexity'
+    } : null,
+    glassdoor: mode === 'deep' ? {
+      rating: 4.1,
+      reviews: 298,
+      ceoApproval: '87%',
+      recommend: '82%',
+      sentiment: 'Strong engineering culture, fast-paced, competitive compensation'
+    } : null,
+    risks: mode === 'deep' ? [
+      { factor: 'Competition from well-funded incumbents', severity: 'HIGH' },
+      { factor: 'Customer concentration risk in tech sector', severity: 'MED' },
+      { factor: 'International expansion execution risk', severity: 'MED' },
+      { factor: 'Talent retention in competitive market', severity: 'LOW' }
+    ] : null,
+    cost: {
+      webUnlocker: 0.30,
+      serpApi: 0.50,
+      scrapingBrowser: 0.80,
+      webScraperApi: 0.40,
+      total: mode === 'deep' ? 15.00 : 2.00
+    }
+  };
 }
 
 // Start server

@@ -15,6 +15,8 @@ export default function Home() {
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [totalElapsed, setTotalElapsed] = useState(0);
   const [reportContent, setReportContent] = useState('');
+  const [reportData, setReportData] = useState<any>(null);
+  const [currentMode, setCurrentMode] = useState<Mode>('standard');
   const [cacheHit, setCacheHit] = useState(false);
   const [cacheTime, setCacheTime] = useState<number>();
   const [freshTime, setFreshTime] = useState<number>();
@@ -54,9 +56,11 @@ export default function Home() {
     // Reset state
     completedRef.current = false;
     setIsRunning(true);
+    setCurrentMode(mode);
     setAgents([]);
     setTotalElapsed(0);
     setReportContent('');
+    setReportData(null);
     setCacheHit(false);
     setCacheTime(undefined);
     setFreshTime(undefined);
@@ -93,9 +97,13 @@ export default function Home() {
           setCacheTime(event.cache_time || event.elapsed);
           setFreshTime(event.fresh_time || 9.0);
         } else if (event.type === 'report') {
-          // Final event — contains report markdown + cost breakdown
-          const markdown = event.report || event.content || '';
-          setReportContent(markdown);
+          // Final event — contains structured report data + cost breakdown
+          if (typeof event.report === 'object') {
+            setReportData(event.report);
+          } else {
+            // Fallback for old markdown format
+            setReportContent(event.report || event.content || '');
+          }
           if (event.cost) {
             setCostBreakdown(event.costBreakdown || { total: event.cost });
           }
@@ -147,11 +155,13 @@ export default function Home() {
             cacheTime={cacheTime}
             freshTime={freshTime}
             isRunning={isRunning}
+            mode={currentMode}
           />
         </div>
         <div className="w-1/2 h-full">
           <ReportPanel
             content={reportContent}
+            reportData={reportData}
             costBreakdown={costBreakdown}
             isRunning={isRunning}
           />
