@@ -423,7 +423,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             )}
 
             {/* Intelligence Sources — shows judges exactly which BD product found each section */}
-            {reportData.sources && (
+            {reportData.sources && Array.isArray(reportData.sources) && (
               <div className="bg-recon-navy/60 border border-recon-blue/40 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Sources</h3>
                 <div className="space-y-3">
@@ -454,31 +454,31 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3 font-sans">Cost Breakdown</h3>
                 <div className="space-y-1 text-recon-grey">
-                  {reportData.cost.webUnlocker != null && (
+                  {reportData.cost.webUnlocker != null && typeof reportData.cost.webUnlocker === 'number' && (
                     <div className="flex justify-between">
                       <span>Web Unlocker</span>
                       <span>${reportData.cost.webUnlocker.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.serpApi != null && (
+                  {reportData.cost.serpApi != null && typeof reportData.cost.serpApi === 'number' && (
                     <div className="flex justify-between">
                       <span>SERP API</span>
                       <span>${reportData.cost.serpApi.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.scrapingBrowser != null && (
+                  {reportData.cost.scrapingBrowser != null && typeof reportData.cost.scrapingBrowser === 'number' && (
                     <div className="flex justify-between">
                       <span>Scraping Browser</span>
                       <span>${reportData.cost.scrapingBrowser.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.webScraperApi != null && (
+                  {reportData.cost.webScraperApi != null && typeof reportData.cost.webScraperApi === 'number' && (
                     <div className="flex justify-between">
                       <span>Web Scraper API</span>
                       <span>${reportData.cost.webScraperApi.toFixed(2)}</span>
                     </div>
                   )}
-                  {reportData.cost.claude != null && (
+                  {reportData.cost.claude != null && typeof reportData.cost.claude === 'number' && (
                     <div className="flex justify-between">
                       <span>Claude Synthesis</span>
                       <span>${reportData.cost.claude.toFixed(2)}</span>
@@ -487,7 +487,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   <div className="border-t border-recon-blue/30 my-2"></div>
                   <div className="flex justify-between text-white font-semibold">
                     <span>Total</span>
-                    <span>${(reportData.cost.total ?? 0).toFixed(2)}</span>
+                    <span>${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : (reportData.cost.total ?? 0)}</span>
                   </div>
                   <div className="text-recon-cyan text-xs mt-3">
                     Intelligence stored in AI-IQ memory. Next query instant. ⚡

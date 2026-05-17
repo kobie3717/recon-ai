@@ -223,6 +223,16 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
             )}
           </div>
         )}
+
+        {reportData && tab === 'intelligence' && !standard && (
+          <div className="flex items-center justify-center h-64 text-recon-grey">Intelligence report not available</div>
+        )}
+        {reportData && tab === 'seo' && !seo && (
+          <div className="flex items-center justify-center h-64 text-recon-grey">SEO report not available</div>
+        )}
+        {reportData && tab === 'security' && !redteam && (
+          <div className="flex items-center justify-center h-64 text-recon-grey">Security report not available</div>
+        )}
       </div>
     </div>
   );

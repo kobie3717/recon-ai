@@ -1,4 +1,13 @@
+const ALLOWED_SAVE_ORIGINS = ['https://ui-beta-green.vercel.app', 'http://localhost:3000', 'http://localhost:3001'];
+
 export async function POST(request: Request) {
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const isAllowed = !origin || ALLOWED_SAVE_ORIGINS.some(o => origin.startsWith(o)) || (referer && ALLOWED_SAVE_ORIGINS.some(o => referer.startsWith(o)));
+  if (!isAllowed) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+  }
+
   const contentLength = request.headers.get('content-length');
   if (contentLength && parseInt(contentLength) > 2 * 1024 * 1024) {
     return new Response(JSON.stringify({ error: 'payload too large' }), { status: 413, headers: { 'Content-Type': 'application/json' } });

@@ -14,7 +14,16 @@ import path from 'path';
 
 dotenv.config();
 
+// Warn on startup about missing optional env vars (fail fast on critical ones)
+if (!process.env.ANTHROPIC_API_KEY) {
+  console.warn('[startup] ANTHROPIC_API_KEY not set — running in mock mode');
+}
+if (!process.env.BD_API_KEY) {
+  console.warn('[startup] BD_API_KEY not set — Bright Data calls will fail');
+}
+
 const app = express();
+app.disable('x-powered-by');
 const PORT = process.env.PORT || 3001;
 
 // Trust Railway/Vercel proxy so rate-limit sees real client IPs, not proxy IP
@@ -25,7 +34,7 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.v
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    cb(new Error('CORS: origin not allowed'));
+    cb(null, false);
   },
 }));
 
@@ -149,14 +158,21 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
+  const timeoutMs = (mode === 'bundle' || mode === 'deep') ? 120000 : 60000;
+  const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
       type: 'error',
       message: 'timeout',
-      elapsed: 60
+      elapsed: timeoutSecs
     })}\n\n`);
     res.end();
-  }, 60000);
+  }, timeoutMs);
+
+  req.on('close', () => {
+    clearTimeout(timeout);
+    emitter.removeAllListeners();
+  });
 
   try {
     let result;
@@ -561,7 +577,12 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     .replace(/^```\n?/, '')
     .replace(/\n?```$/, '');
 
-  const parsed = JSON.parse(text);
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw new Error('Claude returned invalid JSON');
+  }
 
   // Deep mode: null out missing optional fields so UI renders cleanly
   if (mode !== 'deep') {
@@ -629,7 +650,11 @@ async function synthesizePersonWithClaude(personName) {
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Claude returned invalid JSON');
+  }
 }
 
 /**
@@ -714,7 +739,11 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Claude returned invalid JSON');
+  }
 }
 
 /**
@@ -784,7 +813,11 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error('Claude returned invalid JSON');
+  }
 }
 
 /**
