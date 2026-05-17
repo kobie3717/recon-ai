@@ -77,9 +77,13 @@ app.get('/api/report', async (req, res) => {
 
     clearTimeout(timeout);
 
+    // Synthesize markdown report from collected facts
+    const report = generateMockReport(domain, result.facts, mode);
+
     // Send final report event
     res.write(`data: ${JSON.stringify({
       type: 'report',
+      report,
       ...result
     })}\n\n`);
 
