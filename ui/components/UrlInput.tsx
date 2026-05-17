@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -14,15 +14,38 @@ interface UrlInputProps {
 
 const reportModes = [
   { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '' },
+  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'outline', icon: '' },
-  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'outline', icon: '⚔' },
-  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'purple', icon: '✦' },
-  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'outline', icon: '★' },
+  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔' },
+  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦' },
+  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'gold', icon: '★' },
 ];
+
+function looksLikePerson(input: string): boolean {
+  const t = input.trim();
+  if (!t.includes(' ') || t.includes('/') || t.includes('@') || t.includes('.')) return false;
+  const parts = t.split(/\s+/);
+  return parts.length >= 2 && parts.length <= 4 && parts.every(p => /^[A-Za-z'-]+$/.test(p));
+}
 
 export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlChange }: UrlInputProps) {
   const [compareMode, setCompareMode] = useState(false);
   const [url2, setUrl2] = useState('');
+
+  const isPerson = looksLikePerson(url);
+
+  const buttonClasses = (color: string, isPulse = false) => {
+    const base = "px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    const pulse = isPulse ? " ring-2 ring-purple-400 ring-offset-1 ring-offset-recon-dark" : "";
+    switch (color) {
+      case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
+      case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
+      case 'red': return `${base} bg-recon-navy border border-red-500/50 text-red-400 hover:bg-red-500/10`;
+      case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
+      case 'gold': return `${base} bg-recon-navy border border-amber-500/50 text-amber-400 hover:bg-amber-500/10`;
+      default: return `${base} bg-recon-navy border border-recon-grey/50 text-white hover:bg-recon-grey/20`;
+    }
+  };
 
   return (
     <div className="flex flex-col">
@@ -35,7 +58,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               disabled={isRunning}
-              placeholder="Enter company URL — e.g. https://chain.link"
+              placeholder="Enter company URL or person name — e.g. stripe.com or Elon Musk"
               className="flex-1 px-4 py-2 bg-recon-dark border border-recon-grey/30 rounded-lg text-white placeholder-recon-grey focus:outline-none focus:border-recon-cyan focus:ring-1 focus:ring-recon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
@@ -66,58 +89,51 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               className="flex-1 px-4 py-2 bg-recon-dark border border-recon-grey/30 rounded-lg text-white placeholder-recon-grey focus:outline-none focus:border-recon-cyan focus:ring-1 focus:ring-recon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button
-              onClick={() => {
-                setCompareMode(false);
-                setUrl2('');
-              }}
+              onClick={() => { setCompareMode(false); setUrl2(''); }}
               disabled={isRunning}
               className="border border-recon-blue/50 text-recon-grey px-3 py-2 rounded-lg text-sm hover:border-red-500 hover:text-red-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              ✕ Cancel
+              ✕
             </button>
           </>
         )}
       </div>
 
-      {/* Report Buttons Row */}
+      {/* Person hint */}
+      {isPerson && !compareMode && (
+        <div className="bg-purple-600/10 border-b border-purple-500/20 px-6 py-1.5 flex items-center gap-2 text-xs text-purple-300">
+          <span>👤</span>
+          <span>Looks like a person — try <strong>Person Intel</strong> for executive profile</span>
+        </div>
+      )}
+
+      {/* Buttons Row */}
       <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
         {!compareMode ? (
-          reportModes.map(({ mode, label, cost, color, icon }) => {
-            const baseClasses = "px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
-
-            let colorClasses = "";
-            if (color === 'blue') {
-              colorClasses = "bg-recon-blue text-white hover:bg-recon-blue/80";
-            } else if (color === 'purple') {
-              colorClasses = "bg-indigo-600 text-white hover:bg-indigo-700";
-            } else {
-              colorClasses = "bg-recon-navy border border-recon-grey/50 text-white hover:bg-recon-grey/20";
-            }
-
-            return (
-              <button
-                key={mode}
-                onClick={() => onGenerate(url, mode, cost)}
-                disabled={isRunning || !url.trim()}
-                className={`${baseClasses} ${colorClasses}`}
-              >
-                {label} ${cost.toFixed(2)} {icon}
-              </button>
-            );
-          })
+          reportModes.map(({ mode, label, cost, color, icon }) => (
+            <button
+              key={mode}
+              onClick={() => onGenerate(url, mode, cost)}
+              disabled={isRunning || !url.trim()}
+              className={buttonClasses(color, mode === 'person' && isPerson)}
+            >
+              {icon && <span className="mr-1">{icon}</span>}
+              {label} ${cost.toFixed(2)}
+            </button>
+          ))
         ) : (
           <>
             <button
               onClick={() => onCompare(url, url2, 'standard')}
               disabled={isRunning || !url.trim() || !url2.trim()}
-              className="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-recon-blue text-white hover:bg-recon-blue/80"
+              className={buttonClasses('blue')}
             >
               Compare Standard — $4.00
             </button>
             <button
               onClick={() => onCompare(url, url2, 'deep')}
               disabled={isRunning || !url.trim() || !url2.trim()}
-              className="px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-600 text-white hover:bg-indigo-700"
+              className={buttonClasses('indigo')}
             >
               Compare Deep — $30.00
             </button>
