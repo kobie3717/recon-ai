@@ -220,12 +220,14 @@ export async function mcpFetch(domain, mode = 'standard') {
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon', version: '1.0.0' }, { capabilities: {} });
 
-  const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS)
-  );
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
 
   try {
-    await Promise.race([client.connect(transport), timeout]);
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
 
     const query = buildQuery(domain, mode);
     const homepageUrl = `https://${domain}`;
@@ -236,8 +238,9 @@ export async function mcpFetch(domain, mode = 'standard') {
         client.callTool({ name: 'search_engine', arguments: { query, num: 8 } }),
         client.callTool({ name: 'scrape_as_markdown', arguments: { url: homepageUrl } })
       ]),
-      timeout
+      makeTimeout()
     ]);
+    clearTimeout(timeoutHandle);
 
     const searchText = Array.isArray(searchResult.content)
       ? searchResult.content.map(c => c.text || '').join('\n')
@@ -263,6 +266,7 @@ export async function mcpFetch(domain, mode = 'standard') {
       via: 'bd-mcp'
     };
   } finally {
+    clearTimeout(timeoutHandle);
     await client.close().catch(() => {});
   }
 }

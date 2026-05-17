@@ -222,6 +222,9 @@ export async function scrapingBrowser(urls) {
   }
 
   // Real BD Scraping Browser via Playwright CDP
+  if (!BD_CUSTOMER_ID) {
+    throw new Error('BD_CUSTOMER_ID env var required for Scraping Browser (set in Railway environment)');
+  }
   const { chromium } = await import('playwright-core');
   const wsEndpoint = `wss://brd-customer-${BD_CUSTOMER_ID}:${BD_API_KEY}@brd.superproxy.io:9222`;
   const browser = await chromium.connectOverCDP(wsEndpoint, { timeout: 30000 });

@@ -1,7 +1,39 @@
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
+
 export async function GET(request: Request) {
+  // CORS / origin check — prevent public abuse of this proxy
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const isAllowed =
+    !origin ||
+    ALLOWED_ORIGINS.some(o => origin.startsWith(o)) ||
+    (referer && ALLOWED_ORIGINS.some(o => referer.startsWith(o)));
+
+  if (!isAllowed) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get('domain') || '';
   const mode = searchParams.get('mode') || 'standard';
+
+  // Basic input validation before forwarding
+  if (!domain || domain.length > 253) {
+    return new Response(JSON.stringify({ error: 'invalid domain' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+  const validModes = ['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'];
+  if (!validModes.includes(mode)) {
+    return new Response(JSON.stringify({ error: 'invalid mode' }), {
+      status: 400,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
 
   try {
     const upstream = await fetch(
@@ -14,7 +46,7 @@ export async function GET(request: Request) {
     if (!upstream.ok) {
       return new Response(
         JSON.stringify({ error: 'Failed to fetch report' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: upstream.status, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
