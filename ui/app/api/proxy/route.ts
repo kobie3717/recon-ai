@@ -1,4 +1,12 @@
 export async function GET(request: Request) {
+  const origin = request.headers.get('origin');
+  const referer = request.headers.get('referer');
+  const allowedOrigins = ['https://ui-beta-green.vercel.app', 'http://localhost:3000', 'http://localhost:3001'];
+  const isAllowed = !origin || allowedOrigins.some(o => origin.startsWith(o)) || (referer && allowedOrigins.some(o => referer.startsWith(o)));
+  if (!isAllowed) {
+    return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
+  }
+
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get('domain') || '';
   const mode = searchParams.get('mode') || 'standard';

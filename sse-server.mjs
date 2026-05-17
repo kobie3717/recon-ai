@@ -4,6 +4,7 @@
 
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker } from './bd-worker.mjs';
@@ -16,8 +17,40 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-app.use(cors());
+// CORS lockdown
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app').split(',');
+app.use(cors({
+  origin: (origin, cb) => {
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error('CORS: origin not allowed'));
+  },
+}));
+
 app.use(express.json());
+
+// Rate limiting
+const reportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests, slow down' },
+});
+
+/**
+ * Validate domain to prevent SSRF and path traversal
+ */
+function validateDomain(input) {
+  if (!input || typeof input !== 'string') throw new Error('domain required');
+  if (input.length > 253) throw new Error('domain too long');
+  // Only allow valid hostname chars — no slashes, colons, IPs, internal hosts
+  if (!/^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/i.test(input)) {
+    throw new Error('invalid domain format');
+  }
+  const blocked = ['localhost', '127.', '0.0.0.', '169.254.', '10.', '172.16.', '192.168.', 'internal', 'local'];
+  if (blocked.some(b => input.toLowerCase().includes(b))) throw new Error('domain not allowed');
+  return input.toLowerCase();
+}
 
 // Claude client — real synthesis when key present, mock fallback otherwise
 const anthropic = process.env.ANTHROPIC_API_KEY
@@ -45,11 +78,13 @@ app.get('/health', (req, res) => {
  * SSE endpoint for competitive intelligence reports
  * Query params: domain (required), mode (standard|deep, default: standard)
  */
-app.get('/api/report', async (req, res) => {
-  const { domain, mode = 'standard' } = req.query;
-
-  if (!domain) {
-    return res.status(400).json({ error: 'domain parameter required' });
+app.get('/api/report', reportLimiter, async (req, res) => {
+  let domain, mode;
+  try {
+    domain = validateDomain(req.query.domain);
+    mode = req.query.mode || 'standard';
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
   }
 
   if (!['standard', 'deep', 'person', 'redteam', 'seo'].includes(mode)) {
@@ -261,8 +296,7 @@ app.get('/api/report', async (req, res) => {
 
     res.write(`data: ${JSON.stringify({
       type: 'error',
-      message: error.message,
-      stack: error.stack
+      message: process.env.NODE_ENV === 'production' ? 'Report failed' : error.message,
     })}\n\n`);
 
     res.end();
@@ -273,7 +307,7 @@ app.get('/api/report', async (req, res) => {
  * Synthesize report endpoint
  * POST body: { domain, facts, mode }
  */
-app.post('/api/synthesize', async (req, res) => {
+app.post('/api/synthesize', reportLimiter, async (req, res) => {
   const { domain, facts, mode = 'standard' } = req.body;
 
   if (!domain || !facts) {
@@ -375,7 +409,9 @@ async function synthesizeWithClaude(domain, facts, mode) {
   "glassdoor": {"rating": 4.0, "reviews": 0, "ceoApproval": "80%", "recommend": "75%", "sentiment": "..."},
   "risks": [{"factor": "...", "severity": "HIGH|MED|LOW"}],` : '';
 
-  const prompt = `Analyze ${domain} (${companyName}) and produce a competitive intelligence report as JSON.
+  const safeDomain = domain.replace(/[^\w.-]/g, '').substring(0, 100);
+  const safeCompanyName = companyName.replace(/[^\w\s]/g, '').substring(0, 50);
+  const prompt = `Analyze the company at domain [${safeDomain}] (company name: ${safeCompanyName}) and produce a competitive intelligence report as JSON.
 
 TODAY: ${today}
 MODE: ${mode}
@@ -997,14 +1033,21 @@ const REPORTS_DIR = path.join(process.cwd(), 'reports');
  * POST body: { domain, report, mode }
  */
 app.post('/api/save-report', (req, res) => {
-  const { domain, report, mode = 'standard' } = req.body;
+  let domain = req.body.domain;
+  const { report, mode = 'standard' } = req.body;
 
-  if (!domain || !report) {
-    return res.status(400).json({ error: 'domain and report required' });
+  try {
+    domain = validateDomain(domain);
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+
+  if (!report) {
+    return res.status(400).json({ error: 'report required' });
   }
 
   try {
-    const domainDir = path.join(REPORTS_DIR, domain.replace(/[^a-z0-9.-]/gi, '_'));
+    const domainDir = path.join(REPORTS_DIR, domain.replace(/[^a-z0-9-]/gi, '_'));
     fs.mkdirSync(domainDir, { recursive: true });
 
     const date = new Date().toISOString().split('T')[0];
