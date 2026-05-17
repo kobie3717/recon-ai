@@ -13,6 +13,7 @@ interface ReportPanelProps {
     total?: number;
   };
   isRunning: boolean;
+  onDrillDown?: (domain: string) => void;
 }
 
 async function handlePrint(reportData: any) {
@@ -33,7 +34,7 @@ async function handlePrint(reportData: any) {
   setTimeout(() => { document.title = prevTitle; }, 1000);
 }
 
-export default function ReportPanel({ content, reportData, costBreakdown, isRunning }: ReportPanelProps) {
+export default function ReportPanel({ content, reportData, costBreakdown, isRunning, onDrillDown }: ReportPanelProps) {
   const showPlaceholder = !isRunning && !content && !reportData;
   const showLoading = isRunning && !content && !reportData;
 
@@ -263,7 +264,21 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <tbody>
                       {reportData.competitive.map((comp: any, idx: number) => (
                         <tr key={idx} className={idx % 2 === 0 ? 'bg-recon-navy/20' : ''}>
-                          <td className="py-2 text-white font-medium">{comp.competitor}</td>
+                          <td className="py-2">
+                            {onDrillDown ? (
+                              <button
+                                onClick={() => {
+                                  const d = comp.competitor.toLowerCase().replace(/\s+/g, '');
+                                  onDrillDown(d.includes('.') ? d : `${d}.com`);
+                                }}
+                                className="text-recon-cyan hover:text-white font-medium underline-offset-2 hover:underline transition-colors cursor-pointer"
+                              >
+                                {comp.competitor}
+                              </button>
+                            ) : (
+                              <span className="text-white font-medium">{comp.competitor}</span>
+                            )}
+                          </td>
                           <td className="py-2 text-recon-grey">{comp.weakness}</td>
                         </tr>
                       ))}

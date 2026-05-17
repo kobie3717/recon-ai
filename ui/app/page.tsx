@@ -15,6 +15,7 @@ type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
 
 export default function Home() {
   const [url, setUrl] = useState('');
+  const [url2, setUrl2] = useState('');
   const [credits, setCredits] = useState(198.0);
   const [isRunning, setIsRunning] = useState(false);
   const [agents, setAgents] = useState<AgentState[]>([]);
@@ -364,6 +365,8 @@ export default function Home() {
           isRunning={isRunning || isRunning2}
           url={url}
           onUrlChange={setUrl}
+          url2={url2}
+          onUrl2Change={setUrl2}
         />
       </div>
 
@@ -438,25 +441,49 @@ export default function Home() {
             <SeoPanel
               reportData={reportData}
               isRunning={isRunning}
-              onDrillDown={(q) => setUrl(q)}
+              onDrillDown={(q) => {
+                if (compareActive && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
             />
           ) : currentMode === 'redteam' ? (
             <RedteamPanel
               reportData={reportData}
               isRunning={isRunning}
-              onDrillDown={(q) => setUrl(q)}
+              onDrillDown={(q) => {
+                if (compareActive && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
             />
           ) : currentMode === 'bundle' ? (
             <BundlePanel
               reportData={reportData}
               isRunning={isRunning}
-              onDrillDown={(q) => setUrl(q)}
+              onDrillDown={(q) => {
+                if (compareActive && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
             />
           ) : currentMode === 'person' ? (
             <PersonPanel
               reportData={reportData}
               isRunning={isRunning}
-              onDrillDown={(q) => setUrl(q)}
+              onDrillDown={(q) => {
+                if (compareActive && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
             />
           ) : (
             <ReportPanel
@@ -464,6 +491,13 @@ export default function Home() {
               reportData={reportData}
               costBreakdown={costBreakdown}
               isRunning={isRunning}
+              onDrillDown={(q) => {
+                if (compareActive && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
             />
           )}
         </div>
