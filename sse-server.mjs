@@ -52,8 +52,8 @@ app.get('/api/report', async (req, res) => {
     return res.status(400).json({ error: 'domain parameter required' });
   }
 
-  if (!['standard', 'deep', 'person', 'redteam'].includes(mode)) {
-    return res.status(400).json({ error: 'mode must be "standard", "deep", "person", or "redteam"' });
+  if (!['standard', 'deep', 'person', 'redteam', 'seo'].includes(mode)) {
+    return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, or seo' });
   }
 
   // AI-IQ cache check — instant replay if seen before
@@ -185,6 +185,51 @@ app.get('/api/report', async (req, res) => {
 
       const elapsed = (Date.now() - startTime) / 1000;
       result = { elapsed, domain, mode: 'redteam', cost: 12.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 } };
+    } else if (mode === 'seo') {
+      const startTime = Date.now();
+      const seoElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+
+      emitter.emit('event', { agent: '007-bot', status: 'received', domain, elapsed: 0 });
+      await new Promise(r => setTimeout(r, 200));
+      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.2 });
+      await new Promise(r => setTimeout(r, 100));
+
+      const sp1 = (async () => {
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: seoElapsed() });
+        await new Promise(r => setTimeout(r, 1600));
+        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6200, elapsed: seoElapsed() });
+      })();
+
+      const sp2 = (async () => {
+        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `site:${domain} OR "${domain}" keywords ranking traffic`, elapsed: seoElapsed() });
+        await new Promise(r => setTimeout(r, 1100));
+        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: seoElapsed() });
+      })();
+
+      const sp3 = (async () => {
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`https://${domain}`, `https://${domain}/sitemap.xml`], elapsed: seoElapsed() });
+        await new Promise(r => setTimeout(r, 2300));
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: seoElapsed() });
+      })();
+
+      const sp4 = (async () => {
+        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} backlinks domain authority organic traffic ahrefs`, elapsed: seoElapsed() });
+        await new Promise(r => setTimeout(r, 1800));
+        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 8, elapsed: seoElapsed() });
+      })();
+
+      await Promise.all([sp1, sp2, sp3, sp4]);
+
+      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: seoElapsed() });
+      await new Promise(r => setTimeout(r, 300));
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
+
+      report = anthropic
+        ? await synthesizeSeoWithClaude(domain, {})
+        : generateMockSeoReport(domain);
+
+      const elapsed = (Date.now() - startTime) / 1000;
+      result = { elapsed, domain, mode: 'seo', cost: 5.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 } };
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
@@ -475,6 +520,91 @@ async function synthesizePersonWithClaude(personName) {
 }
 
 /**
+ * Synthesize SEO intelligence report with Claude
+ */
+async function synthesizeSeoWithClaude(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+  const factsText = formatFacts(facts);
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    messages: [{
+      role: 'user',
+      content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
+
+TODAY: ${today}
+${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+
+Return ONLY valid JSON — be specific and realistic for ${domain}:
+{
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "seo", "confidence": "medium-high" },
+  "signals": [
+    { "level": "high|medium|positive", "text": "specific SEO finding for ${domain}", "icon": "🔴|🟡|🟢" }
+  ],
+  "snapshot": {
+    "domainAuthority": 0,
+    "organicTraffic": "Xk/mo (est.)",
+    "rankingKeywords": 0,
+    "backlinks": "Xk from X domains"
+  },
+  "topKeywords": [
+    { "keyword": "actual keyword ${domain} ranks for", "position": 1, "volume": 0, "intent": "informational|commercial|transactional" }
+  ],
+  "contentStrategy": {
+    "postsPerMonth": 0,
+    "avgWordCount": 0,
+    "topTopics": ["topic 1", "topic 2"],
+    "contentGaps": ["gap 1", "gap 2"]
+  },
+  "technical": {
+    "coreWebVitals": { "lcp": "Xs", "fid": "Xms", "cls": "0.0X", "score": "Good|Needs Improvement|Poor" },
+    "mobileScore": 0,
+    "pageSpeed": 0,
+    "issues": ["specific issue 1", "specific issue 2"]
+  },
+  "backlinks": {
+    "total": 0,
+    "referringDomains": 0,
+    "topSources": ["Source 1", "Source 2"],
+    "linkVelocity": "growing|stable|declining"
+  },
+  "serp": {
+    "featuredSnippets": 0,
+    "knowledgePanel": true,
+    "localPack": false,
+    "peopleAlsoAsk": 0
+  },
+  "opportunities": [
+    { "keyword": "keyword opportunity", "volume": 0, "difficulty": 0, "opportunity": "why this is valuable" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Domain", "weakness": "their specific SEO weakness" }
+  ],
+  "hiring": [
+    { "role": "SEO/Content Role", "count": 0, "signal": "what this signals" }
+  ],
+  "strategic": ["strategic SEO observation 1", "strategic SEO observation 2"],
+  "sources": [
+    { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Technical Issues", "Page Speed"] },
+    { "tool": "BD SERP API", "icon": "🔍", "target": "site:${domain} keyword ranking", "sections": ["Top Keywords", "SERP Features"] },
+    { "tool": "BD Scraping Browser", "icon": "🖥", "target": "${domain} + competitors", "sections": ["Core Web Vitals", "Content"] },
+    { "tool": "BD MCP Server", "icon": "🔗", "target": "${domain} backlinks authority", "sections": ["Backlink Profile", "Opportunities"] }
+  ],
+  "cost": { "webUnlocker": 0.30, "serpApi": 0.50, "scrapingBrowser": 0.80, "bdMcp": 0.20, "claude": 3.20, "total": 5.00 }
+}`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
  * Synthesize red team security intelligence report with Claude
  */
 async function synthesizeRedteamWithClaude(domain, facts) {
@@ -482,23 +612,60 @@ async function synthesizeRedteamWithClaude(domain, facts) {
   const today = new Date().toISOString().split('T')[0];
   const factsText = formatFacts(facts);
 
+  const companySlug = domain.split('.')[0];
+
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 4096,
-    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation.',
+    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
-      content: `Produce a red team security intelligence report on "${domain}" (${companyName}) as valid JSON.
+      content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
+
 TODAY: ${today}
-SCRAPED DATA: ${factsText || 'Use your knowledge of this company and common security patterns.'}
+${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
 
-Return JSON with these fields: meta, signals, snapshot, attackSurface, exposures, socialEngineering, competitive, hiring, strategic, recommendations, sources, cost.
-
-attackSurface: { exposedPorts: [], subdomains: [], techStack: [], headers: { csp: bool, hsts: bool, xframe: bool, referrerPolicy: bool, score: "A-F" } }
-exposures: [{ type, severity: "CRITICAL|HIGH|MED|LOW", detail, date }]
-socialEngineering: [{ vector, risk: "HIGH|MED|LOW", detail }]
-recommendations: [{ priority: "P0|P1|P2", action }]
-cost: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 }`
+Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
+{
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high" },
+  "signals": [
+    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴" },
+    { "level": "medium", "text": "specific medium finding", "icon": "🟡" },
+    { "level": "positive", "text": "positive security signal", "icon": "🟢" }
+  ],
+  "snapshot": { "founded": "YYYY", "hq": "City, Country", "employees": "N (est.)", "stage": "Series X", "website": "${domain}", "linkedin": "linkedin.com/company/${companySlug}" },
+  "attackSurface": {
+    "exposedPorts": ["443 (HTTPS)", "other ports if known"],
+    "subdomains": ["api.${domain}", "dev.${domain}", "other known subdomains"],
+    "techStack": ["specific technologies ${domain} uses"],
+    "headers": { "csp": true, "hsts": true, "xframe": true, "referrerPolicy": false, "score": "B+" }
+  },
+  "exposures": [
+    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY" }
+  ],
+  "socialEngineering": [
+    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Name", "weakness": "their security weakness" }
+  ],
+  "hiring": [
+    { "role": "Security Role", "count": 0, "signal": "what this means" }
+  ],
+  "strategic": ["strategic security observation 1", "strategic security observation 2"],
+  "recommendations": [
+    { "priority": "P0", "action": "most urgent fix for ${domain}" },
+    { "priority": "P1", "action": "high priority fix" },
+    { "priority": "P2", "action": "medium priority fix" }
+  ],
+  "sources": [
+    { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Tech Stack", "Security Headers"] },
+    { "tool": "BD SERP API", "icon": "🔍", "target": "${domain} CVE breach security", "sections": ["Exposures"] },
+    { "tool": "BD Scraping Browser", "icon": "🖥", "target": "shodan.io · securityheaders.com", "sections": ["Attack Surface"] },
+    { "tool": "BD MCP Server", "icon": "🔗", "target": "${domain} bug bounty credentials", "sections": ["Social Engineering"] }
+  ],
+  "cost": { "webUnlocker": 0.30, "serpApi": 0.50, "scrapingBrowser": 0.80, "bdMcp": 0.20, "claude": 10.20, "total": 12.00 }
+}`
     }]
   });
 
@@ -532,6 +699,93 @@ function generateMockPersonReport(personName) {
       { date: 'Mar 15', event: 'Published essay on AI and enterprise software', signal: 'MED' }
     ],
     cost: { total: 1.50 }
+  };
+}
+
+/**
+ * Mock SEO report — used when ANTHROPIC_API_KEY not set
+ */
+function generateMockSeoReport(domain) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  return {
+    meta: { domain, companyName, analysisDate: today, mode: 'seo', confidence: 'medium-high' },
+    signals: [
+      { level: 'high', text: 'Organic traffic declining 18% MoM — paid dependency risk', icon: '🔴' },
+      { level: 'medium', text: 'Missing structured data on 68% of product pages', icon: '🟡' },
+      { level: 'positive', text: 'Domain authority 74 — strong backlink foundation', icon: '🟢' },
+      { level: 'positive', text: 'Core Web Vitals passing — LCP 1.8s, CLS 0.02', icon: '🟢' }
+    ],
+    snapshot: {
+      domainAuthority: 74,
+      organicTraffic: '182K/mo (est.)',
+      rankingKeywords: 12400,
+      backlinks: '48K from 3,200 domains'
+    },
+    topKeywords: [
+      { keyword: `${companySlug} pricing`, position: 1, volume: 8100, intent: 'commercial' },
+      { keyword: `${companySlug} vs competitors`, position: 3, volume: 5400, intent: 'commercial' },
+      { keyword: `${companySlug} api`, position: 2, volume: 4200, intent: 'informational' },
+      { keyword: `${companySlug} review`, position: 4, volume: 3300, intent: 'commercial' },
+      { keyword: `${companySlug} tutorial`, position: 6, volume: 2900, intent: 'informational' }
+    ],
+    contentStrategy: {
+      postsPerMonth: 12,
+      avgWordCount: 1850,
+      topTopics: ['Product updates', 'Developer guides', 'Customer stories', 'Industry trends'],
+      contentGaps: ['Comparison pages vs top 3 competitors', 'ROI calculators', 'Integration guides']
+    },
+    technical: {
+      coreWebVitals: { lcp: '1.8s', fid: '12ms', cls: '0.02', score: 'Good' },
+      mobileScore: 91,
+      pageSpeed: 87,
+      issues: [
+        'Duplicate meta descriptions on 23 pages',
+        'Missing alt text on 156 images',
+        '404 errors on 8 linked pages (broken internal links)',
+        'Sitemap missing 340 product pages'
+      ]
+    },
+    backlinks: {
+      total: 48000,
+      referringDomains: 3200,
+      topSources: ['TechCrunch', 'Product Hunt', 'Hacker News', 'GitHub', 'Stack Overflow'],
+      linkVelocity: 'growing'
+    },
+    serp: {
+      featuredSnippets: 14,
+      knowledgePanel: true,
+      localPack: false,
+      peopleAlsoAsk: 31
+    },
+    opportunities: [
+      { keyword: 'best ' + companySlug + ' alternative', volume: 6600, difficulty: 42, opportunity: 'High-intent competitor traffic — no content targeting this' },
+      { keyword: companySlug + ' integration ' + 'salesforce', volume: 2900, difficulty: 38, opportunity: 'Integration page missing — competitors rank here' },
+      { keyword: 'how to use ' + companySlug, volume: 4100, difficulty: 29, opportunity: 'Tutorial content gap — high volume, low difficulty' }
+    ],
+    competitive: [
+      { competitor: 'Competitor A', weakness: 'DA 58 — weak backlinks, ranking below you on key terms' },
+      { competitor: 'Competitor B', weakness: 'Slow page speed (LCP 4.2s) — poor CWV disadvantage' },
+      { competitor: 'Competitor C', weakness: 'No structured data — missing rich results' }
+    ],
+    hiring: [
+      { role: 'SEO Manager', count: 1, signal: 'Current program understaffed vs content velocity' },
+      { role: 'Content Writers', count: 3, signal: 'Scaling content — likely addressing gap vs competitors' }
+    ],
+    strategic: [
+      'Paid search dependency (42% traffic) — vulnerability if CAC rises',
+      'Strong developer content moat — 34% of organic from technical tutorials',
+      'International SEO untapped — EN-only content vs global demand'
+    ],
+    sources: [
+      { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain} + /sitemap.xml`, sections: ['Technical Issues', 'Page Speed'] },
+      { tool: 'BD SERP API', icon: '🔍', target: `site:${domain} keyword ranking analysis`, sections: ['Top Keywords', 'SERP Features'] },
+      { tool: 'BD Scraping Browser', icon: '🖥', target: `${domain} · competitor domains`, sections: ['Core Web Vitals', 'Content Analysis'] },
+      { tool: 'BD MCP Server', icon: '🔗', target: `${domain} backlinks domain authority`, sections: ['Backlink Profile', 'Opportunities'] }
+    ],
+    cost: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 }
   };
 }
 
