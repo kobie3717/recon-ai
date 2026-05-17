@@ -282,6 +282,7 @@ export async function runDeepWorker(domain, emitter) {
 
       return { scout: scout.name, data: result };
     } catch (error) {
+      console.error(`[bd-worker] scout ${scout.name} failed:`, error.message);
       emitter.emit('event', {
         agent: `scout-${scout.name}`,
         status: 'error',

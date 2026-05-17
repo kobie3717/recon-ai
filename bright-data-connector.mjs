@@ -297,8 +297,8 @@ export async function webScraperApi(url) {
       body: JSON.stringify({ zone: 'unlocker', url: aboutUrl, format: 'raw' })
     })
   ]);
-  const homeText = homeResp.status === 'fulfilled' ? await homeResp.value.text() : '';
-  const aboutText = aboutResp.status === 'fulfilled' ? await aboutResp.value.text() : '';
+  const homeText = homeResp.status === 'fulfilled' && homeResp.value.ok ? await homeResp.value.text() : '';
+  const aboutText = aboutResp.status === 'fulfilled' && aboutResp.value.ok ? await aboutResp.value.text() : '';
   return {
     url,
     company: {
