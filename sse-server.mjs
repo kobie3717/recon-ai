@@ -348,7 +348,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         ? await synthesizeWithClaude(domain, factsData, mode)
         : generateReport(domain, factsData, mode);
     } else {
-      result = await runStandardWorker(domain, emitter);
+      result = await runStandardWorker(domain, emitter, mode);
       const factsData = result.facts || result.scouts || {};
       report = anthropic
         ? await synthesizeWithClaude(domain, factsData, mode)

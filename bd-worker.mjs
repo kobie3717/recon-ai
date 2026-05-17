@@ -4,7 +4,7 @@
 
 import { EventEmitter } from 'events';
 import { webUnlocker, serpApi, scrapingBrowser, webScraperApi } from './bright-data-connector.mjs';
-import { mcpSearch } from './bd-mcp-client.mjs';
+import { mcpFetch } from './bd-mcp-client.mjs';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -12,9 +12,10 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  * Standard recon worker - 5 parallel BD calls (including MCP)
  * @param {string} domain - Target domain (e.g. "chain.link")
  * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @param {string} mode - Recon mode (standard, redteam, seo, etc.)
  * @returns {Promise<Object>} - Final report data
  */
-export async function runStandardWorker(domain, emitter) {
+export async function runStandardWorker(domain, emitter, mode = 'standard') {
   const startTime = Date.now();
   const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
 
@@ -116,18 +117,17 @@ export async function runStandardWorker(domain, emitter) {
   })();
 
   const mcpPromise = (async () => {
-    const searchQuery = `${companySlug} company funding competitors news 2026`;
     emitter.emit('event', {
       agent: 'bd-mcp',
       status: 'searching',
-      query: searchQuery,
+      query: `search_engine + scrape_as_markdown`,
       elapsed: parseFloat(elapsed())
     });
-    const result = await mcpSearch(searchQuery, domain);
+    const result = await mcpFetch(domain, mode);
     emitter.emit('event', {
       agent: 'bd-mcp',
       status: 'complete',
-      results: result.results?.length || 0,
+      tools: 2,
       elapsed: parseFloat(elapsed())
     });
     return result;
