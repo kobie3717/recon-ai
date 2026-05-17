@@ -166,7 +166,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = mode === 'bundle' ? 240000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 180000 : 60000);
+  const timeoutMs = mode === 'bundle' ? 300000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 300000 : 60000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
@@ -650,6 +650,15 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     parsed.glassdoor = null;
     parsed.risks = null;
   }
+
+  // Override cost — don't trust Claude's generated value
+  parsed.cost = {
+    webUnlocker: 0.30,
+    serpApi: 0.50,
+    scrapingBrowser: 0.80,
+    webScraperApi: 0.40,
+    total: mode === 'deep' ? 15.00 : 2.00
+  };
 
   // Append BD source attribution (metadata Claude doesn't need to generate)
   parsed.sources = buildSources(domain, companySlug, mode);
