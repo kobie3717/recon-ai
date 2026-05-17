@@ -166,7 +166,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = mode === 'bundle' ? 240000 : (mode === 'deep' ? 120000 : 60000);
+  const timeoutMs = mode === 'bundle' ? 240000 : (mode === 'deep' || mode === 'seo' || mode === 'redteam' ? 120000 : 60000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
@@ -194,10 +194,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: '007-bot', status: 'received', domain: personName, elapsed: 0 });
       await new Promise(r => setTimeout(r, 300));
       emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `"${personName}" executive background`, elapsed: 0.3 });
-      await new Promise(r => setTimeout(r, 1200));
+      await new Promise(r => setTimeout(r, 400));
       emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 8, elapsed: 1.5 });
       emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/in/${personName.toLowerCase().replace(/\s+/g, '-')}`], elapsed: 1.5 });
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise(r => setTimeout(r, 500));
       emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 2, elapsed: 3.5 });
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
 
@@ -229,25 +229,25 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
       const p1 = (async () => {
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 1600));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 4821, elapsed: secElapsed() });
       })();
 
       const p2 = (async () => {
         emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} security breach CVE vulnerability`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 1100));
+        await new Promise(r => setTimeout(r, 300));
         emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: secElapsed() });
       })();
 
       const p3 = (async () => {
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`shodan.io/search?query=${domain}`, `securityheaders.com/?q=${domain}`], elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 2300));
+        await new Promise(r => setTimeout(r, 600));
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: secElapsed() });
       })();
 
       const p4 = (async () => {
         emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} bug bounty exposed API data breach`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 1800));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 6, elapsed: secElapsed() });
       })();
 
@@ -281,25 +281,25 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
       const sp1 = (async () => {
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 1600));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6200, elapsed: seoElapsed() });
       })();
 
       const sp2 = (async () => {
         emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `site:${domain} OR "${domain}" keywords ranking traffic`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 1100));
+        await new Promise(r => setTimeout(r, 300));
         emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: seoElapsed() });
       })();
 
       const sp3 = (async () => {
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`https://${domain}`, `https://${domain}/sitemap.xml`], elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 2300));
+        await new Promise(r => setTimeout(r, 600));
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: seoElapsed() });
       })();
 
       const sp4 = (async () => {
         emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} backlinks domain authority organic traffic ahrefs`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 1800));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 8, elapsed: seoElapsed() });
       })();
 
@@ -334,22 +334,22 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       // Run all BD agents once — shared facts for all 3 synthesis calls
       const bp1 = (async () => {
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 1600));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6800, elapsed: bElapsed() });
       })();
       const bp2 = (async () => {
         emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} company news funding security seo`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 1100));
+        await new Promise(r => setTimeout(r, 300));
         emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 12, elapsed: bElapsed() });
       })();
       const bp3 = (async () => {
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/company/${domain.split('.')[0]}`, `crunchbase.com/organization/${domain.split('.')[0]}`], elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 2300));
+        await new Promise(r => setTimeout(r, 600));
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 4, elapsed: bElapsed() });
       })();
       const bp4 = (async () => {
         emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} intelligence security seo backlinks`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 1800));
+        await new Promise(r => setTimeout(r, 400));
         emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 10, elapsed: bElapsed() });
       })();
 
@@ -370,9 +370,15 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       }
 
       const [standardReport, seoReport, redteamReport] = await Promise.all([
-        anthropic ? synthesizeWithClaude(domain, facts, 'standard') : generateReport(domain, facts, 'standard'),
-        anthropic ? synthesizeSeoWithClaude(domain, facts) : generateMockSeoReport(domain),
-        anthropic ? synthesizeRedteamWithClaude(domain, facts) : generateMockRedteamReport(domain),
+        anthropic
+          ? synthesizeWithClaude(domain, facts, 'standard').catch(e => { console.error('[bundle/standard]', e.message); return generateReport(domain, facts, 'standard'); })
+          : Promise.resolve(generateReport(domain, facts, 'standard')),
+        anthropic
+          ? synthesizeSeoWithClaude(domain, facts).catch(e => { console.error('[bundle/seo]', e.message); return generateMockSeoReport(domain); })
+          : Promise.resolve(generateMockSeoReport(domain)),
+        anthropic
+          ? synthesizeRedteamWithClaude(domain, facts).catch(e => { console.error('[bundle/redteam]', e.message); return generateMockRedteamReport(domain); })
+          : Promise.resolve(generateMockRedteamReport(domain)),
       ]);
       emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: bElapsed() });
 
