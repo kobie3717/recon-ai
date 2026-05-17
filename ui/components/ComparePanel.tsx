@@ -7,6 +7,16 @@ interface ComparePanelProps {
   isLoading2: boolean;
 }
 
+function handlePrint(report1: any, report2: any) {
+  const company1 = report1?.meta?.companyName || report1?.snapshot?.companyName || 'Company A';
+  const company2 = report2?.meta?.companyName || report2?.snapshot?.companyName || 'Company B';
+  const date = new Date().toISOString().split('T')[0];
+  const prev = document.title;
+  document.title = `Recon Compare - ${company1} vs ${company2} - ${date}`;
+  window.print();
+  setTimeout(() => { document.title = prev; }, 1000);
+}
+
 export default function ComparePanel({ report1, report2, isLoading1, isLoading2 }: ComparePanelProps) {
   const company1 = report1?.meta?.companyName || report1?.snapshot?.companyName || 'Company A';
   const company2 = report2?.meta?.companyName || report2?.snapshot?.companyName || 'Company B';
@@ -21,6 +31,14 @@ export default function ComparePanel({ report1, report2, isLoading1, isLoading2 
             COMPARE MODE
           </span>
         </div>
+        {report1 && report2 && (
+          <button
+            onClick={() => handlePrint(report1, report2)}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+          >
+            ↓ PDF
+          </button>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">

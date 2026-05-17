@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Header from '@/components/Header';
 import UrlInput from '@/components/UrlInput';
 import Waterfall, { AgentState, AgentStatus } from '@/components/Waterfall';
@@ -36,6 +36,17 @@ export default function Home() {
   const completedRef2 = useRef(false);
   const creditDeductedRef = useRef(false);
 
+  // History state
+  const [history, setHistory] = useState<Array<{domain: string, mode: string, report: any, savedAt: string}>>([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  useEffect(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('recon:history') || '[]');
+      setHistory(saved);
+    } catch {}
+  }, []);
+
   const extractDomain = (input: string): string => {
     try {
       let urlStr = input.trim();
@@ -51,6 +62,18 @@ export default function Home() {
     } catch {
       return input.trim().replace(/^https?:\/\//, '').replace(/^www\./, '').split('/')[0];
     }
+  };
+
+  const saveToHistory = (domain: string, mode: string, report: any) => {
+    try {
+      const key = 'recon:history';
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      const entry = { domain, mode, report, savedAt: new Date().toISOString() };
+      const filtered = existing.filter((e: any) => !(e.domain === domain && e.mode === mode));
+      const updated = [entry, ...filtered].slice(0, 20);
+      localStorage.setItem(key, JSON.stringify(updated));
+      setHistory(updated);
+    } catch {}
   };
 
   const handleGenerate = (url: string, mode: Mode, cost: number) => {
@@ -117,6 +140,7 @@ export default function Home() {
           // Final event — contains structured report data + cost breakdown
           if (typeof event.report === 'object') {
             setReportData(event.report);
+            saveToHistory(domain, mode, event.report);
             // Auto-save to backend
             fetch('/api/save', {
               method: 'POST',
@@ -341,6 +365,41 @@ export default function Home() {
           onUrlChange={setUrl}
         />
       </div>
+
+      {history.length > 0 && (
+        <div className="relative">
+          <div className="bg-recon-navy/60 border-b border-recon-blue/20 px-6 py-2 flex items-center gap-3">
+            <button
+              onClick={() => setShowHistory(h => !h)}
+              className="text-recon-grey hover:text-recon-cyan text-xs flex items-center gap-1.5 transition-colors"
+            >
+              ⏱ {history.length} saved report{history.length !== 1 ? 's' : ''} {showHistory ? '▲' : '▼'}
+            </button>
+          </div>
+          {showHistory && (
+            <div className="absolute top-full left-0 right-0 z-50 bg-recon-navy border-b border-recon-blue/30 shadow-xl max-h-64 overflow-y-auto">
+              {history.map((entry, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    setCurrentMode(entry.mode as Mode);
+                    setReportData(entry.report);
+                    setUrl(entry.domain);
+                    setShowHistory(false);
+                  }}
+                  className="w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group"
+                >
+                  <div>
+                    <span className="text-white text-sm font-medium">{entry.domain}</span>
+                    <span className="text-recon-grey text-xs ml-2 uppercase">{entry.mode}</span>
+                  </div>
+                  <span className="text-recon-grey/60 text-xs">{new Date(entry.savedAt).toLocaleDateString()}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {errorMessage && (
         <div className="bg-red-500/10 border-b border-red-500/30 px-6 py-2 flex items-center justify-between text-sm">

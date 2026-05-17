@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
  * @returns {Promise<{url: string, text: string, status: number, chars: number}>}
  */
 export async function webUnlocker(url) {
-  await sleep(1600); // Simulate network latency
+  await sleep(400); // Simulate network latency
 
   if (!BD_API_KEY || BD_API_KEY === 'STUB') {
     // Mock mode
@@ -85,7 +85,7 @@ export async function webUnlocker(url) {
  * @returns {Promise<{query: string, results: Array}>}
  */
 export async function serpApi(query) {
-  await sleep(1100); // Simulate network latency
+  await sleep(300); // Simulate network latency
 
   if (!BD_API_KEY || BD_API_KEY === 'STUB') {
     // Mock mode
@@ -154,7 +154,7 @@ export async function serpApi(query) {
  * @returns {Promise<Array<{url: string, text: string, status: number}>>}
  */
 export async function scrapingBrowser(urls) {
-  await sleep(2300); // Simulate browser launch + navigation
+  await sleep(600); // Simulate browser launch + navigation
 
   if (!BD_API_KEY || BD_API_KEY === 'STUB') {
     // Mock mode
@@ -254,7 +254,7 @@ export async function scrapingBrowser(urls) {
  * @returns {Promise<{url: string, company: Object}>}
  */
 export async function webScraperApi(url) {
-  await sleep(700); // Simulate API latency
+  await sleep(200); // Simulate API latency
 
   if (!BD_API_KEY || BD_API_KEY === 'STUB') {
     // Mock mode
