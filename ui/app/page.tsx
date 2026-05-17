@@ -111,6 +111,12 @@ export default function Home() {
           // Final event — contains structured report data + cost breakdown
           if (typeof event.report === 'object') {
             setReportData(event.report);
+            // Auto-save to backend
+            fetch('/api/save', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ domain, report: event.report, mode }),
+            }).catch(() => {});
           } else {
             // Fallback for old markdown format
             setReportContent(event.report || event.content || '');
