@@ -19,11 +19,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Railway CLI
-        run: |
-          curl -fsSL https://railway.app/install.sh | sh
-          echo "$HOME/.railway/bin" >> $GITHUB_PATH
+        run: curl -fsSL https://railway.app/install.sh | sh
 
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service powerful-mindfulness --detach
+        run: ~/.railway/bin/railway up --service powerful-mindfulness --detach
