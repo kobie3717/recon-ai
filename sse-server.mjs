@@ -258,7 +258,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
       if (anthropic) {
-        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
+        const ping = setInterval(() => res.write(': ping\n\n'), 8000);
         try {
           report = await synthesizeRedteamWithClaude(domain, {});
         } catch (synthErr) {
@@ -313,7 +313,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
       if (anthropic) {
-        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
+        const ping = setInterval(() => res.write(': ping\n\n'), 8000);
         try {
           report = await synthesizeSeoWithClaude(domain, {});
         } catch (synthErr) {
@@ -741,7 +741,8 @@ async function synthesizeSeoWithClaude(domain, facts) {
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 4000,
+    timeout: 90000,
     system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -798,25 +799,30 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
   "hiring": [
     { "role": "SEO/Content Role", "count": 0, "signal": "what this signals" }
   ],
-  "strategic": ["strategic SEO observation 1", "strategic SEO observation 2"],
-  "sources": [
-    { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Technical Issues", "Page Speed"] },
-    { "tool": "BD SERP API", "icon": "🔍", "target": "site:${domain} keyword ranking", "sections": ["Top Keywords", "SERP Features"] },
-    { "tool": "BD Scraping Browser", "icon": "🖥", "target": "${domain} + competitors", "sections": ["Core Web Vitals", "Content"] },
-    { "tool": "BD MCP Server", "icon": "🔗", "target": "${domain} backlinks authority", "sections": ["Backlink Profile", "Opportunities"] }
-  ],
-  "cost": { "webUnlocker": 0.30, "serpApi": 0.50, "scrapingBrowser": 0.80, "bdMcp": 0.20, "claude": 3.20, "total": 5.00 }
+  "strategic": ["strategic SEO observation 1", "strategic SEO observation 2"]
 }`
     }]
   });
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  let parsed;
   try {
-    return JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch {
     throw new Error('Claude returned invalid JSON');
   }
+
+  // Add sources and cost (server-side metadata, not Claude's job)
+  parsed.sources = [
+    { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Technical Issues', 'Page Speed'] },
+    { tool: 'BD SERP API', icon: '🔍', target: `site:${domain} keyword ranking`, sections: ['Top Keywords', 'SERP Features'] },
+    { tool: 'BD Scraping Browser', icon: '🖥', target: `${domain} + competitors`, sections: ['Core Web Vitals', 'Content'] },
+    { tool: 'BD MCP Server', icon: '🔗', target: `${domain} backlinks authority`, sections: ['Backlink Profile', 'Opportunities'] }
+  ];
+  parsed.cost = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 };
+
+  return parsed;
 }
 
 /**
@@ -831,7 +837,8 @@ async function synthesizeRedteamWithClaude(domain, facts) {
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 4000,
+    timeout: 90000,
     system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -872,25 +879,30 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     { "priority": "P0", "action": "most urgent fix for ${domain}" },
     { "priority": "P1", "action": "high priority fix" },
     { "priority": "P2", "action": "medium priority fix" }
-  ],
-  "sources": [
-    { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Tech Stack", "Security Headers"] },
-    { "tool": "BD SERP API", "icon": "🔍", "target": "${domain} CVE breach security", "sections": ["Exposures"] },
-    { "tool": "BD Scraping Browser", "icon": "🖥", "target": "shodan.io · securityheaders.com", "sections": ["Attack Surface"] },
-    { "tool": "BD MCP Server", "icon": "🔗", "target": "${domain} bug bounty credentials", "sections": ["Social Engineering"] }
-  ],
-  "cost": { "webUnlocker": 0.30, "serpApi": 0.50, "scrapingBrowser": 0.80, "bdMcp": 0.20, "claude": 10.20, "total": 12.00 }
+  ]
 }`
     }]
   });
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  let parsed;
   try {
-    return JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch {
     throw new Error('Claude returned invalid JSON');
   }
+
+  // Add sources and cost (server-side metadata, not Claude's job)
+  parsed.sources = [
+    { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Tech Stack', 'Security Headers'] },
+    { tool: 'BD SERP API', icon: '🔍', target: `${domain} CVE breach security`, sections: ['Exposures'] },
+    { tool: 'BD Scraping Browser', icon: '🖥', target: 'shodan.io · securityheaders.com', sections: ['Attack Surface'] },
+    { tool: 'BD MCP Server', icon: '🔗', target: `${domain} bug bounty credentials`, sections: ['Social Engineering'] }
+  ];
+  parsed.cost = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 };
+
+  return parsed;
 }
 
 /**
