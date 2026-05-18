@@ -19,7 +19,7 @@ export default function PersonPanel({ reportData, isRunning }: PersonPanelProps)
     setIsPrinting(true);
     const name = (reportData?.meta?.name || reportData?.profile?.name || 'person').replace(/\s+/g, '-').toLowerCase();
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    downloadPdf(`recon-person-${name}-${date}.pdf`).finally(() => setIsPrinting(false));
+    downloadPdf(`recon-person-${name}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
   };
 
   return (

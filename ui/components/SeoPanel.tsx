@@ -25,7 +25,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'seo';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    downloadPdf(`recon-seo-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
+    downloadPdf(`recon-seo-${domain}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
   };
 
   return (

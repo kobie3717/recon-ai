@@ -31,7 +31,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'redteam';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    downloadPdf(`recon-redteam-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
+    downloadPdf(`recon-redteam-${domain}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
   };
 
   return (
