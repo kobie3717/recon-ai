@@ -19,14 +19,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Railway CLI
-        run: curl -fsSL https://railway.app/install.sh | sh || true
-
-      - name: Deploy to Railway
+      - name: Trigger Railway redeploy
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          ~/.railway/bin/railway up \
-            --service d4644d02-b55c-4696-b27c-7ea0ac67c66d \
-            --environment 86fae840-4cc8-458c-9c32-dd6291bb1c7f \
-            --detach
+          curl -f -X POST https://backboard.railway.app/graphql/v2 \
+            -H "Authorization: Bearer ${RAILWAY_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{"query":"mutation { serviceInstanceRedeploy(serviceId: \"d4644d02-b55c-4696-b27c-7ea0ac67c66d\", environmentId: \"86fae840-4cc8-458c-9c32-dd6291bb1c7f\") }"}'
