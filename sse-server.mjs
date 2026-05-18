@@ -482,6 +482,7 @@ app.post('/api/synthesize', reportLimiter, express.json({ limit: '2mb' }), async
  * Format collected facts into a text block for Claude
  */
 function formatFacts(facts) {
+  const MAX_FACTS = 8000;
   const parts = [];
 
   if (facts.homepage) {
@@ -509,7 +510,12 @@ function formatFacts(facts) {
     }
   }
 
-  return parts.join('\n\n---\n\n').substring(0, 8000);
+  let text = parts.join('\n\n---\n\n');
+  if (text.length > MAX_FACTS) {
+    const cut = text.lastIndexOf('\n', MAX_FACTS);
+    text = text.substring(0, cut > 0 ? cut : MAX_FACTS) + '\n[truncated]';
+  }
+  return text;
 }
 
 /**
@@ -1323,6 +1329,16 @@ const server = app.listen(PORT, () => {
   console.log(`   Claude synthesis: ${anthropic ? 'ENABLED' : 'MOCK (set ANTHROPIC_API_KEY)'}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Report: http://localhost:${PORT}/api/report?domain=stripe.com&mode=standard`);
+});
+
+// Global error handlers
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[unhandledRejection]', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  // Don't exit — Railway will restart if needed
 });
 
 // Graceful shutdown — lets in-flight SSE streams finish during Railway deploys

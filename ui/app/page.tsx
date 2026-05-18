@@ -135,18 +135,13 @@ export default function Home() {
         // Agent pipeline events — backend sends { agent, status, elapsed } with no type field
         if (event.agent) {
           setAgents((prev) => {
-            const existing = prev.find((a) => a.name === event.agent);
-            if (existing) {
-              return prev.map((a) =>
-                a.name === event.agent
-                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
-                  : a
-              );
-            }
-            return [
-              ...prev,
-              { name: event.agent, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
-            ];
+            let found = false;
+            const next = prev.map((a) => {
+              if (a.name !== event.agent) return a;
+              found = true;
+              return { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed };
+            });
+            return found ? next : [...next, { name: event.agent, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 }];
           });
           if (event.elapsed) setTotalElapsed(event.elapsed);
         } else if (event.type === 'cache-hit' || event.type === 'cache_hit') {
@@ -255,18 +250,13 @@ export default function Home() {
         if (event.agent) {
           setAgents((prev) => {
             const agentName = `${domain1}: ${event.agent}`;
-            const existing = prev.find((a) => a.name === agentName);
-            if (existing) {
-              return prev.map((a) =>
-                a.name === agentName
-                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
-                  : a
-              );
-            }
-            return [
-              ...prev,
-              { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
-            ];
+            let found = false;
+            const next = prev.map((a) => {
+              if (a.name !== agentName) return a;
+              found = true;
+              return { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed };
+            });
+            return found ? next : [...next, { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 }];
           });
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
@@ -325,18 +315,13 @@ export default function Home() {
         if (event.agent) {
           setAgents((prev) => {
             const agentName = `${domain2}: ${event.agent}`;
-            const existing = prev.find((a) => a.name === agentName);
-            if (existing) {
-              return prev.map((a) =>
-                a.name === agentName
-                  ? { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed }
-                  : a
-              );
-            }
-            return [
-              ...prev,
-              { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 },
-            ];
+            let found = false;
+            const next = prev.map((a) => {
+              if (a.name !== agentName) return a;
+              found = true;
+              return { ...a, status: event.status as AgentStatus, elapsed: event.elapsed ?? a.elapsed };
+            });
+            return found ? next : [...next, { name: agentName, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0 }];
           });
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
@@ -404,6 +389,7 @@ export default function Home() {
           <div className="bg-recon-navy/60 border-b border-recon-blue/20 px-6 py-2 flex items-center gap-3">
             <button
               onClick={() => setShowHistory(h => !h)}
+              aria-expanded={showHistory}
               className="text-recon-grey hover:text-recon-cyan text-xs flex items-center gap-1.5 transition-colors"
             >
               ⏱ {history.length} saved report{history.length !== 1 ? 's' : ''} {showHistory ? '▲' : '▼'}
