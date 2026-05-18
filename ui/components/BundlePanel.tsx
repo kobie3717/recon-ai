@@ -21,7 +21,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'bundle';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    downloadPdf(`recon-bundle-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
+    downloadPdf(`recon-bundle-${domain}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
   };
 
   const standard = reportData?.standard;

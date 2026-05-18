@@ -34,7 +34,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain, report: reportData, mode }),
     }).catch(() => {});
-    downloadPdf(`recon-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
+    downloadPdf(`recon-${domain}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
   };
 
   // Old-style markdown content fallback
