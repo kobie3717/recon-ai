@@ -112,37 +112,40 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       )}
 
       {/* Buttons Row */}
-      <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
-        {!compareMode ? (
-          reportModes.map(({ mode, label, cost, color, icon }) => (
-            <button
-              key={mode}
-              onClick={() => onGenerate(url, mode, cost)}
-              disabled={isRunning || !url.trim()}
-              className={buttonClasses(color, mode === 'person' && isPerson)}
-            >
-              {icon && <span className="mr-1">{icon}</span>}
-              {label} ${cost.toFixed(2)}
-            </button>
-          ))
-        ) : (
-          <>
-            <button
-              onClick={() => onCompare(url, url2, 'standard')}
-              disabled={isRunning || !url.trim() || !url2.trim()}
-              className={buttonClasses('blue')}
-            >
-              Compare Standard — $4.00
-            </button>
-            <button
-              onClick={() => onCompare(url, url2, 'deep')}
-              disabled={isRunning || !url.trim() || !url2.trim()}
-              className={buttonClasses('indigo')}
-            >
-              Compare Deep — $30.00
-            </button>
-          </>
-        )}
+      <div className="relative">
+        <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
+          {!compareMode ? (
+            reportModes.map(({ mode, label, cost, color, icon }) => (
+              <button
+                key={mode}
+                onClick={() => onGenerate(url, mode, cost)}
+                disabled={isRunning || !url.trim()}
+                className={buttonClasses(color, mode === 'person' && isPerson)}
+              >
+                {icon && <span className="mr-1">{icon}</span>}
+                {label} ${cost.toFixed(2)}
+              </button>
+            ))
+          ) : (
+            <>
+              <button
+                onClick={() => onCompare(url, url2, 'standard')}
+                disabled={isRunning || !url.trim() || !url2.trim()}
+                className={buttonClasses('blue')}
+              >
+                Compare Standard — $4.00
+              </button>
+              <button
+                onClick={() => onCompare(url, url2, 'deep')}
+                disabled={isRunning || !url.trim() || !url2.trim()}
+                className={buttonClasses('indigo')}
+              >
+                Compare Deep — $30.00
+              </button>
+            </>
+          )}
+        </div>
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-recon-navy/80 to-transparent pointer-events-none" />
       </div>
     </div>
   );

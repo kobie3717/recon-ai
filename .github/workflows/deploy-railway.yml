@@ -23,7 +23,9 @@ jobs:
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          curl -f -X POST https://backboard.railway.app/graphql/v2 \
+          RESULT=$(curl -s -X POST https://backboard.railway.app/graphql/v2 \
             -H "Authorization: Bearer ${RAILWAY_TOKEN}" \
             -H "Content-Type: application/json" \
-            -d '{"query":"mutation { serviceInstanceRedeploy(serviceId: \"d4644d02-b55c-4696-b27c-7ea0ac67c66d\", environmentId: \"86fae840-4cc8-458c-9c32-dd6291bb1c7f\") }"}'
+            -d '{"query":"mutation { serviceInstanceRedeploy(serviceId: \"d4644d02-b55c-4696-b27c-7ea0ac67c66d\", environmentId: \"86fae840-4cc8-458c-9c32-dd6291bb1c7f\") }"}')
+          echo "Railway response: $RESULT"
+          echo "$RESULT" | grep -q '"serviceInstanceRedeploy":true' || (echo "Deploy failed!" && exit 1)

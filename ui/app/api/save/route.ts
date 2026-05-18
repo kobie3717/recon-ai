@@ -1,10 +1,7 @@
-const ALLOWED_SAVE_ORIGINS = ['https://ui-beta-green.vercel.app', 'http://localhost:3000', 'http://localhost:3001'];
-
 export async function POST(request: Request) {
   const origin = request.headers.get('origin');
-  const referer = request.headers.get('referer');
-  const isAllowed = !origin || ALLOWED_SAVE_ORIGINS.some(o => origin.startsWith(o)) || (referer && ALLOWED_SAVE_ORIGINS.some(o => referer.startsWith(o)));
-  if (!isAllowed) {
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
+  if (origin && !allowedOrigins.includes(origin)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
 
