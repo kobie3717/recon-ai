@@ -9,7 +9,7 @@ interface PersonPanelProps {
   onDrillDown: (q: string) => void;
 }
 
-export default function PersonPanel({ reportData, isRunning }: PersonPanelProps) {
+export default function PersonPanel({ reportData, isRunning, onDrillDown }: PersonPanelProps) {
   const showPlaceholder = !isRunning && !reportData;
   const showLoading = isRunning && !reportData;
   const [isPrinting, setIsPrinting] = useState(false);
@@ -155,17 +155,25 @@ export default function PersonPanel({ reportData, isRunning }: PersonPanelProps)
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Companies</h3>
                 <div className="space-y-2">
-                  {reportData.companies.map((co: any, idx: number) => (
-                    <div key={idx} className="flex items-center justify-between text-sm">
-                      <div>
-                        <span className="text-white font-semibold">{co.name}</span>
-                        <span className="text-recon-grey ml-2">— {co.role}</span>
+                  {reportData.companies.map((co: any, idx: number) => {
+                    const target = co.domain || `${co.name.toLowerCase().replace(/\s+/g, '')}.com`;
+                    return (
+                      <div key={idx} className="flex items-center justify-between text-sm">
+                        <div>
+                          <button
+                            onClick={() => onDrillDown(target)}
+                            className="text-recon-cyan font-semibold hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer"
+                          >
+                            {co.name}
+                          </button>
+                          <span className="text-recon-grey ml-2">— {co.role}</span>
+                        </div>
+                        {co.domain && (
+                          <span className="text-recon-grey/60 text-xs">{co.domain}</span>
+                        )}
                       </div>
-                      {co.domain && (
-                        <span className="text-recon-cyan text-xs">{co.domain}</span>
-                      )}
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -222,11 +230,20 @@ export default function PersonPanel({ reportData, isRunning }: PersonPanelProps)
             {reportData.network && reportData.network.length > 0 && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Network</h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {reportData.network.map((n: any, idx: number) => (
-                    <div key={idx} className="flex justify-between text-sm">
-                      <span className="text-white">{n.name}</span>
-                      <span className="text-recon-grey">{n.relationship}</span>
+                    <div key={idx} className="text-sm">
+                      <div className="flex items-start justify-between gap-4">
+                        <button
+                          onClick={() => onDrillDown(n.name)}
+                          className="text-purple-400 font-semibold hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer text-left"
+                        >
+                          👤 {n.name}
+                        </button>
+                      </div>
+                      {n.relationship && (
+                        <div className="text-recon-grey text-xs mt-0.5 pl-5">{n.relationship}</div>
+                      )}
                     </div>
                   ))}
                 </div>
