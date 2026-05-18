@@ -29,6 +29,7 @@ export default function Home() {
   const [costBreakdown, setCostBreakdown] = useState<any>();
   const [errorMessage, setErrorMessage] = useState<string>('');
   const completedRef = useRef(false);
+  const cacheHitRef = useRef(false);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -86,7 +87,9 @@ export default function Home() {
       const updated = [entry, ...filtered].slice(0, 20);
       localStorage.setItem(key, JSON.stringify(updated));
       setHistory(updated);
-    } catch {}
+    } catch (e) {
+      console.warn('[history] save failed:', e);
+    }
   };
 
   const handleGenerate = (url: string, mode: Mode, cost: number) => {
@@ -104,6 +107,7 @@ export default function Home() {
 
     // Reset state
     completedRef.current = false;
+    cacheHitRef.current = false;
     setIsRunning(true);
     setCurrentMode(mode);
     setAgents([]);
@@ -147,6 +151,7 @@ export default function Home() {
           if (event.elapsed) setTotalElapsed(event.elapsed);
         } else if (event.type === 'cache-hit' || event.type === 'cache_hit') {
           setCacheHit(true);
+          cacheHitRef.current = true;
           setCacheTime(event.cache_time || event.elapsed);
           setFreshTime(event.fresh_time || 9.0);
           // Cache hit — don't deduct credits, stream still sends report event
@@ -169,12 +174,12 @@ export default function Home() {
             setCostBreakdown(event.costBreakdown || { total: event.cost });
           }
           setIsRunning(false);
-          if (!cacheHit) setCredits(prev => prev - cost);
+          if (!cacheHitRef.current) setCredits(prev => prev - cost);
           completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'complete') {
           setIsRunning(false);
-          setCredits(prev => prev - cost);
+          if (!cacheHitRef.current) setCredits(prev => prev - cost);
           completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'error') {
