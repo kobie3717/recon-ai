@@ -21,61 +21,85 @@ async function downloadComparePdf(report1: any, report2: any) {
   const margin = 15;
   const pageW = 210;
   const pageH = 297;
-  const col1 = margin;
-  const col2 = pageW / 2 + 5;
-  const colW = pageW / 2 - margin - 5;
+  // 3-column layout: label | v1 | v2
+  const labelCol = margin;
+  const v1Col = 50;
+  const v2Col = 125;
+  const colW = 72;
   let y = margin;
 
-  const bg = () => { doc.setFillColor(10, 14, 26); doc.rect(0, 0, pageW, pageH, 'F'); };
-  bg();
+  // ── Header bar ─────────────────────────────────────────────────────────────
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, pageW, 20, 'F');
+  doc.setFontSize(12); doc.setFont('helvetica', 'bold'); doc.setTextColor(255, 255, 255);
+  doc.text(`RECON COMPARE — ${c1}  vs  ${c2}`, margin, 13);
+  doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(150, 180, 220);
+  doc.text(`Competitor Comparison · ${date}`, pageW - margin, 13, { align: 'right' });
+  y = 28;
 
-  // Title
-  doc.setFontSize(16); doc.setTextColor(255, 255, 255);
-  doc.text(`${c1}  vs  ${c2}`, margin, y + 5);
-  y += 10;
-  doc.setFontSize(8); doc.setTextColor(100, 116, 139);
-  doc.text(`Competitor Comparison · ${date}`, margin, y);
-  y += 10;
-
-  // Divider
-  doc.setDrawColor(6, 182, 212); doc.setLineWidth(0.3);
+  // Column sub-headers
+  doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 80, 160);
+  doc.text(c1.toUpperCase(), v1Col, y);
+  doc.text(c2.toUpperCase(), v2Col, y);
+  doc.setFont('helvetica', 'normal');
+  y += 4;
+  doc.setDrawColor(30, 80, 160); doc.setLineWidth(0.4);
   doc.line(margin, y, pageW - margin, y);
-  y += 8;
+  y += 6;
 
-  // Column headers
-  doc.setFontSize(11); doc.setTextColor(6, 182, 212);
-  doc.text(c1, col1, y);
-  doc.text(c2, col2, y);
-  y += 8;
+  const addColHeaders = () => {
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 80, 160);
+    doc.text(c1.toUpperCase(), v1Col, y);
+    doc.text(c2.toUpperCase(), v2Col, y);
+    doc.setFont('helvetica', 'normal');
+    y += 4;
+    doc.setDrawColor(30, 80, 160); doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    y += 5;
+  };
+
+  const checkPage = (needed: number) => {
+    if (y + needed > pageH - 12) { doc.addPage(); y = margin + 4; addColHeaders(); }
+  };
 
   const section = (title: string) => {
-    if (y > pageH - 20) { doc.addPage(); bg(); y = margin; }
-    doc.setFontSize(8); doc.setTextColor(6, 182, 212);
+    checkPage(12);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold'); doc.setTextColor(30, 80, 160);
     doc.text(title.toUpperCase(), margin, y);
-    y += 4;
-    doc.setDrawColor(37, 99, 235); doc.line(margin, y, pageW - margin, y);
+    y += 3;
+    doc.setDrawColor(30, 80, 160); doc.setLineWidth(0.3);
+    doc.line(margin, y, pageW - margin, y);
+    doc.setFont('helvetica', 'normal');
     y += 5;
   };
 
   const row = (label: string, v1: string, v2: string) => {
-    if (y > pageH - 10) { doc.addPage(); bg(); y = margin; }
-    doc.setFontSize(7.5); doc.setTextColor(100, 116, 139);
-    doc.text(label, margin, y);
-    doc.setTextColor(248, 250, 252);
-    doc.text(doc.splitTextToSize(v1 || '—', colW), col1, y + 4);
-    doc.text(doc.splitTextToSize(v2 || '—', colW), col2, y + 4);
-    y += 10;
+    const lines1: string[] = doc.splitTextToSize(v1 || '—', colW);
+    const lines2: string[] = doc.splitTextToSize(v2 || '—', colW);
+    const lineH = 4.2;
+    const rowH = Math.max(lines1.length, lines2.length) * lineH + 2;
+    checkPage(rowH);
+    doc.setFontSize(7.5); doc.setTextColor(100, 100, 100);
+    doc.text(label, labelCol, y);
+    doc.setTextColor(20, 20, 20);
+    doc.text(lines1, v1Col, y);
+    doc.text(lines2, v2Col, y);
+    y += rowH;
   };
 
   const bullets = (title: string, items1: string[], items2: string[]) => {
     section(title);
     const max = Math.max(items1.length, items2.length);
     for (let i = 0; i < max; i++) {
-      if (y > pageH - 10) { doc.addPage(); bg(); y = margin; }
-      doc.setFontSize(7.5); doc.setTextColor(248, 250, 252);
-      if (items1[i]) doc.text(doc.splitTextToSize(`• ${items1[i]}`, colW), col1, y);
-      if (items2[i]) doc.text(doc.splitTextToSize(`• ${items2[i]}`, colW), col2, y);
-      y += 6;
+      const l1: string[] = items1[i] ? doc.splitTextToSize(`• ${items1[i]}`, colW) : [];
+      const l2: string[] = items2[i] ? doc.splitTextToSize(`• ${items2[i]}`, colW) : [];
+      const lineH = 4.2;
+      const rowH = Math.max(l1.length || 1, l2.length || 1) * lineH + 1;
+      checkPage(rowH);
+      doc.setFontSize(7.5); doc.setTextColor(20, 20, 20);
+      if (l1.length) doc.text(l1, v1Col, y);
+      if (l2.length) doc.text(l2, v2Col, y);
+      y += rowH;
     }
     y += 3;
   };
@@ -195,8 +219,8 @@ async function downloadComparePdf(report1: any, report2: any) {
   const total = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    doc.setFontSize(7); doc.setTextColor(180, 180, 180);
-    doc.text(`RECON COMPARE — ${c1} vs ${c2} — Page ${i} of ${total}`, margin, pageH - 5);
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal'); doc.setTextColor(160, 160, 160);
+    doc.text(`RECON COMPARE  ·  ${c1} vs ${c2}  ·  Page ${i} of ${total}`, pageW / 2, pageH - 5, { align: 'center' });
   }
 
   doc.save(`recon-compare-${report1?.meta?.domain || 'a'}-vs-${report2?.meta?.domain || 'b'}-${date}.pdf`);
