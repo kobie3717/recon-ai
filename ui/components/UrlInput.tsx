@@ -62,7 +62,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
               disabled={isRunning}
-              placeholder="Enter company URL or person name — e.g. stripe.com or Elon Musk"
+              placeholder="Company URL or person name (e.g. stripe.com, Elon Musk)"
               className="flex-1 px-4 py-2 bg-recon-dark border border-recon-grey/30 rounded-lg text-white placeholder-recon-grey focus:outline-none focus:border-recon-cyan focus:ring-1 focus:ring-recon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
             />
             <button

@@ -75,9 +75,13 @@ const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 // Purge expired entries every 30 minutes
 setInterval(() => {
-  const now = Date.now();
-  for (const [key, val] of reportCache) {
-    if (now - val.timestamp > CACHE_TTL_MS) reportCache.delete(key);
+  try {
+    const now = Date.now();
+    for (const [key, val] of reportCache) {
+      if (now - val.timestamp > CACHE_TTL_MS) reportCache.delete(key);
+    }
+  } catch (e) {
+    console.error('[cache-purge]', e);
   }
 }, 30 * 60 * 1000).unref();
 
@@ -648,6 +652,10 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     throw new Error('Claude returned invalid JSON');
   }
 
+  if (!parsed.meta || !parsed.signals || !Array.isArray(parsed.signals)) {
+    throw new Error('Claude returned malformed JSON structure');
+  }
+
   // Deep mode: null out missing optional fields so UI renders cleanly
   if (mode !== 'deep') {
     parsed.techStack = null;
@@ -723,11 +731,18 @@ async function synthesizePersonWithClaude(personName) {
 
   const text = response.content[0].text.trim()
     .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  let parsed;
   try {
-    return JSON.parse(text);
+    parsed = JSON.parse(text);
   } catch {
     throw new Error('Claude returned invalid JSON');
   }
+
+  if (!parsed.meta || !parsed.signals || !Array.isArray(parsed.signals)) {
+    throw new Error('Claude returned malformed JSON structure');
+  }
+
+  return parsed;
 }
 
 /**
@@ -813,6 +828,10 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     throw new Error('Claude returned invalid JSON');
   }
 
+  if (!parsed.meta || !parsed.signals || !Array.isArray(parsed.signals)) {
+    throw new Error('Claude returned malformed JSON structure');
+  }
+
   // Add sources and cost (server-side metadata, not Claude's job)
   parsed.sources = [
     { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Technical Issues', 'Page Speed'] },
@@ -891,6 +910,10 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     parsed = JSON.parse(text);
   } catch {
     throw new Error('Claude returned invalid JSON');
+  }
+
+  if (!parsed.meta || !parsed.signals || !Array.isArray(parsed.signals)) {
+    throw new Error('Claude returned malformed JSON structure');
   }
 
   // Add sources and cost (server-side metadata, not Claude's job)
