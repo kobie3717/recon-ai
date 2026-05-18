@@ -25,4 +25,8 @@ jobs:
       - name: Deploy to Railway
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: ~/.railway/bin/railway up --service powerful-mindfulness --detach
+        run: |
+          ~/.railway/bin/railway up \
+            --service d4644d02-b55c-4696-b27c-7ea0ac67c66d \
+            --environment 86fae840-4cc8-458c-9c32-dd6291bb1c7f \
+            --detach
