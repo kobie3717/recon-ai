@@ -46,6 +46,8 @@ export default function Home() {
   const [compareInputOpen, setCompareInputOpen] = useState(false);
   const completedRef2 = useRef(false);
   const creditDeductedRef = useRef(false);
+  const [compareDomain1, setCompareDomain1] = useState('');
+  const [compareDomain2, setCompareDomain2] = useState('');
 
   // History state
   const [history, setHistory] = useState<Array<{domain: string, mode: string, report: any, savedAt: string}>>([]);
@@ -218,6 +220,9 @@ export default function Home() {
       alert('Please enter two different company URLs');
       return;
     }
+
+    setCompareDomain1(domain1);
+    setCompareDomain2(domain2);
 
     // Reset state
     completedRef.current = false;
@@ -456,6 +461,8 @@ export default function Home() {
               report2={reportData2}
               isLoading1={isRunning}
               isLoading2={isRunning2}
+              domain1={compareDomain1}
+              domain2={compareDomain2}
             />
           ) : currentMode === 'seo' ? (
             <SeoPanel

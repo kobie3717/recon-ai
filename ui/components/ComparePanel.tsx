@@ -7,6 +7,8 @@ interface ComparePanelProps {
   report2: any;
   isLoading1: boolean;
   isLoading2: boolean;
+  domain1?: string;
+  domain2?: string;
 }
 
 async function downloadComparePdf(report1: any, report2: any) {
@@ -97,8 +99,14 @@ async function downloadComparePdf(report1: any, report2: any) {
   // Signals
   if (report1?.signals || report2?.signals) {
     bullets('Top Signals',
-      (report1?.signals || []).map((s: any) => `${s.icon || ''} ${s.text}`),
-      (report2?.signals || []).map((s: any) => `${s.icon || ''} ${s.text}`),
+      (report1?.signals || []).map((s: any) => {
+        const badge = s.level === 'high' ? '[HIGH]' : s.level === 'medium' ? '[MED]' : '[LOW]';
+        return `${badge}  ${s.text}`;
+      }),
+      (report2?.signals || []).map((s: any) => {
+        const badge = s.level === 'high' ? '[HIGH]' : s.level === 'medium' ? '[MED]' : '[LOW]';
+        return `${badge}  ${s.text}`;
+      }),
     );
   }
 
@@ -118,21 +126,86 @@ async function downloadComparePdf(report1: any, report2: any) {
     );
   }
 
+  // News / Recent Signals
+  if (report1?.news?.length || report2?.news?.length) {
+    bullets('Recent Signals',
+      (report1?.news || []).map((n: any) => `[${n.signal}] ${n.date} ${n.headline}`),
+      (report2?.news || []).map((n: any) => `[${n.signal}] ${n.date} ${n.headline}`),
+    );
+  }
+
+  // Products
+  if (report1?.products?.length || report2?.products?.length) {
+    bullets('Products',
+      (report1?.products || []).map((p: any) => `${p.name} — ${p.description}`),
+      (report2?.products || []).map((p: any) => `${p.name} — ${p.description}`),
+    );
+  }
+
+  // Competitive Position
+  if (report1?.competitive?.length || report2?.competitive?.length) {
+    bullets('Competitive Position',
+      (report1?.competitive || []).map((c: any) => `${c.competitor}: ${c.weakness}`),
+      (report2?.competitive || []).map((c: any) => `${c.competitor}: ${c.weakness}`),
+    );
+  }
+
+  // Risk Factors
+  if (report1?.risks?.length || report2?.risks?.length) {
+    bullets('Risk Factors',
+      (report1?.risks || []).map((r: any) => `[${r.severity}] ${r.factor}`),
+      (report2?.risks || []).map((r: any) => `[${r.severity}] ${r.factor}`),
+    );
+  }
+
+  // Tech Stack
+  if (report1?.techStack?.length || report2?.techStack?.length) {
+    bullets('Tech Stack',
+      (report1?.techStack || []).map((t: any) => `${t.category}: ${t.items?.join(', ')}`),
+      (report2?.techStack || []).map((t: any) => `${t.category}: ${t.items?.join(', ')}`),
+    );
+  }
+
+  // GitHub
+  if (report1?.github || report2?.github) {
+    section('GitHub Intelligence');
+    row('Repos', String(report1?.github?.repos ?? '—'), String(report2?.github?.repos ?? '—'));
+    row('Stars', String(report1?.github?.stars ?? '—'), String(report2?.github?.stars ?? '—'));
+    row('Top Language', report1?.github?.topLanguage || '—', report2?.github?.topLanguage || '—');
+    y += 3;
+  }
+
+  // Reviews
+  if (report1?.reviews || report2?.reviews) {
+    section('Customer Reviews');
+    row('G2 Score', report1?.reviews?.g2Score != null ? `${report1.reviews.g2Score}/5.0` : '—', report2?.reviews?.g2Score != null ? `${report2.reviews.g2Score}/5.0` : '—');
+    row('Sentiment', report1?.reviews?.sentiment || '—', report2?.reviews?.sentiment || '—');
+    y += 3;
+  }
+
+  // Glassdoor
+  if (report1?.glassdoor || report2?.glassdoor) {
+    section('Glassdoor');
+    row('Rating', report1?.glassdoor?.rating != null ? `${report1.glassdoor.rating}/5.0` : '—', report2?.glassdoor?.rating != null ? `${report2.glassdoor.rating}/5.0` : '—');
+    row('CEO Approval', report1?.glassdoor?.ceoApproval || '—', report2?.glassdoor?.ceoApproval || '—');
+    y += 3;
+  }
+
   // Footer
   const total = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= total; i++) {
     doc.setPage(i);
-    doc.setFontSize(7); doc.setTextColor(50, 60, 80);
+    doc.setFontSize(7); doc.setTextColor(180, 180, 180);
     doc.text(`RECON COMPARE — ${c1} vs ${c2} — Page ${i} of ${total}`, margin, pageH - 5);
   }
 
   doc.save(`recon-compare-${report1?.meta?.domain || 'a'}-vs-${report2?.meta?.domain || 'b'}-${date}.pdf`);
 }
 
-export default function ComparePanel({ report1, report2, isLoading1, isLoading2 }: ComparePanelProps) {
+export default function ComparePanel({ report1, report2, isLoading1, isLoading2, domain1, domain2 }: ComparePanelProps) {
   const [isPrinting, setIsPrinting] = useState(false);
-  const company1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
-  const company2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
+  const company1 = report1?.meta?.companyName || report1?.meta?.domain || domain1 || 'Company A';
+  const company2 = report2?.meta?.companyName || report2?.meta?.domain || domain2 || 'Company B';
 
   return (
     <div className="flex flex-col h-full bg-recon-dark" id="compare-panel">
@@ -156,6 +229,18 @@ export default function ComparePanel({ report1, report2, isLoading1, isLoading2 
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
+        {(isLoading1 || isLoading2) && (
+          <div className="mb-4 bg-indigo-500/10 border border-indigo-500/30 rounded-lg px-4 py-3 flex items-center gap-3">
+            <span className="w-4 h-4 border-2 border-indigo-400 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+            <div>
+              <div className="text-indigo-400 font-semibold text-sm">Generating comparative intelligence...</div>
+              <div className="text-recon-grey text-xs mt-0.5">
+                {isLoading1 && isLoading2 ? `Profiling ${domain1} and ${domain2} in parallel` :
+                 isLoading1 ? `Still profiling ${domain1}...` : `Still profiling ${domain2}...`}
+              </div>
+            </div>
+          </div>
+        )}
         <div className="space-y-6 pb-6">
           {/* Company Headers */}
           <div className="grid grid-cols-2 gap-4">
