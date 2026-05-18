@@ -1,36 +1,49 @@
 // Generates a structured PDF from reportData JSON using jsPDF only.
-// No html2canvas — lightweight, text-selectable, fast to build.
+// White background, dark text — readable in any viewer and printable.
 
-function addSection(doc: any, title: string, y: number, pageH: number, margin: number): number {
-  if (y > pageH - 20) { doc.addPage(); y = margin; }
-  doc.setFontSize(10);
-  doc.setTextColor(6, 182, 212); // recon-cyan
+type Doc = InstanceType<Awaited<typeof import('jspdf')>['jsPDF']>;
+
+function checkPage(doc: Doc, y: number, pageH: number, margin: number): number {
+  if (y > pageH - 15) {
+    doc.addPage();
+    return margin;
+  }
+  return y;
+}
+
+function addSection(doc: Doc, title: string, y: number, pageH: number, margin: number): number {
+  y = checkPage(doc, y, pageH, margin);
+  y += 2;
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(30, 80, 160);
   doc.text(title.toUpperCase(), margin, y);
-  y += 5;
-  doc.setDrawColor(6, 182, 212);
+  y += 3;
+  doc.setDrawColor(30, 80, 160);
   doc.setLineWidth(0.3);
   doc.line(margin, y, 200 - margin, y);
-  return y + 5;
+  doc.setFont('helvetica', 'normal');
+  return y + 4;
 }
 
-function addRow(doc: any, label: string, value: string, y: number, pageH: number, margin: number): number {
-  if (y > pageH - 10) { doc.addPage(); y = margin; }
-  doc.setFontSize(8.5);
-  doc.setTextColor(100, 116, 139); // grey
+function addRow(doc: Doc, label: string, value: string, y: number, pageH: number, margin: number): number {
+  y = checkPage(doc, y, pageH, margin);
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
   doc.text(label, margin, y);
-  doc.setTextColor(248, 250, 252); // light
-  const lines: string[] = doc.splitTextToSize(String(value ?? '—'), 120);
+  doc.setTextColor(20, 20, 20);
+  const lines: string[] = doc.splitTextToSize(String(value ?? '—'), 115);
   doc.text(lines, 80, y);
-  return y + lines.length * 5;
+  return y + lines.length * 4.5;
 }
 
-function addBullet(doc: any, text: string, y: number, pageH: number, margin: number): number {
-  if (y > pageH - 10) { doc.addPage(); y = margin; }
-  doc.setFontSize(8.5);
-  doc.setTextColor(248, 250, 252);
+function addBullet(doc: Doc, text: string, y: number, pageH: number, margin: number): number {
+  y = checkPage(doc, y, pageH, margin);
+  doc.setFontSize(8);
+  doc.setTextColor(20, 20, 20);
   const lines: string[] = doc.splitTextToSize(`• ${text}`, 175);
   doc.text(lines, margin, y);
-  return y + lines.length * 5;
+  return y + lines.length * 4.5;
 }
 
 export async function downloadPdf(filename: string, reportData: any): Promise<void> {
@@ -42,33 +55,34 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
   const pageW = 210;
   let y = margin;
 
-  // Dark background
-  doc.setFillColor(10, 14, 26);
-  doc.rect(0, 0, pageW, pageH, 'F');
-
-  // Title
-  doc.setFontSize(20);
+  // Header bar
+  doc.setFillColor(15, 23, 42);
+  doc.rect(0, 0, pageW, 18, 'F');
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
   const domain = reportData?.meta?.domain || reportData?.meta?.name || 'Report';
-  doc.text(domain, margin, y + 5);
-  y += 12;
+  doc.text(`RECON — ${domain}`, margin, 12);
 
-  doc.setFontSize(9);
-  doc.setTextColor(100, 116, 139);
-  const subtitle = [
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(150, 180, 220);
+  const meta = [
     reportData?.meta?.companyName,
     reportData?.meta?.mode && `Mode: ${reportData.meta.mode}`,
     reportData?.meta?.analysisDate,
   ].filter(Boolean).join('  ·  ');
-  if (subtitle) { doc.text(subtitle, margin, y); y += 8; }
+  if (meta) doc.text(meta, pageW - margin, 12, { align: 'right' });
+
+  y = 26;
 
   // Signals
   if (reportData?.signals?.length) {
     y = addSection(doc, 'Signals', y, pageH, margin);
     for (const s of reportData.signals) {
-      y = addBullet(doc, `${s.icon || ''} ${s.text}`, y, pageH, margin);
+      y = addBullet(doc, `${s.text}  [${s.level}]`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Snapshot
@@ -77,7 +91,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const [k, v] of Object.entries(reportData.snapshot)) {
       y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1), String(v), y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Profile (person)
@@ -86,7 +100,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const [k, v] of Object.entries(reportData.profile)) {
       y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1), String(v), y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Financials
@@ -99,16 +113,16 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     if (investors?.length) {
       y = addRow(doc, 'Investors', investors.join(', '), y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
-  // News / signals
+  // News
   if (reportData?.news?.length) {
     y = addSection(doc, 'Recent Signals', y, pageH, margin);
     for (const item of reportData.news) {
       y = addBullet(doc, `[${item.signal}] ${item.date}  ${item.headline}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Products
@@ -117,7 +131,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const p of reportData.products) {
       y = addBullet(doc, `${p.name} — ${p.description}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Competitive
@@ -126,7 +140,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const c of reportData.competitive) {
       y = addBullet(doc, `${c.competitor}: ${c.weakness}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Hiring
@@ -135,7 +149,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const h of reportData.hiring) {
       y = addBullet(doc, `${h.role} (${h.count}) → ${h.signal}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Strategic
@@ -144,40 +158,35 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const s of reportData.strategic) {
       y = addBullet(doc, s, y, pageH, margin);
     }
-    y += 3;
-  }
-
-  // SEO snapshot
-  if (reportData?.snapshot?.domainAuthority !== undefined) {
-    // Already handled above via snapshot
+    y += 2;
   }
 
   // Top keywords (SEO)
   if (reportData?.topKeywords?.length) {
     y = addSection(doc, 'Top Keywords', y, pageH, margin);
     for (const k of reportData.topKeywords) {
-      y = addBullet(doc, `#${k.position}  ${k.keyword}  vol: ${k.volume}  intent: ${k.intent}`, y, pageH, margin);
+      y = addBullet(doc, `#${k.position}  ${k.keyword}  vol: ${k.volume?.toLocaleString()}  intent: ${k.intent}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // SEO opportunities
   if (reportData?.opportunities?.length) {
     y = addSection(doc, 'SEO Opportunities', y, pageH, margin);
     for (const o of reportData.opportunities) {
-      y = addBullet(doc, `${o.keyword}  ${o.opportunity}`, y, pageH, margin);
+      y = addBullet(doc, `${o.keyword} — ${o.opportunity}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
-  // Redteam attack surface
+  // Attack surface (redteam)
   if (reportData?.attackSurface) {
     y = addSection(doc, 'Attack Surface', y, pageH, margin);
     const as = reportData.attackSurface;
     if (as.subdomains?.length) y = addRow(doc, 'Subdomains', as.subdomains.join(', '), y, pageH, margin);
     if (as.techStack?.length) y = addRow(doc, 'Tech Stack', as.techStack.join(', '), y, pageH, margin);
-    if (as.headers) y = addRow(doc, 'Header Grade', as.headers.score, y, pageH, margin);
-    y += 3;
+    if (as.headers?.score) y = addRow(doc, 'Header Grade', as.headers.score, y, pageH, margin);
+    y += 2;
   }
 
   // Exposures
@@ -186,7 +195,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const e of reportData.exposures) {
       y = addBullet(doc, `[${e.severity}] ${e.type}  ${e.date}  ${e.detail}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Recommendations
@@ -195,7 +204,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const r of reportData.recommendations) {
       y = addBullet(doc, `${r.priority}  ${r.action}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Career (person)
@@ -205,7 +214,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
       y = addBullet(doc, `${j.role} — ${j.company}  (${j.period})`, y, pageH, margin);
       if (j.achievement) y = addBullet(doc, `  ${j.achievement}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Risks
@@ -214,7 +223,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     for (const r of reportData.risks) {
       y = addBullet(doc, `[${r.severity}] ${r.factor}`, y, pageH, margin);
     }
-    y += 3;
+    y += 2;
   }
 
   // Cost
@@ -223,15 +232,19 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     y = addRow(doc, 'Total', `$${Number(reportData.cost.total).toFixed(2)}`, y, pageH, margin);
   }
 
-  // Footer on every page
+  // Page numbers footer (text only — no background rectangle)
   const totalPages = (doc as any).internal.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
-    doc.setFillColor(10, 14, 26);
-    doc.rect(0, 0, pageW, pageH, 'F'); // redraw bg on each page
     doc.setFontSize(7);
-    doc.setTextColor(50, 60, 80);
-    doc.text(`RECON — ${domain} — Page ${i} of ${totalPages}`, margin, pageH - 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(160, 160, 160);
+    doc.text(
+      `RECON  ·  ${domain}  ·  Page ${i} of ${totalPages}`,
+      pageW / 2,
+      pageH - 5,
+      { align: 'center' }
+    );
   }
 
   doc.save(filename);
