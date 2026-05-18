@@ -189,13 +189,15 @@ export default function Home() {
     };
 
     evtSource.onerror = () => {
-      // Stream closing after res.end() triggers onerror — ignore if already completed
-      if (!completedRef.current) {
-        setIsRunning(false);
-        setErrorMessage('Connection lost — please try again');
-        setTimeout(() => setErrorMessage(''), 8000);
-      }
-      evtSource.close();
+      // Debounce: server close fires onerror even on clean completion — wait for onmessage first
+      setTimeout(() => {
+        if (!completedRef.current) {
+          setIsRunning(false);
+          setErrorMessage('Connection lost — please try again');
+          setTimeout(() => setErrorMessage(''), 8000);
+        }
+        evtSource.close();
+      }, 100);
     };
   };
 
@@ -295,12 +297,14 @@ export default function Home() {
     };
 
     evtSource1.onerror = () => {
-      if (!completedRef.current) {
-        setIsRunning(false);
-        setErrorMessage('Connection lost — please try again');
-        setTimeout(() => setErrorMessage(''), 8000);
-      }
-      evtSource1.close();
+      setTimeout(() => {
+        if (!completedRef.current) {
+          setIsRunning(false);
+          setErrorMessage('Connection lost — please try again');
+          setTimeout(() => setErrorMessage(''), 8000);
+        }
+        evtSource1.close();
+      }, 100);
     };
 
     // Connect to second SSE stream (direct to Railway)
@@ -358,12 +362,14 @@ export default function Home() {
     };
 
     evtSource2.onerror = () => {
-      if (!completedRef2.current) {
-        setIsRunning2(false);
-        setErrorMessage('Connection lost — please try again');
-        setTimeout(() => setErrorMessage(''), 8000);
-      }
-      evtSource2.close();
+      setTimeout(() => {
+        if (!completedRef2.current) {
+          setIsRunning2(false);
+          setErrorMessage('Connection lost — please try again');
+          setTimeout(() => setErrorMessage(''), 8000);
+        }
+        evtSource2.close();
+      }, 100);
     };
   };
 
