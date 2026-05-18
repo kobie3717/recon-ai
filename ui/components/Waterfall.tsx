@@ -181,7 +181,7 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
       </div>
 
       {showFooter && (
-        <div className="bg-recon-navy/50 px-6 py-3 border-t border-recon-blue/30 text-sm text-recon-grey">
+        <div className="sticky bottom-0 bg-recon-navy/50 px-6 py-3 border-t border-recon-blue/30 text-sm text-recon-grey">
           <div className="flex items-center gap-4">
             <span>Total time: {totalElapsed.toFixed(1)}s</span>
             {shouldShowBotDetection && (

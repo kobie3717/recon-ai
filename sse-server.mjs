@@ -134,8 +134,6 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    await new Promise(r => setTimeout(r, 200));
-
     res.write(`data: ${JSON.stringify({
       type: 'cache-hit',
       domain,
@@ -143,8 +141,6 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       fresh_time: cached.elapsed,
       elapsed: 0.3
     })}\n\n`);
-
-    await new Promise(r => setTimeout(r, 400));
 
     res.write(`data: ${JSON.stringify({
       type: 'report',
@@ -262,7 +258,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
       if (anthropic) {
-        const ping = setInterval(() => res.write(': ping\n\n'), 8000);
+        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
         try {
           report = await synthesizeRedteamWithClaude(domain, {});
         } catch (synthErr) {
@@ -317,7 +313,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
       if (anthropic) {
-        const ping = setInterval(() => res.write(': ping\n\n'), 8000);
+        const ping = setInterval(() => res.write(': ping\n\n'), 15000);
         try {
           report = await synthesizeSeoWithClaude(domain, {});
         } catch (synthErr) {
