@@ -10,18 +10,24 @@ interface BundlePanelProps {
 
 type Tab = 'intelligence' | 'seo' | 'security';
 
-function handlePrint(reportData: any) {
-  const domain = reportData?.meta?.domain || 'bundle';
-  const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-  const prev = document.title;
-  document.title = `Recon Bundle - ${domain} - ${date}`;
-  window.print();
-  setTimeout(() => { document.title = prev; }, 1000);
-}
-
 export default function BundlePanel({ reportData, isRunning, onDrillDown }: BundlePanelProps) {
   const [tab, setTab] = useState<Tab>('intelligence');
+  const [isPrinting, setIsPrinting] = useState(false);
   const showLoading = isRunning && !reportData;
+
+  const onPrint = () => {
+    if (isPrinting || !reportData) return;
+    setIsPrinting(true);
+    const domain = reportData?.meta?.domain || 'bundle';
+    const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
+    const prev = document.title;
+    document.title = `Recon Bundle - ${domain} - ${date}`;
+    setTimeout(() => {
+      window.print();
+      document.title = prev;
+      setTimeout(() => setIsPrinting(false), 500);
+    }, 80);
+  };
 
   const standard = reportData?.standard;
   const seo = reportData?.seo;
@@ -43,10 +49,13 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
         </div>
         {reportData && (
           <button
-            onClick={() => handlePrint(reportData)}
-            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+            onClick={onPrint}
+            disabled={isPrinting}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ↓ PDF
+            {isPrinting ? (
+              <><span className="w-3 h-3 border-2 border-recon-grey border-t-white rounded-full animate-spin" /> Printing...</>
+            ) : '↓ PDF'}
           </button>
         )}
       </div>
@@ -72,12 +81,24 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {showLoading && (
-          <div className="space-y-4 animate-pulse">
-            <div className="h-20 bg-recon-navy/50 rounded" />
-            <div className="h-40 bg-recon-navy/50 rounded" />
-            <div className="h-32 bg-recon-navy/50 rounded" />
-            <div className="text-center text-amber-400 text-lg font-medium mt-8">
-              Running all intelligence modes in parallel<span className="animate-pulse">...</span>
+          <div className="flex flex-col items-center justify-center gap-6 pt-16">
+            <div className="relative w-16 h-16">
+              <div className="absolute inset-0 rounded-full border-4 border-amber-500/20" />
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-amber-400 animate-spin" />
+              <div className="absolute inset-0 flex items-center justify-center text-2xl">★</div>
+            </div>
+            <div className="text-center">
+              <div className="text-amber-400 font-semibold text-lg mb-3">Running All Modes in Parallel</div>
+              <div className="flex justify-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 rounded-full bg-amber-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+              </div>
+            </div>
+            <div className="w-full max-w-lg space-y-3 opacity-20 animate-pulse">
+              <div className="h-8 bg-recon-navy/80 rounded w-2/3 mx-auto" />
+              <div className="h-20 bg-recon-navy/80 rounded" />
+              <div className="h-12 bg-recon-navy/80 rounded" />
             </div>
           </div>
         )}
