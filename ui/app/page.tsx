@@ -151,18 +151,16 @@ export default function Home() {
           setFreshTime(event.fresh_time || 9.0);
           // Cache hit — don't deduct credits, stream still sends report event
         } else if (event.type === 'report') {
-          // Final event — contains structured report data + cost breakdown
+          completedRef.current = true; // set first — onerror debounce checks this
           if (typeof event.report === 'object') {
             setReportData(event.report);
             saveToHistory(domain, mode, event.report);
-            // Auto-save to backend
             fetch('/api/save', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ domain, report: event.report, mode }),
             }).catch(() => {});
           } else {
-            // Fallback for old markdown format
             setReportContent(event.report || event.content || '');
           }
           if (event.cost) {
@@ -170,7 +168,6 @@ export default function Home() {
           }
           setIsRunning(false);
           if (!cacheHitRef.current) setCredits(prev => prev - cost);
-          completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'complete') {
           setIsRunning(false);
@@ -197,7 +194,7 @@ export default function Home() {
           setTimeout(() => setErrorMessage(''), 8000);
         }
         evtSource.close();
-      }, 100);
+      }, 500);
     };
   };
 
@@ -304,7 +301,7 @@ export default function Home() {
           setTimeout(() => setErrorMessage(''), 8000);
         }
         evtSource1.close();
-      }, 100);
+      }, 500);
     };
 
     // Connect to second SSE stream (direct to Railway)
@@ -369,7 +366,7 @@ export default function Home() {
           setTimeout(() => setErrorMessage(''), 8000);
         }
         evtSource2.close();
-      }, 100);
+      }, 500);
     };
   };
 
