@@ -11,6 +11,7 @@ on:
       - 'bright-data-connector.mjs'
       - 'package*.json'
       - '.github/workflows/deploy-railway.yml'
+  workflow_dispatch:
 
 jobs:
   deploy:
