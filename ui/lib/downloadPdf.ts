@@ -80,7 +80,8 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
   if (reportData?.signals?.length) {
     y = addSection(doc, 'Signals', y, pageH, margin);
     for (const s of reportData.signals) {
-      y = addBullet(doc, `${s.icon ? s.icon + ' ' : ''}${s.text}  [${s.level}]`, y, pageH, margin);
+      const badge = s.level === 'high' ? '[HIGH]' : s.level === 'medium' ? '[MED]' : '[LOW]';
+      y = addBullet(doc, `${badge}  ${s.text}`, y, pageH, margin);
     }
     y += 2;
   }
