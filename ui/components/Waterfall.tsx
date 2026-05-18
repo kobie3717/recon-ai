@@ -33,6 +33,28 @@ const agentIcons: Record<string, string> = {
   'claude': '✨',
 };
 
+const agentDisplayNames: Record<string, string> = {
+  '007-bot': 'PHANTOM',
+  'circus': 'DISPATCH',
+  'bd-web-unlocker': 'FIELD-OPS',
+  'bd-serp': 'SIGINT',
+  'bd-scraping-browser': 'DEEP-COVER',
+  'bd-web-scraper': 'EXTRACTOR',
+  'bd-mcp': 'SOURCE-NET',
+  'ai-iq': 'VAULT',
+  'claude': 'ANALYST',
+  'scout-homepage': 'TARGET-RECON',
+  'scout-serp-news': 'PRESS-INTEL',
+  'scout-serp-competitors': 'COMPET-INTEL',
+  'scout-linkedin': 'IDENTITY-TRACE',
+  'scout-crunchbase': 'FINANCIAL-INTEL',
+  'scout-github': 'TECH-FOOTPRINT',
+  'scout-g2': 'SENTIMENT-INTEL',
+  'scout-trustpilot': 'PUBLIC-SENTIMENT',
+  'scout-glassdoor': 'HUMINT',
+  'scout-techcrunch': 'PRESS-SIGNAL',
+};
+
 const scoutIcons: Array<[string, string]> = [
   ['homepage', '🌐'],
   ['serp-news', '🔍'],
@@ -48,9 +70,7 @@ const scoutIcons: Array<[string, string]> = [
 ];
 
 function getAgentIcon(name: string): string {
-  // In compare mode, agent names are prefixed with domain like "stripe.com: bd-serp"
   const cleanName = name.includes(': ') ? name.split(': ')[1] : name;
-
   if (agentIcons[cleanName]) return agentIcons[cleanName];
   if (cleanName.startsWith('scout-')) {
     const suffix = cleanName.slice('scout-'.length);
@@ -59,6 +79,14 @@ function getAgentIcon(name: string): string {
     return '🔭';
   }
   return '📌';
+}
+
+function getDisplayName(name: string): string {
+  if (name.includes(': ')) {
+    const [prefix, agentPart] = name.split(': ');
+    return `${prefix}: ${agentDisplayNames[agentPart] || agentPart.toUpperCase()}`;
+  }
+  return agentDisplayNames[name] || name.toUpperCase();
 }
 
 const statusColors = {
@@ -95,30 +123,30 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
     <div className="flex flex-col h-full bg-recon-dark">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex flex-col">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Intelligence Pipeline</h2>
+          <h2 className="text-recon-cyan uppercase font-bold tracking-widest">OPERATIVE FEED</h2>
           {isDeepMode && (
-            <div className="text-indigo-400 text-xs mt-1 font-semibold">
-              DEEP SEARCH MODE — 10 parallel scouts
+            <div className="text-indigo-400 text-xs mt-1 font-semibold tracking-widest">
+              DEEP RECON — 10 PARALLEL FIELD OPERATIVES
             </div>
           )}
           {isBundleMode && (
-            <div className="text-amber-400 text-xs mt-1 font-semibold">
-              BUNDLE MODE — intelligence + SEO + security
+            <div className="text-amber-400 text-xs mt-1 font-semibold tracking-widest">
+              FULL SPECTRUM — INTELLIGENCE + SEO + SECURITY
             </div>
           )}
           {isRedteamMode && (
-            <div className="text-red-400 text-xs mt-1 font-semibold">
-              REDTEAM MODE — attack surface analysis
+            <div className="text-red-400 text-xs mt-1 font-semibold tracking-widest">
+              REDTEAM OPS — ATTACK SURFACE ASSESSMENT
             </div>
           )}
           {isSeoMode && (
-            <div className="text-green-400 text-xs mt-1 font-semibold">
-              SEO MODE — search intelligence
+            <div className="text-green-400 text-xs mt-1 font-semibold tracking-widest">
+              SIGINT OPS — SEARCH INTELLIGENCE
             </div>
           )}
           {isPersonMode && (
-            <div className="text-purple-400 text-xs mt-1 font-semibold">
-              PERSON INTEL — executive profile
+            <div className="text-purple-400 text-xs mt-1 font-semibold tracking-widest">
+              HUMINT — EXECUTIVE PROFILE
             </div>
           )}
         </div>
@@ -155,7 +183,7 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
                 <div key={`${agent.name}-${index}`} className="border-l-2 border-recon-blue/30 pl-4 py-2 relative">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-lg">{icon}</span>
-                    <span className="text-recon-grey font-medium min-w-[120px]">{agent.name}</span>
+                    <span className="text-recon-grey font-medium min-w-[120px] font-mono tracking-wider">{getDisplayName(agent.name)}</span>
                     <span className={`${colorClass} font-medium`}>{prefix} {agent.status}</span>
                     {agent.message && <span className="flex-1 text-recon-light">{agent.message}</span>}
                     <span className="text-recon-grey text-xs">{agent.elapsed.toFixed(1)}s</span>
@@ -187,13 +215,13 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
             {shouldShowBotDetection && (
               <>
                 <span>•</span>
-                <span>Bypassed bot detection</span>
+                <span>Cover maintained</span>
               </>
             )}
             <span>•</span>
-            <span>{agents.length} events logged</span>
+            <span>{agents.length} transmissions logged</span>
             <span>•</span>
-            <span>AI-IQ memory updated</span>
+            <span>VAULT updated</span>
           </div>
         </div>
       )}
