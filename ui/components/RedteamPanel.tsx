@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { downloadPdf } from '@/lib/downloadPdf';
 
 interface RedteamPanelProps {
   reportData: any;
@@ -30,13 +31,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'redteam';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    const prev = document.title;
-    document.title = `Recon RedTeam - ${domain} - ${date}`;
-    setTimeout(() => {
-      window.print();
-      document.title = prev;
-      setTimeout(() => setIsPrinting(false), 500);
-    }, 80);
+    downloadPdf(`recon-redteam-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
   };
 
   return (

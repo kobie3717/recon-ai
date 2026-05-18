@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { downloadPdf } from '@/lib/downloadPdf';
 
 interface PersonPanelProps {
   reportData: any;
@@ -16,15 +17,9 @@ export default function PersonPanel({ reportData, isRunning }: PersonPanelProps)
   const onPrint = () => {
     if (isPrinting || !reportData) return;
     setIsPrinting(true);
-    const name = reportData?.meta?.name || reportData?.profile?.name || 'person';
+    const name = (reportData?.meta?.name || reportData?.profile?.name || 'person').replace(/\s+/g, '-').toLowerCase();
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    const prev = document.title;
-    document.title = `Recon Person - ${name} - ${date}`;
-    setTimeout(() => {
-      window.print();
-      document.title = prev;
-      setTimeout(() => setIsPrinting(false), 500);
-    }, 80);
+    downloadPdf(`recon-person-${name}-${date}.pdf`).finally(() => setIsPrinting(false));
   };
 
   return (

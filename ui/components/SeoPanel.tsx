@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { downloadPdf } from '@/lib/downloadPdf';
 
 interface SeoPanelProps {
   reportData: any;
@@ -24,13 +25,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'seo';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    const prev = document.title;
-    document.title = `Recon SEO - ${domain} - ${date}`;
-    setTimeout(() => {
-      window.print();
-      document.title = prev;
-      setTimeout(() => setIsPrinting(false), 500);
-    }, 80);
+    downloadPdf(`recon-seo-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
   };
 
   return (

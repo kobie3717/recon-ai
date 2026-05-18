@@ -260,6 +260,7 @@ export default function Home() {
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
             setReportData(event.report);
+            saveToHistory(domain1, `compare-${mode}`, event.report);
           } else {
             setReportContent(event.report || event.content || '');
           }
@@ -327,6 +328,7 @@ export default function Home() {
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
             setReportData2(event.report);
+            saveToHistory(domain2, `compare-${mode}`, event.report);
           }
           setIsRunning2(false);
           completedRef2.current = true;
