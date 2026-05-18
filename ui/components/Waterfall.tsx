@@ -68,6 +68,13 @@ const statusColors = {
   routing: 'text-recon-cyan',
 };
 
+const statusPrefix = {
+  fetching: '⋯',
+  complete: '✓',
+  error: '✗',
+  routing: '⋯',
+};
+
 export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, freshTime, isRunning, mode }: WaterfallProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -142,13 +149,14 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
             {agents.map((agent, index) => {
               const icon = getAgentIcon(agent.name);
               const colorClass = statusColors[agent.status] || 'text-recon-grey';
+              const prefix = statusPrefix[agent.status] || '';
 
               return (
                 <div key={`${agent.name}-${index}`} className="border-l-2 border-recon-blue/30 pl-4 py-2 relative">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-lg">{icon}</span>
                     <span className="text-recon-grey font-medium min-w-[120px]">{agent.name}</span>
-                    <span className={`${colorClass} font-medium`}>{agent.status}</span>
+                    <span className={`${colorClass} font-medium`}>{prefix} {agent.status}</span>
                     {agent.message && <span className="flex-1 text-recon-light">{agent.message}</span>}
                     <span className="text-recon-grey text-xs">{agent.elapsed.toFixed(1)}s</span>
                   </div>

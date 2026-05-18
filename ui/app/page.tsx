@@ -30,6 +30,14 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const completedRef = useRef(false);
 
+  const relativeTime = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    if (diff < 60000) return 'just now';
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return `${Math.floor(diff / 86400000)}d ago`;
+  };
+
   // Compare mode state
   const [reportData2, setReportData2] = useState<any>(null);
   const [isRunning2, setIsRunning2] = useState(false);
@@ -46,7 +54,10 @@ export default function Home() {
     try {
       const saved = JSON.parse(localStorage.getItem('recon:history') || '[]');
       setHistory(saved);
-    } catch {}
+    } catch (e) {
+      console.warn('[history] localStorage read failed:', e);
+      setHistory([]);
+    }
   }, []);
 
   const extractDomain = (input: string): string => {
@@ -168,6 +179,7 @@ export default function Home() {
           evtSource.close();
         } else if (event.type === 'error') {
           setErrorMessage(event.message || 'Report generation failed');
+          setTimeout(() => setErrorMessage(''), 8000);
           setIsRunning(false);
           evtSource.close();
         }
@@ -180,6 +192,8 @@ export default function Home() {
       // Stream closing after res.end() triggers onerror — ignore if already completed
       if (!completedRef.current) {
         setIsRunning(false);
+        setErrorMessage('Connection lost — please try again');
+        setTimeout(() => setErrorMessage(''), 8000);
       }
       evtSource.close();
     };
@@ -275,6 +289,8 @@ export default function Home() {
           }
         } else if (event.type === 'error') {
           console.error('Report 1 error:', event.message);
+          setErrorMessage(event.message || 'Report 1 failed');
+          setTimeout(() => setErrorMessage(''), 8000);
           setIsRunning(false);
           evtSource1.close();
         }
@@ -286,6 +302,8 @@ export default function Home() {
     evtSource1.onerror = () => {
       if (!completedRef.current) {
         setIsRunning(false);
+        setErrorMessage('Connection lost — please try again');
+        setTimeout(() => setErrorMessage(''), 8000);
       }
       evtSource1.close();
     };
@@ -339,6 +357,8 @@ export default function Home() {
           }
         } else if (event.type === 'error') {
           console.error('Report 2 error:', event.message);
+          setErrorMessage(event.message || 'Report 2 failed');
+          setTimeout(() => setErrorMessage(''), 8000);
           setIsRunning2(false);
           evtSource2.close();
         }
@@ -350,6 +370,8 @@ export default function Home() {
     evtSource2.onerror = () => {
       if (!completedRef2.current) {
         setIsRunning2(false);
+        setErrorMessage('Connection lost — please try again');
+        setTimeout(() => setErrorMessage(''), 8000);
       }
       evtSource2.close();
     };
@@ -404,7 +426,7 @@ export default function Home() {
                     <span className="text-white text-sm font-medium">{entry.domain}</span>
                     <span className="text-recon-grey text-xs ml-2 uppercase">{entry.mode}</span>
                   </div>
-                  <span className="text-recon-grey/60 text-xs">{new Date(entry.savedAt).toLocaleDateString()}</span>
+                  <span className="text-recon-grey/60 text-xs">{relativeTime(entry.savedAt)}</span>
                 </button>
               ))}
             </div>
