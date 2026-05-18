@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { downloadPdf } from '@/lib/downloadPdf';
 
 interface ReportPanelProps {
   content?: string;
@@ -33,13 +34,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ domain, report: reportData, mode }),
     }).catch(() => {});
-    const prevTitle = document.title;
-    document.title = `Recon - ${domain} - ${date}`;
-    setTimeout(() => {
-      window.print();
-      document.title = prevTitle;
-      setTimeout(() => setIsPrinting(false), 500);
-    }, 80);
+    downloadPdf(`recon-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
   };
 
   // Old-style markdown content fallback

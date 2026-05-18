@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { downloadPdf } from '@/lib/downloadPdf';
 
 interface BundlePanelProps {
   reportData: any;
@@ -20,13 +21,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
     setIsPrinting(true);
     const domain = reportData?.meta?.domain || 'bundle';
     const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-    const prev = document.title;
-    document.title = `Recon Bundle - ${domain} - ${date}`;
-    setTimeout(() => {
-      window.print();
-      document.title = prev;
-      setTimeout(() => setIsPrinting(false), 500);
-    }, 80);
+    downloadPdf(`recon-bundle-${domain}-${date}.pdf`).finally(() => setIsPrinting(false));
   };
 
   const standard = reportData?.standard;
