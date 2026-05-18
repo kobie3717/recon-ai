@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+
 interface ComparePanelProps {
   report1: any;
   report2: any;
@@ -7,17 +9,128 @@ interface ComparePanelProps {
   isLoading2: boolean;
 }
 
-function handlePrint(report1: any, report2: any) {
-  const company1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
-  const company2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
+async function downloadComparePdf(report1: any, report2: any) {
+  const { jsPDF } = await import('jspdf');
+  const c1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
+  const c2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
   const date = new Date().toISOString().split('T')[0];
-  const prev = document.title;
-  document.title = `Recon Compare - ${company1} vs ${company2} - ${date}`;
-  window.print();
-  setTimeout(() => { document.title = prev; }, 1000);
+
+  const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+  const margin = 15;
+  const pageW = 210;
+  const pageH = 297;
+  const col1 = margin;
+  const col2 = pageW / 2 + 5;
+  const colW = pageW / 2 - margin - 5;
+  let y = margin;
+
+  const bg = () => { doc.setFillColor(10, 14, 26); doc.rect(0, 0, pageW, pageH, 'F'); };
+  bg();
+
+  // Title
+  doc.setFontSize(16); doc.setTextColor(255, 255, 255);
+  doc.text(`${c1}  vs  ${c2}`, margin, y + 5);
+  y += 10;
+  doc.setFontSize(8); doc.setTextColor(100, 116, 139);
+  doc.text(`Competitor Comparison · ${date}`, margin, y);
+  y += 10;
+
+  // Divider
+  doc.setDrawColor(6, 182, 212); doc.setLineWidth(0.3);
+  doc.line(margin, y, pageW - margin, y);
+  y += 8;
+
+  // Column headers
+  doc.setFontSize(11); doc.setTextColor(6, 182, 212);
+  doc.text(c1, col1, y);
+  doc.text(c2, col2, y);
+  y += 8;
+
+  const section = (title: string) => {
+    if (y > pageH - 20) { doc.addPage(); bg(); y = margin; }
+    doc.setFontSize(8); doc.setTextColor(6, 182, 212);
+    doc.text(title.toUpperCase(), margin, y);
+    y += 4;
+    doc.setDrawColor(37, 99, 235); doc.line(margin, y, pageW - margin, y);
+    y += 5;
+  };
+
+  const row = (label: string, v1: string, v2: string) => {
+    if (y > pageH - 10) { doc.addPage(); bg(); y = margin; }
+    doc.setFontSize(7.5); doc.setTextColor(100, 116, 139);
+    doc.text(label, margin, y);
+    doc.setTextColor(248, 250, 252);
+    doc.text(doc.splitTextToSize(v1 || '—', colW), col1, y + 4);
+    doc.text(doc.splitTextToSize(v2 || '—', colW), col2, y + 4);
+    y += 10;
+  };
+
+  const bullets = (title: string, items1: string[], items2: string[]) => {
+    section(title);
+    const max = Math.max(items1.length, items2.length);
+    for (let i = 0; i < max; i++) {
+      if (y > pageH - 10) { doc.addPage(); bg(); y = margin; }
+      doc.setFontSize(7.5); doc.setTextColor(248, 250, 252);
+      if (items1[i]) doc.text(doc.splitTextToSize(`• ${items1[i]}`, colW), col1, y);
+      if (items2[i]) doc.text(doc.splitTextToSize(`• ${items2[i]}`, colW), col2, y);
+      y += 6;
+    }
+    y += 3;
+  };
+
+  // Snapshot
+  section('Company Snapshot');
+  row('Founded', report1?.snapshot?.founded, report2?.snapshot?.founded);
+  row('HQ', report1?.snapshot?.hq, report2?.snapshot?.hq);
+  row('Employees', report1?.snapshot?.employees, report2?.snapshot?.employees);
+  row('Stage', report1?.snapshot?.stage, report2?.snapshot?.stage);
+  y += 3;
+
+  // Financials
+  section('Financials');
+  row('Total Raised', report1?.financials?.totalRaised, report2?.financials?.totalRaised);
+  row('Last Round', report1?.financials?.lastRound, report2?.financials?.lastRound);
+  row('Valuation', report1?.financials?.valuation, report2?.financials?.valuation);
+  row('Revenue', report1?.financials?.revenue, report2?.financials?.revenue);
+  y += 3;
+
+  // Signals
+  if (report1?.signals || report2?.signals) {
+    bullets('Top Signals',
+      (report1?.signals || []).map((s: any) => `${s.icon || ''} ${s.text}`),
+      (report2?.signals || []).map((s: any) => `${s.icon || ''} ${s.text}`),
+    );
+  }
+
+  // Strategic
+  if (report1?.strategic || report2?.strategic) {
+    bullets('Strategic Direction',
+      report1?.strategic || [],
+      report2?.strategic || [],
+    );
+  }
+
+  // Hiring
+  if (report1?.hiring || report2?.hiring) {
+    bullets('Hiring Focus',
+      (report1?.hiring || []).map((h: any) => `${h.role} (${h.count})`),
+      (report2?.hiring || []).map((h: any) => `${h.role} (${h.count})`),
+    );
+  }
+
+  // Footer
+  const total = (doc as any).internal.getNumberOfPages();
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    doc.setFontSize(7); doc.setTextColor(50, 60, 80);
+    doc.text(`RECON COMPARE — ${c1} vs ${c2} — Page ${i} of ${total}`, margin, pageH - 5);
+  }
+
+  doc.save(`recon-compare-${report1?.meta?.domain || 'a'}-vs-${report2?.meta?.domain || 'b'}-${date}.pdf`);
 }
 
 export default function ComparePanel({ report1, report2, isLoading1, isLoading2 }: ComparePanelProps) {
+  const [isPrinting, setIsPrinting] = useState(false);
   const company1 = report1?.meta?.companyName || report1?.meta?.domain || 'Company A';
   const company2 = report2?.meta?.companyName || report2?.meta?.domain || 'Company B';
 
@@ -33,10 +146,11 @@ export default function ComparePanel({ report1, report2, isLoading1, isLoading2 
         </div>
         {report1 && report2 && (
           <button
-            onClick={() => handlePrint(report1, report2)}
-            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+            onClick={() => { setIsPrinting(true); downloadComparePdf(report1, report2).finally(() => setIsPrinting(false)); }}
+            disabled={isPrinting}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ↓ PDF
+            {isPrinting ? <><span className="w-3 h-3 border-2 border-recon-grey border-t-white rounded-full animate-spin" /> Generating...</> : '↓ PDF'}
           </button>
         )}
       </div>
