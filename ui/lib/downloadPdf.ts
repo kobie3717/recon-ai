@@ -80,7 +80,7 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
   if (reportData?.signals?.length) {
     y = addSection(doc, 'Signals', y, pageH, margin);
     for (const s of reportData.signals) {
-      y = addBullet(doc, `${s.text}  [${s.level}]`, y, pageH, margin);
+      y = addBullet(doc, `${s.icon ? s.icon + ' ' : ''}${s.text}  [${s.level}]`, y, pageH, margin);
     }
     y += 2;
   }
@@ -212,7 +212,54 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     y = addSection(doc, 'Career History', y, pageH, margin);
     for (const j of reportData.career) {
       y = addBullet(doc, `${j.role} — ${j.company}  (${j.period})`, y, pageH, margin);
-      if (j.achievement) y = addBullet(doc, `  ${j.achievement}`, y, pageH, margin);
+      if (j.achievement) y = addBullet(doc, `    ${j.achievement}`, y, pageH, margin);
+    }
+    y += 2;
+  }
+
+  // Companies (person)
+  if (reportData?.companies?.length) {
+    y = addSection(doc, 'Companies', y, pageH, margin);
+    for (const c of reportData.companies) {
+      const line = `${c.name} — ${c.role}${c.domain ? `  (${c.domain})` : ''}`;
+      y = addBullet(doc, line, y, pageH, margin);
+    }
+    y += 2;
+  }
+
+  // Public Activity (person)
+  if (reportData?.publicActivity?.length) {
+    y = addSection(doc, 'Public Activity', y, pageH, margin);
+    for (const item of reportData.publicActivity) {
+      y = addBullet(doc, `[${item.signal}] ${item.date}  ${item.event}`, y, pageH, margin);
+    }
+    y += 2;
+  }
+
+  // Notable Quotes (person)
+  if (reportData?.quotes?.length) {
+    y = addSection(doc, 'Notable Quotes', y, pageH, margin);
+    for (const q of reportData.quotes) {
+      y = addBullet(doc, `"${q.text}"`, y, pageH, margin);
+      y = addBullet(doc, `    — ${q.source}  ${q.date}`, y, pageH, margin);
+    }
+    y += 2;
+  }
+
+  // Network (person)
+  if (reportData?.network?.length) {
+    y = addSection(doc, 'Network', y, pageH, margin);
+    for (const n of reportData.network) {
+      y = addBullet(doc, `${n.name} — ${n.relationship}`, y, pageH, margin);
+    }
+    y += 2;
+  }
+
+  // Social Engineering (redteam)
+  if (reportData?.socialEngineering?.length) {
+    y = addSection(doc, 'Social Engineering Vectors', y, pageH, margin);
+    for (const v of reportData.socialEngineering) {
+      y = addBullet(doc, `[${v.risk}] ${v.vector}: ${v.detail}`, y, pageH, margin);
     }
     y += 2;
   }
