@@ -36,6 +36,8 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
   const url2 = externalUrl2 ?? '';
 
   const isPerson = looksLikePerson(url);
+  const hasInput = !!url.trim();
+  const hasDot = url.includes('.');
 
   const buttonClasses = (color: string, isPulse = false) => {
     const base = "px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
@@ -117,14 +119,14 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
           {!compareMode ? (
             reportModes.map(({ mode, label, cost, color, icon }) => {
               const isPersonMode = mode === 'person';
-              const hasInput = !!url.trim();
-              const disabledByPerson = isPerson && !isPersonMode && hasInput;
-              const disabledByUrl = !isPerson && isPersonMode && hasInput;
+              // No dot → treat as person context: enable Person Intel, gray others
+              // Has dot → treat as URL: enable others, gray Person Intel
+              const disabledByContext = hasInput && (isPersonMode ? hasDot : !hasDot);
               return (
                 <button
                   key={mode}
                   onClick={() => onGenerate(url, mode, cost)}
-                  disabled={isRunning || !hasInput || disabledByPerson || disabledByUrl}
+                  disabled={isRunning || !hasInput || disabledByContext}
                   className={buttonClasses(color, isPersonMode && isPerson)}
                 >
                   {icon && <span className="mr-1">{icon}</span>}
