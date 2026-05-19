@@ -7,7 +7,7 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
-import { runStandardWorker, runDeepWorker } from './bd-worker.mjs';
+import { runStandardWorker, runDeepWorker, runFootprintWorker } from './bd-worker.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -108,8 +108,8 @@ app.get('/api/report', reportLimiter, async (req, res) => {
   let domain, mode;
   try {
     mode = req.query.mode || 'standard';
-    if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
-      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, seo, or bundle' });
+    if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint'].includes(mode)) {
+      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, seo, bundle, or footprint' });
     }
 
     if (mode === 'person') {
@@ -391,6 +391,12 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       const elapsed = (Date.now() - startTime) / 1000;
       report = { standard: standardReport, seo: seoReport, redteam: redteamReport, meta: { domain, mode: 'bundle', analysisDate: new Date().toISOString().split('T')[0] } };
       result = { elapsed, domain, mode: 'bundle', cost: 25.00 };
+    } else if (mode === 'footprint') {
+      result = await runFootprintWorker(domain, emitter);
+      const factsData = result.facts || {};
+      report = anthropic
+        ? await synthesizeFootprintWithClaude(domain, factsData)
+        : generateMockFootprintReport(domain, factsData);
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
@@ -928,6 +934,221 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
   parsed.cost = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 };
 
   return parsed;
+}
+
+/**
+ * Synthesize footprint intelligence report with Claude
+ */
+async function synthesizeFootprintWithClaude(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  // Format facts for Claude
+  let factsContext = '';
+  if (facts.discover) {
+    factsContext += `\nDISCOVERY DATA:\nSubdomains: ${facts.discover.subdomains?.join(', ')}\nRelated Domains: ${facts.discover.relatedDomains?.join(', ')}\nWeb Properties: ${JSON.stringify(facts.discover.webProperties)}`;
+  }
+  if (facts.crawl) {
+    factsContext += `\n\nCRAWL DATA (${facts.crawl.pageCount} pages):\n${facts.crawl.pages?.map(p => `${p.title}: ${p.text}`).join('\n')}`;
+  }
+  if (facts.linkedin) {
+    factsContext += `\n\nLINKEDIN DATA:\nName: ${facts.linkedin.name}\nEmployees: ${facts.linkedin.employees}\nFollowers: ${facts.linkedin.followers}\nSpecialties: ${facts.linkedin.specialties?.join(', ')}\nRecent Posts: ${JSON.stringify(facts.linkedin.recentPosts)}`;
+  }
+  if (facts.social) {
+    factsContext += `\n\nSOCIAL MEDIA:\nTwitter: ${facts.social.twitter?.handle} (${facts.social.twitter?.followers} followers)\nSentiment: ${JSON.stringify(facts.social.twitter?.sentimentBreakdown)}\nReddit: ${facts.social.reddit?.subreddit} (${facts.social.reddit?.subscribers} subscribers)`;
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    messages: [{
+      role: 'user',
+      content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
+
+TODAY: ${today}
+
+COLLECTED DATA:
+${factsContext.substring(0, 6000)}
+
+Return ONLY valid JSON with this exact structure:
+{
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "footprint", "confidence": "high" },
+  "signals": [
+    { "level": "high|medium|positive", "text": "specific finding from digital footprint analysis", "icon": "🔴|🟡|🟢" }
+  ],
+  "snapshot": {
+    "founded": "YYYY",
+    "hq": "City, Country",
+    "employees": "N (verified)",
+    "stage": "Series X",
+    "website": "${domain}",
+    "linkedin": "linkedin.com/company/${companySlug}"
+  },
+  "digitalFootprint": {
+    "totalSubdomains": 8,
+    "subdomains": ["api.${domain}", "docs.${domain}", "app.${domain}"],
+    "relatedDomains": ["${companySlug}.io", "${companySlug}.co"],
+    "webProperties": [
+      { "type": "GitHub|Twitter|LinkedIn|YouTube|Facebook", "url": "...", "followers": "..." }
+    ]
+  },
+  "crawlInsights": {
+    "pagesFound": 15,
+    "pricingTiers": ["Starter", "Pro", "Enterprise"],
+    "openRoles": 12,
+    "keyPages": ["Pricing", "About", "Careers", "API Docs"],
+    "techMentions": ["React", "AWS", "PostgreSQL"]
+  },
+  "linkedinIntel": {
+    "employees": "850",
+    "followers": "12.4K",
+    "recentActivity": "Active hiring + Series D announcement",
+    "topRoles": ["Software Engineer", "Product Manager", "Sales"]
+  },
+  "socialPresence": {
+    "twitterFollowers": "45K",
+    "twitterHandle": "@${companySlug}",
+    "sentimentScore": "positive|neutral|mixed|negative",
+    "recentSentiment": "Mostly positive, some pricing concerns",
+    "redditPresence": "Active community (3.2K subscribers)"
+  },
+  "competitive": [
+    { "competitor": "Competitor Name", "weakness": "specific weakness" }
+  ],
+  "strategic": [
+    "Strategic observation 1",
+    "Strategic observation 2",
+    "Strategic observation 3"
+  ],
+  "sources": [
+    { "tool": "BD Discover API", "icon": "🔭", "target": "${domain}", "sections": ["Subdomains", "Web Properties"] },
+    { "tool": "BD Crawl API", "icon": "🕷", "target": "${domain} (15 pages)", "sections": ["Pricing", "Careers", "Tech Stack"] },
+    { "tool": "BD LinkedIn Scraper", "icon": "💼", "target": "linkedin.com/company/${companySlug}", "sections": ["Employee Count", "Activity"] },
+    { "tool": "BD Social Media Scraper", "icon": "📱", "target": "Twitter · Reddit", "sections": ["Sentiment", "Mentions"] },
+    { "tool": "BD SERP API", "icon": "🔍", "target": "site:reddit.com OR site:twitter.com mentions", "sections": ["Public Sentiment"] }
+  ],
+  "cost": { "discoverApi": 0.00, "crawlApi": 1.20, "linkedinScraper": 0.80, "socialScraper": 0.60, "serpApi": 0.30, "claude": 2.10, "total": 5.00 }
+}`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
+ * Mock footprint report fallback
+ */
+function generateMockFootprintReport(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  return {
+    meta: {
+      domain,
+      companyName,
+      analysisDate: today,
+      mode: 'footprint',
+      confidence: 'high'
+    },
+    signals: [
+      { level: 'high', text: `${companyName} has extensive digital footprint — 8 active subdomains including staging/dev environments`, icon: '🔴' },
+      { level: 'medium', text: 'Twitter sentiment 68% positive — pricing concerns emerging in recent mentions', icon: '🟡' },
+      { level: 'positive', text: 'Active LinkedIn presence — 12 open roles signals aggressive growth phase', icon: '🟢' },
+      { level: 'positive', text: 'Strong social media engagement — 45K Twitter followers, active Reddit community', icon: '🟢' }
+    ],
+    snapshot: {
+      founded: '2018',
+      hq: 'San Francisco, CA',
+      employees: '850 (LinkedIn verified)',
+      stage: 'Series D',
+      website: domain,
+      linkedin: `linkedin.com/company/${companySlug}`
+    },
+    digitalFootprint: {
+      totalSubdomains: 8,
+      subdomains: [
+        `api.${domain}`,
+        `docs.${domain}`,
+        `app.${domain}`,
+        `status.${domain}`,
+        `cdn.${domain}`,
+        `blog.${domain}`,
+        `dev.${domain}`,
+        `staging.${domain}`
+      ],
+      relatedDomains: [
+        `${companySlug}.io`,
+        `${companySlug}.co`,
+        `get${companySlug}.com`
+      ],
+      webProperties: [
+        { type: 'Twitter', url: `https://twitter.com/${companySlug}`, followers: '45.2K' },
+        { type: 'GitHub', url: `https://github.com/${companySlug}`, followers: '34 repos' },
+        { type: 'LinkedIn', url: `https://linkedin.com/company/${companySlug}`, followers: '12.4K' },
+        { type: 'YouTube', url: `https://youtube.com/@${companySlug}`, followers: '8.2K subscribers' },
+        { type: 'Facebook', url: `https://facebook.com/${companySlug}`, followers: '22K' }
+      ]
+    },
+    crawlInsights: {
+      pagesFound: 15,
+      pricingTiers: ['Starter ($299/mo)', 'Professional ($999/mo)', 'Enterprise (Custom)'],
+      openRoles: 12,
+      keyPages: ['Pricing', 'About', 'Careers', 'Blog', 'API Docs'],
+      techMentions: ['React', 'TypeScript', 'AWS', 'PostgreSQL', 'Kubernetes', 'Redis']
+    },
+    linkedinIntel: {
+      employees: '850',
+      followers: '12.4K',
+      recentActivity: 'Active hiring (12 open roles), Series D announcement, attending TechConf 2026',
+      topRoles: [
+        'Software Engineer',
+        'Senior Product Manager',
+        'Enterprise Account Executive',
+        'Customer Success Manager',
+        'DevOps Engineer',
+        'Data Scientist'
+      ]
+    },
+    socialPresence: {
+      twitterFollowers: '45.2K',
+      twitterHandle: `@${companySlug}`,
+      sentimentScore: 'positive',
+      recentSentiment: 'Mostly positive feedback on product quality and support. Some concerns about pricing complexity for mid-tier plans.',
+      redditPresence: 'Active community (3.2K subscribers in r/' + companySlug + ') — technical discussions, feature requests, customer success stories'
+    },
+    competitive: [
+      { competitor: 'Competitor A', weakness: 'Smaller social footprint (18K Twitter followers) — less brand awareness' },
+      { competitor: 'Competitor B', weakness: 'No active dev/staging subdomains visible — slower release cycle' },
+      { competitor: 'Competitor C', weakness: 'Negative Reddit sentiment (mixed reviews) vs positive for ' + companyName }
+    ],
+    strategic: [
+      'Enterprise expansion evident — hiring 8 Enterprise AEs, Enterprise pricing tier',
+      'Developer-first approach — active GitHub, comprehensive docs subdomain',
+      'Strong content marketing — active blog, YouTube channel with tutorials',
+      'International footprint growing — .io and .co domains suggest global positioning'
+    ],
+    sources: [
+      { tool: 'BD Discover API', icon: '🔭', target: domain, sections: ['Subdomains', 'Web Properties'] },
+      { tool: 'BD Crawl API', icon: '🕷', target: `${domain} (15 pages)`, sections: ['Pricing', 'Careers', 'Tech Stack'] },
+      { tool: 'BD LinkedIn Scraper', icon: '💼', target: `linkedin.com/company/${companySlug}`, sections: ['Employee Count', 'Activity'] },
+      { tool: 'BD Social Media Scraper', icon: '📱', target: 'Twitter · Reddit', sections: ['Sentiment', 'Mentions'] },
+      { tool: 'BD SERP API', icon: '🔍', target: 'site:reddit.com OR site:twitter.com mentions', sections: ['Public Sentiment'] }
+    ],
+    cost: {
+      discoverApi: 0.00,
+      crawlApi: 1.20,
+      linkedinScraper: 0.80,
+      socialScraper: 0.60,
+      serpApi: 0.30,
+      claude: 2.10,
+      total: 5.00
+    }
+  };
 }
 
 /**

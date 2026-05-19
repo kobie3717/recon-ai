@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -18,6 +18,7 @@ interface UrlInputProps {
 const reportModes = [
   { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '' },
   { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤' },
+  { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈' },
   { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔' },
   { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦' },
@@ -43,6 +44,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
     switch (color) {
       case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
       case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
+      case 'teal': return `${base} bg-recon-navy border border-teal-500/50 text-teal-400 hover:bg-teal-500/10`;
       case 'yellow': return `${base} bg-yellow-400 text-black hover:bg-yellow-300`;
       case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
       case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
