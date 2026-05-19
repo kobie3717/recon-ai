@@ -120,7 +120,14 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       }
       domain = name.substring(0, 100);
     } else {
-      domain = validateDomain(req.query.domain);
+      const raw = (req.query.domain || '').trim();
+      // Auto-route: if input looks like a person name (spaces, no dots) redirect to person mode
+      if (/^[a-zA-Z\s'-]{2,100}$/.test(raw) && !raw.includes('.')) {
+        mode = 'person';
+        domain = raw.substring(0, 100);
+      } else {
+        domain = validateDomain(raw);
+      }
     }
   } catch (e) {
     return res.status(400).json({ error: e.message });
