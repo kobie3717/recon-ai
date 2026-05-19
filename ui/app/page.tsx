@@ -105,13 +105,16 @@ export default function Home() {
       return;
     }
 
-    const domain = mode === 'person' ? url.trim() : extractDomain(url);
+    // Auto-detect person names — if input has spaces but no dots, switch to person mode
+    const looksLikePerson = /^[a-zA-Z\s'-]{2,100}$/.test(url.trim()) && !url.includes('.');
+    const effectiveMode: Mode = looksLikePerson ? 'person' : mode;
+    const domain = effectiveMode === 'person' ? url.trim() : extractDomain(url);
 
     // Reset state
     completedRef.current = false;
     cacheHitRef.current = false;
     setIsRunning(true);
-    setCurrentMode(mode);
+    setCurrentMode(effectiveMode);
     setAgents([]);
     setTotalElapsed(0);
     setReportContent('');
@@ -127,7 +130,7 @@ export default function Home() {
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
     const evtSource = new EventSource(
-      `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`
+      `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${effectiveMode}`
     );
 
     evtSource.onmessage = (e) => {
