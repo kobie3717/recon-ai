@@ -172,21 +172,6 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
 
   await sleep(100);
 
-  // Claude synthesis
-  emitter.emit('event', {
-    agent: 'claude',
-    status: 'synthesizing',
-    elapsed: parseFloat(elapsed())
-  });
-
-  await sleep(2900); // Claude processing time
-
-  emitter.emit('event', {
-    agent: 'claude',
-    status: 'complete',
-    elapsed: parseFloat(elapsed())
-  });
-
   // Cost breakdown
   const costBreakdown = {
     webUnlocker: 0.30,
@@ -318,20 +303,6 @@ export async function runDeepWorker(domain, emitter) {
 
   await sleep(150);
 
-  // Claude deep synthesis
-  emitter.emit('event', {
-    agent: 'claude',
-    status: 'synthesizing-deep',
-    elapsed: parseFloat(elapsed())
-  });
-
-  await sleep(4500); // Longer synthesis for deep mode
-
-  emitter.emit('event', {
-    agent: 'claude',
-    status: 'complete',
-    elapsed: parseFloat(elapsed())
-  });
 
   // Cost breakdown for deep mode
   const costBreakdown = {

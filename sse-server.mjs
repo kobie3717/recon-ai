@@ -396,7 +396,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       const factsData = result.facts || result.scouts || {};
       if (anthropic) {
         try {
+          const claudeStart = Date.now();
+          emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
           report = await synthesizeWithClaude(domain, factsData, mode);
+          emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
         } catch (synthErr) {
           console.error('[deep] Claude synthesis failed, using mock:', synthErr.message);
           report = generateReport(domain, factsData, mode);
@@ -409,7 +412,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       const factsData = result.facts || result.scouts || {};
       if (anthropic) {
         try {
+          const claudeStart = Date.now();
+          emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
           report = await synthesizeWithClaude(domain, factsData, mode);
+          emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
         } catch (synthErr) {
           console.error('[standard] Claude synthesis failed, using mock:', synthErr.message);
           report = generateReport(domain, factsData, mode);
