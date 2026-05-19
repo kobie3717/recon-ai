@@ -3,8 +3,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { webUnlocker, serpApi, scrapingBrowser, webScraperApi } from './bright-data-connector.mjs';
-import { mcpFetch } from './bd-mcp-client.mjs';
+import { webUnlocker, serpApi, scrapingBrowser, webScraperApi, crawlApi, discoverApi, linkedinScraperApi, socialMediaScraper } from './bright-data-connector.mjs';
+import { mcpFetch, mcpSearch } from './bd-mcp-client.mjs';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -347,6 +347,198 @@ export async function runDeepWorker(domain, emitter) {
     domain,
     mode: 'deep',
     scouts: scoutResults,
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost,
+    costBreakdown
+  };
+
+  // Final completion
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'complete',
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost
+  });
+
+  return result;
+}
+
+/**
+ * Footprint recon worker - digital footprint discovery (5 parallel BD calls)
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @returns {Promise<Object>} - Final report data
+ */
+export async function runFootprintWorker(domain, emitter) {
+  const startTime = Date.now();
+  const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
+
+  // Initial receipt
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'received',
+    domain,
+    mode: 'footprint',
+    elapsed: 0
+  });
+
+  await sleep(50);
+
+  // Routing
+  emitter.emit('event', {
+    agent: 'circus',
+    status: 'routing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(50);
+
+  const companySlug = domain.split('.')[0];
+
+  // Fire all 5 BD calls in parallel with individual event tracking
+  const facts = {};
+
+  const discoverPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-discover',
+      status: 'scanning',
+      domain,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await discoverApi(domain);
+    emitter.emit('event', {
+      agent: 'bd-discover',
+      status: 'complete',
+      totalFound: result.totalFound,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const crawlPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-crawl',
+      status: 'crawling',
+      domain,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await crawlApi(domain);
+    emitter.emit('event', {
+      agent: 'bd-crawl',
+      status: 'complete',
+      pages: result.pageCount,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const linkedinPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-linkedin-scraper',
+      status: 'fetching',
+      company: companySlug,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await linkedinScraperApi(companySlug);
+    emitter.emit('event', {
+      agent: 'bd-linkedin-scraper',
+      status: 'complete',
+      name: result.name,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const socialPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-social',
+      status: 'scanning',
+      platforms: 'Twitter · Reddit',
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await socialMediaScraper(companySlug, domain);
+    emitter.emit('event', {
+      agent: 'bd-social',
+      status: 'complete',
+      twitter: result.twitter.handle,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const serpPromise = (async () => {
+    const searchQuery = `${companySlug} company site:reddit.com OR site:twitter.com mentions`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query: searchQuery,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(searchQuery);
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // Wait for all to complete
+  const [discover, crawl, linkedin, social, mentions] = await Promise.all([
+    discoverPromise,
+    crawlPromise,
+    linkedinPromise,
+    socialPromise,
+    serpPromise
+  ]);
+
+  // Collect facts
+  facts.discover = discover;
+  facts.crawl = crawl;
+  facts.linkedin = linkedin;
+  facts.social = social;
+  facts.mentions = mentions;
+
+  // AI-IQ storage
+  emitter.emit('event', {
+    agent: 'ai-iq',
+    status: 'storing',
+    facts: 5,
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(100);
+
+  // Claude synthesis
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'synthesizing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(3200); // Claude processing time for footprint mode
+
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'complete',
+    elapsed: parseFloat(elapsed())
+  });
+
+  // Cost breakdown
+  const costBreakdown = {
+    discoverApi: 0.00,    // FREE
+    crawlApi: 1.20,
+    linkedinScraper: 0.80,
+    socialScraper: 0.60,
+    serpApi: 0.30
+  };
+  const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+
+  const result = {
+    domain,
+    mode: 'footprint',
+    facts,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,
     costBreakdown

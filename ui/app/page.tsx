@@ -10,8 +10,9 @@ import RedteamPanel from '@/components/RedteamPanel';
 import SeoPanel from '@/components/SeoPanel';
 import BundlePanel from '@/components/BundlePanel';
 import PersonPanel from '@/components/PersonPanel';
+import FootprintPanel from '@/components/FootprintPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -487,6 +488,12 @@ export default function Home() {
                   setUrl(q);
                 }
               }}
+            />
+          ) : currentMode === 'footprint' ? (
+            <FootprintPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
             />
           ) : currentMode === 'bundle' ? (
             <BundlePanel
