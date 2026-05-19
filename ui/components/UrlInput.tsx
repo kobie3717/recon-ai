@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -19,7 +19,10 @@ const reportModes = [
   { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '' },
   { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤' },
   { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭' },
+  { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗' },
+  { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈' },
+  { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬' },
   { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔' },
   { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦' },
   { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★' },
@@ -45,7 +48,10 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
       case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
       case 'teal': return `${base} bg-recon-navy border border-teal-500/50 text-teal-400 hover:bg-teal-500/10`;
+      case 'orange': return `${base} bg-orange-900/40 border border-orange-500/50 text-orange-400 hover:bg-orange-500/10`;
+      case 'green': return `${base} bg-green-900/40 border border-green-500/50 text-green-400 hover:bg-green-500/10 ${isPulse ? 'animate-pulse' : ''}`;
       case 'yellow': return `${base} bg-yellow-400 text-black hover:bg-yellow-300`;
+      case 'violet': return `${base} bg-violet-900/40 border border-violet-500/50 text-violet-400 hover:bg-violet-500/10`;
       case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
       case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
       case 'black': return `${base} bg-gray-900 border border-gray-600 text-white hover:bg-black`;
@@ -125,7 +131,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
                 className={buttonClasses(color, mode === 'person' && isPerson)}
               >
                 {icon && <span className="mr-1">{icon}</span>}
-                {label} ${cost.toFixed(2)}
+                {label} {cost > 0 ? `$${cost.toFixed(2)}` : 'FREE'}
               </button>
             ))
           ) : (
