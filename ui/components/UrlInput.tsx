@@ -115,17 +115,23 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       <div className="relative">
         <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
           {!compareMode ? (
-            reportModes.map(({ mode, label, cost, color, icon }) => (
-              <button
-                key={mode}
-                onClick={() => onGenerate(url, mode, cost)}
-                disabled={isRunning || !url.trim()}
-                className={buttonClasses(color, mode === 'person' && isPerson)}
-              >
-                {icon && <span className="mr-1">{icon}</span>}
-                {label} ${cost.toFixed(2)}
-              </button>
-            ))
+            reportModes.map(({ mode, label, cost, color, icon }) => {
+              const isPersonMode = mode === 'person';
+              const hasInput = !!url.trim();
+              const disabledByPerson = isPerson && !isPersonMode && hasInput;
+              const disabledByUrl = !isPerson && isPersonMode && hasInput;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => onGenerate(url, mode, cost)}
+                  disabled={isRunning || !hasInput || disabledByPerson || disabledByUrl}
+                  className={buttonClasses(color, isPersonMode && isPerson)}
+                >
+                  {icon && <span className="mr-1">{icon}</span>}
+                  {label} ${cost.toFixed(2)}
+                </button>
+              );
+            })
           ) : (
             <>
               <button
