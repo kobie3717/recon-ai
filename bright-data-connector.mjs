@@ -607,3 +607,217 @@ export async function socialMediaScraper(companySlug, domain) {
     }
   };
 }
+
+/**
+ * Data Firehose - stream real-time web mentions
+ * @param {string} domain - Target domain
+ * @param {function} onEvent - Callback for each event: { source, url, title, snippet, sentiment, timestamp }
+ * @param {number} durationMs - Max stream duration (default 30000ms)
+ * @returns {function} stopFn - Call to cancel the stream
+ */
+export function dataFirehose(domain, onEvent, durationMs = 30000) {
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - emit 8 simulated events over ~15 seconds
+    const mockEvents = [
+      { source: 'reddit', url: `https://reddit.com/r/technology/comments/abc123/${domain.replace(/\./g, '_')}_discussion`, title: `Discussion: ${domain} new features`, snippet: `Just tried the new dashboard from ${domain}. Really impressed with the speed improvements and UI refinements. Anyone else using it?`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'twitter', url: 'https://twitter.com/techuser/status/123456789', title: 'Tweet mention', snippet: `Migrated to ${domain} last week. Best decision for our team. The API docs are actually readable!`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'news', url: 'https://techcrunch.com/2026/05/article', title: `${domain} announces partnership`, snippet: `${domain} today announced a strategic partnership with a major cloud provider, expanding its enterprise offerings and market reach.`, sentiment: 'neutral', timestamp: new Date().toISOString() },
+      { source: 'blog', url: `https://devblog.example.com/review-${domain}`, title: `Review: ${domain} in production`, snippet: `After 6 months in production with ${domain}, here are our thoughts. Performance is solid, though pricing could be more transparent.`, sentiment: 'neutral', timestamp: new Date().toISOString() },
+      { source: 'reddit', url: `https://reddit.com/r/devops/comments/def456/${domain}_outage`, title: `${domain} experiencing issues?`, snippet: `Anyone else seeing slow response times from ${domain} API? Been getting 500s for the past hour.`, sentiment: 'negative', timestamp: new Date().toISOString() },
+      { source: 'twitter', url: 'https://twitter.com/developer/status/987654321', title: 'Tweet mention', snippet: `The new ${domain} SDK makes integration so much easier. Cut our implementation time in half.`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'news', url: 'https://venturebeat.com/2026/05/funding-news', title: `${domain} raises Series C`, snippet: `Enterprise software company ${domain} has closed a $100M Series C round led by top-tier VCs, signaling strong market traction.`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'blog', url: `https://engineering.company.com/${domain}-migration`, title: `Migrating to ${domain}: lessons learned`, snippet: `Our team migrated from legacy infrastructure to ${domain}. Here's what went well and what surprised us during the transition.`, sentiment: 'neutral', timestamp: new Date().toISOString() }
+    ];
+
+    let eventIndex = 0;
+    let stopped = false;
+
+    const interval = setInterval(() => {
+      if (stopped || eventIndex >= mockEvents.length) {
+        clearInterval(interval);
+        return;
+      }
+      const event = { ...mockEvents[eventIndex], timestamp: new Date().toISOString() };
+      onEvent(event);
+      eventIndex++;
+    }, 1800);
+
+    // Auto-stop after duration
+    const timeout = setTimeout(() => {
+      stopped = true;
+      clearInterval(interval);
+    }, durationMs);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }
+
+  // Real BD Data Firehose API
+  let stopped = false;
+  let controller = new AbortController();
+
+  (async () => {
+    try {
+      const response = await fetch('https://api.brightdata.com/firehose/v1/stream', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${BD_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: domain,
+          max_duration_ms: durationMs
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        console.error(`[dataFirehose] BD API error: ${response.status}`);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (!stopped) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.trim() || stopped) continue;
+          try {
+            const event = JSON.parse(line);
+            onEvent({
+              source: event.source || 'unknown',
+              url: event.url || '',
+              title: event.title || '',
+              snippet: event.snippet || event.text || '',
+              sentiment: event.sentiment || 'neutral',
+              timestamp: event.timestamp || new Date().toISOString()
+            });
+          } catch (err) {
+            console.error('[dataFirehose] Failed to parse event:', err);
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('[dataFirehose] Stream error:', err);
+      }
+    }
+  })();
+
+  return () => {
+    stopped = true;
+    controller.abort();
+  };
+}
+
+/**
+ * Deep Lookup API - web-scale indexed intelligence (BETA)
+ * @param {string} domain - Target domain
+ * @param {string[]} queries - Array of query strings
+ * @returns {Promise<{domain: string, results: Array, totalSources: number, processingTime: number}>}
+ */
+export async function deepLookup(domain, queries = []) {
+  await sleep(3500); // Simulate deep web analysis
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - realistic deep lookup intelligence
+    const mockQueries = queries.length > 0 ? queries : [
+      'What are their main revenue streams?',
+      'Who are their biggest customers?',
+      'What are their competitive weaknesses?',
+      'What technology stack do they use?',
+      'What are recent strategic moves?'
+    ];
+
+    const mockResults = mockQueries.map((query, idx) => {
+      const confidences = [0.92, 0.87, 0.73, 0.95, 0.81];
+      const answers = [
+        `Primary revenue from enterprise SaaS subscriptions ($80M ARR), followed by professional services (25%) and API usage fees (15%). Growing marketplace revenue from third-party integrations.`,
+        `Fortune 500 customers include major banks (JPMorgan, Goldman Sachs), tech companies (Adobe, Atlassian), and retailers (Target, Walmart). Strong presence in financial services sector.`,
+        `Pricing complexity drives churn in mid-market. Limited international support (EMEA only). Customer onboarding takes 4-6 weeks vs competitors' 2 weeks. Technical documentation gaps noted in G2 reviews.`,
+        `React/TypeScript frontend, Node.js/Go backend, PostgreSQL primary database, Redis caching, Kafka event streaming, AWS infrastructure with multi-region deployment, Kubernetes orchestration.`,
+        `Series D funding ($250M, Apr 2026), acquired DataViz Corp ($30M, Mar 2026), launched AI analytics suite (Feb 2026), expanded European offices (Q1 2026), hired ex-Salesforce VP Sales (Jan 2026).`
+      ];
+      const sources = [
+        [
+          { url: `https://techcrunch.com/2026/04/${domain}-business-model`, snippet: 'Breaking down their $95M ARR across product lines and customer segments...' },
+          { url: `https://saasmetrics.io/companies/${domain}`, snippet: 'Revenue composition shows 80% recurring, 20% services...' },
+          { url: `https://investors.${domain}/earnings-call`, snippet: 'Q4 2025 earnings call transcript reveals revenue breakdown...' }
+        ],
+        [
+          { url: `https://linkedin.com/company/${domain}/about`, snippet: 'Trusted by Fortune 500 companies including JPMorgan, Adobe, Target...' },
+          { url: `https://www.${domain}/customers`, snippet: 'Case studies featuring Goldman Sachs, Atlassian, Walmart deployments...' },
+          { url: `https://g2.com/products/${domain}/reviews`, snippet: 'Enterprise customers from banking, tech, and retail sectors...' }
+        ],
+        [
+          { url: `https://g2.com/products/${domain}/reviews`, snippet: 'Users cite pricing complexity and onboarding challenges...' },
+          { url: `https://trustradius.com/products/${domain}`, snippet: 'Average onboarding 4-6 weeks compared to competitors at 2 weeks...' },
+          { url: `https://reddit.com/r/saas/comments/xyz/${domain}_review`, snippet: 'International support limited to EMEA, lacking APAC/LATAM presence...' }
+        ],
+        [
+          { url: `https://github.com/${domain}`, snippet: 'OSS projects show React, TypeScript, Node.js, Go stack...' },
+          { url: `https://stackshare.io/${domain}`, snippet: 'Tech stack: PostgreSQL, Redis, Kafka, AWS, Kubernetes...' },
+          { url: `https://engineering.${domain}/blog/architecture`, snippet: 'Multi-region AWS deployment with k8s orchestration layer...' }
+        ],
+        [
+          { url: `https://techcrunch.com/2026/04/${domain}-series-d`, snippet: 'Closes $250M Series D led by Sequoia and a16z...' },
+          { url: `https://venturebeat.com/2026/03/${domain}-acquisition`, snippet: 'Acquires DataViz Corp for $30M to strengthen analytics...' },
+          { url: `https://www.${domain}/blog/ai-analytics-launch`, snippet: 'Launches AI-powered predictive analytics suite in February...' }
+        ]
+      ];
+
+      return {
+        query: mockQueries[idx],
+        answer: answers[idx] || `Analysis for "${query}" shows positive indicators based on web-scale data across 47 sources.`,
+        sources: sources[idx] || [
+          { url: `https://example.com/source1`, snippet: 'Relevant data point...' },
+          { url: `https://example.com/source2`, snippet: 'Additional context...' },
+          { url: `https://example.com/source3`, snippet: 'Supporting evidence...' }
+        ],
+        confidence: confidences[idx] || (0.7 + Math.random() * 0.25)
+      };
+    });
+
+    return {
+      domain,
+      results: mockResults,
+      totalSources: 47,
+      processingTime: 3.2
+    };
+  }
+
+  // Real BD Deep Lookup API
+  const response = await fetch('https://api.brightdata.com/deep-lookup/v1/query', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      domain,
+      queries,
+      depth: 'comprehensive'
+    })
+  });
+
+  if (!response.ok) throw new Error(`BD Deep Lookup ${response.status}`);
+  const data = await response.json();
+
+  return {
+    domain: data.domain || domain,
+    results: data.results || [],
+    totalSources: data.totalSources || 0,
+    processingTime: data.processingTime || 0
+  };
+}

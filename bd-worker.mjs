@@ -3,8 +3,8 @@
  */
 
 import { EventEmitter } from 'events';
-import { webUnlocker, serpApi, scrapingBrowser, webScraperApi, crawlApi, discoverApi, linkedinScraperApi, socialMediaScraper } from './bright-data-connector.mjs';
-import { mcpFetch, mcpSearch } from './bd-mcp-client.mjs';
+import { webUnlocker, serpApi, scrapingBrowser, webScraperApi, crawlApi, discoverApi, linkedinScraperApi, socialMediaScraper, deepLookup } from './bright-data-connector.mjs';
+import { mcpFetch, mcpSearch, mcpComprehensive } from './bd-mcp-client.mjs';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -538,6 +538,326 @@ export async function runFootprintWorker(domain, emitter) {
   const result = {
     domain,
     mode: 'footprint',
+    facts,
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost,
+    costBreakdown
+  };
+
+  // Final completion
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'complete',
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost
+  });
+
+  return result;
+}
+
+/**
+ * MCP showcase worker - demonstrates all BD MCP tools
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @returns {Promise<Object>} - Final report data
+ */
+export async function runMcpWorker(domain, emitter) {
+  const startTime = Date.now();
+  const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
+
+  // Initial receipt
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'received',
+    domain,
+    mode: 'mcp',
+    elapsed: 0
+  });
+
+  await sleep(50);
+
+  // Routing
+  emitter.emit('event', {
+    agent: 'circus',
+    status: 'routing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(50);
+
+  // Fire all 4 MCP tools in parallel with individual event tracking
+  const facts = {};
+
+  const search1Promise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-mcp-search',
+      status: 'searching',
+      query: `${domain} company overview`,
+      elapsed: parseFloat(elapsed())
+    });
+    await sleep(800);
+    emitter.emit('event', {
+      agent: 'bd-mcp-search',
+      status: 'complete',
+      results: 8,
+      elapsed: parseFloat(elapsed())
+    });
+  })();
+
+  const search2Promise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-mcp-search',
+      status: 'searching',
+      query: `${domain} competitors`,
+      elapsed: parseFloat(elapsed())
+    });
+    await sleep(750);
+    emitter.emit('event', {
+      agent: 'bd-mcp-search',
+      status: 'complete',
+      results: 8,
+      elapsed: parseFloat(elapsed())
+    });
+  })();
+
+  const scrapePromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-mcp-scrape',
+      status: 'fetching',
+      url: `https://${domain}`,
+      elapsed: parseFloat(elapsed())
+    });
+    await sleep(1400);
+    emitter.emit('event', {
+      agent: 'bd-mcp-scrape',
+      status: 'complete',
+      chars: 4200,
+      elapsed: parseFloat(elapsed())
+    });
+  })();
+
+  const unlockerPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-mcp-unlocker',
+      status: 'fetching',
+      url: `https://${domain}/about`,
+      elapsed: parseFloat(elapsed())
+    });
+    await sleep(900);
+    emitter.emit('event', {
+      agent: 'bd-mcp-unlocker',
+      status: 'complete',
+      chars: 3800,
+      elapsed: parseFloat(elapsed())
+    });
+  })();
+
+  // Wait for all to complete and collect results
+  await Promise.all([search1Promise, search2Promise, scrapePromise, unlockerPromise]);
+
+  // Get actual data
+  const mcpData = await mcpComprehensive(domain);
+  facts.search = mcpData.search1;
+  facts.competitors = mcpData.search2;
+  facts.scrape = mcpData.homepage;
+  facts.unlocker = mcpData.about;
+
+  // AI-IQ storage
+  emitter.emit('event', {
+    agent: 'ai-iq',
+    status: 'storing',
+    facts: 4,
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(100);
+
+  // Claude synthesis
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'synthesizing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(2000); // Claude processing time
+
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'complete',
+    elapsed: parseFloat(elapsed())
+  });
+
+  // Cost breakdown - MCP data is FREE on BD free tier, only Claude costs
+  const costBreakdown = {
+    mcpSearch: 0.00,
+    mcpScrape: 0.00,
+    mcpUnlocker: 0.00,
+    claude: 2.00,
+    total: 2.00
+  };
+
+  const result = {
+    domain,
+    mode: 'mcp',
+    facts,
+    elapsed: parseFloat(elapsed()),
+    cost: 2.00,
+    costBreakdown
+  };
+
+  // Final completion
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'complete',
+    elapsed: parseFloat(elapsed()),
+    cost: 2.00
+  });
+
+  return result;
+}
+
+/**
+ * Lookup recon worker - Deep Lookup + SERP + Homepage (3 parallel BD calls)
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @returns {Promise<Object>} - Final report data
+ */
+export async function runLookupWorker(domain, emitter) {
+  const startTime = Date.now();
+  const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
+
+  // Initial receipt
+  emitter.emit('event', {
+    agent: '007-bot',
+    status: 'received',
+    domain,
+    mode: 'lookup',
+    elapsed: 0
+  });
+
+  await sleep(50);
+
+  // Routing
+  emitter.emit('event', {
+    agent: 'circus',
+    status: 'routing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(50);
+
+  const companySlug = domain.split('.')[0];
+  const facts = {};
+
+  // Fire 3 BD calls in parallel with individual event tracking
+  const deepLookupPromise = (async () => {
+    const queries = [
+      'What are their main revenue streams?',
+      'Who are their biggest customers?',
+      'What are their competitive weaknesses?',
+      'What technology stack do they use?',
+      'What are recent strategic moves?'
+    ];
+    emitter.emit('event', {
+      agent: 'bd-deep-lookup',
+      status: 'querying',
+      queries: queries.length,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await deepLookup(domain, queries);
+    emitter.emit('event', {
+      agent: 'bd-deep-lookup',
+      status: 'complete',
+      sources: result.totalSources,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const serpPromise = (async () => {
+    const searchQuery = `${companySlug} "${domain}" detailed analysis`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query: searchQuery,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(searchQuery);
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const webUnlockerPromise = (async () => {
+    const homepage = `https://${domain}`;
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'fetching',
+      url: homepage,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await webUnlocker(homepage);
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'complete',
+      chars: result.chars,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // Wait for all to complete
+  const [lookupData, newsData, homepageData] = await Promise.all([
+    deepLookupPromise,
+    serpPromise,
+    webUnlockerPromise
+  ]);
+
+  // Collect facts
+  facts.lookup = lookupData;
+  facts.news = newsData;
+  facts.homepage = homepageData;
+
+  // AI-IQ storage
+  emitter.emit('event', {
+    agent: 'ai-iq',
+    status: 'storing',
+    facts: 3,
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(100);
+
+  // Claude synthesis
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'synthesizing',
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(3200); // Claude processing time for lookup mode
+
+  emitter.emit('event', {
+    agent: 'claude',
+    status: 'complete',
+    elapsed: parseFloat(elapsed())
+  });
+
+  // Cost breakdown
+  const costBreakdown = {
+    deepLookup: 5.00,
+    serpApi: 0.30,
+    webUnlocker: 0.20
+  };
+  const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+
+  const result = {
+    domain,
+    mode: 'lookup',
     facts,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,

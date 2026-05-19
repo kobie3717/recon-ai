@@ -7,7 +7,8 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
-import { runStandardWorker, runDeepWorker, runFootprintWorker } from './bd-worker.mjs';
+import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker } from './bd-worker.mjs';
+import { dataFirehose } from './bright-data-connector.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -108,8 +109,8 @@ app.get('/api/report', reportLimiter, async (req, res) => {
   let domain, mode;
   try {
     mode = req.query.mode || 'standard';
-    if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint'].includes(mode)) {
-      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, seo, bundle, or footprint' });
+    if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint', 'lookup', 'mcp'].includes(mode)) {
+      return res.status(400).json({ error: 'mode must be standard, deep, person, redteam, seo, bundle, footprint, lookup, or mcp' });
     }
 
     if (mode === 'person') {
@@ -397,6 +398,18 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       report = anthropic
         ? await synthesizeFootprintWithClaude(domain, factsData)
         : generateMockFootprintReport(domain, factsData);
+    } else if (mode === 'lookup') {
+      result = await runLookupWorker(domain, emitter);
+      const factsData = result.facts || {};
+      report = anthropic
+        ? await synthesizeLookupWithClaude(domain, factsData)
+        : generateMockLookupReport(domain, factsData);
+    } else if (mode === 'mcp') {
+      result = await runMcpWorker(domain, emitter);
+      const factsData = result.facts || {};
+      report = anthropic
+        ? await synthesizeMcpWithClaude(domain, factsData)
+        : generateMockMcpReport(domain, factsData);
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
@@ -447,6 +460,36 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
     res.end();
   }
+});
+
+/**
+ * SSE endpoint for live watch mode - streams real-time web mentions
+ * Query params: domain (required)
+ */
+app.get('/api/watch', reportLimiter, async (req, res) => {
+  let domain;
+  try {
+    domain = validateDomain(req.query.domain);
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+
+  // Send start event
+  res.write(`data: ${JSON.stringify({ type: 'watch-start', domain, timestamp: new Date().toISOString() })}\n\n`);
+
+  const stopFirehose = dataFirehose(domain, (event) => {
+    res.write(`data: ${JSON.stringify({ type: 'mention', ...event })}\n\n`);
+  }, 300000); // 5 min max
+
+  req.on('close', () => {
+    stopFirehose();
+    res.end();
+  });
 });
 
 /**
@@ -686,6 +729,177 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
   parsed.sources = buildSources(domain, companySlug, mode);
 
   return parsed;
+}
+
+/**
+ * Synthesize MCP intelligence report with Claude
+ */
+async function synthesizeMcpWithClaude(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  // Format MCP facts
+  let factsContext = '';
+  if (facts.search) {
+    factsContext += `\nMCP SEARCH ENGINE (company overview):\n${JSON.stringify(facts.search.results || [], null, 2)}`;
+  }
+  if (facts.competitors) {
+    factsContext += `\n\nMCP SEARCH ENGINE (competitors):\n${JSON.stringify(facts.competitors.results || [], null, 2)}`;
+  }
+  if (facts.scrape) {
+    factsContext += `\n\nMCP SCRAPE AS MARKDOWN (homepage):\n${facts.scrape.markdown || ''}`;
+  }
+  if (facts.unlocker) {
+    factsContext += `\n\nMCP WEB UNLOCKER (/about page):\n${facts.unlocker.content || ''}`;
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    messages: [{
+      role: 'user',
+      content: `Analyze "${domain}" (${companyName}) using MCP protocol intelligence data.
+
+TODAY: ${today}
+
+MCP PROTOCOL DATA (4 tools used):
+${factsContext.substring(0, 8000)}
+
+Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came from BD's MCP protocol — structured, clean, tool-native:
+{
+  "meta": {
+    "domain": "${domain}",
+    "companyName": "${companyName}",
+    "analysisDate": "${today}",
+    "mode": "mcp",
+    "confidence": "high",
+    "toolsUsed": 4
+  },
+  "signals": [
+    { "level": "high|medium|positive", "text": "specific insight from MCP data", "icon": "🔴|🟡|🟢" }
+  ],
+  "snapshot": {
+    "founded": "YYYY",
+    "hq": "City, Country",
+    "employees": "N (verified)",
+    "stage": "Series X / Growth",
+    "website": "${domain}",
+    "linkedin": "linkedin.com/company/${companySlug}"
+  },
+  "mcpInsights": {
+    "toolsUsed": ["search_engine", "scrape_as_markdown", "web_unlocker"],
+    "dataQuality": "high|medium",
+    "coverageScore": 92
+  },
+  "news": [
+    { "date": "Mon DD", "headline": "real headline from MCP search data", "signal": "HIGH|MED|LOW", "url": "#" }
+  ],
+  "products": [
+    { "name": "Product Name", "description": "from scraped homepage" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Name", "weakness": "their weakness vs ${companyName}" }
+  ],
+  "hiring": [
+    { "role": "Role Type", "count": 0, "signal": "what this signals" }
+  ],
+  "strategic": [
+    "Strategic observation 1",
+    "Strategic observation 2",
+    "Strategic observation 3"
+  ],
+  "sources": [
+    { "tool": "BD MCP search_engine ×2", "icon": "🔗", "target": "Google + competitor queries", "sections": ["News", "Competitive"] },
+    { "tool": "BD MCP scrape_as_markdown", "icon": "📄", "target": "https://${domain}", "sections": ["Products", "Snapshot"] },
+    { "tool": "BD MCP web_unlocker", "icon": "🔓", "target": "https://${domain}/about", "sections": ["Company Info"] }
+  ],
+  "cost": { "mcpSearch": 0.00, "mcpScrape": 0.00, "mcpUnlocker": 0.00, "claude": 2.00, "total": 2.00 }
+}`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
+ * Mock MCP report fallback
+ */
+function generateMockMcpReport(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  return {
+    meta: {
+      domain,
+      companyName,
+      analysisDate: today,
+      mode: 'mcp',
+      confidence: 'high',
+      toolsUsed: 4
+    },
+    signals: [
+      { level: 'high', text: `MCP protocol data shows ${companyName} expanding rapidly — 47 open roles across engineering`, icon: '🔴' },
+      { level: 'medium', text: 'Market positioning strong vs legacy competitors — MCP search reveals favorable sentiment', icon: '🟡' },
+      { level: 'positive', text: 'MCP web_unlocker found comprehensive about page — transparent company culture', icon: '🟢' },
+      { level: 'positive', text: 'All 4 MCP tools returned high-quality data — 100% coverage', icon: '🟢' }
+    ],
+    snapshot: {
+      founded: '2018',
+      hq: 'San Francisco, CA',
+      employees: '850 (MCP verified)',
+      stage: 'Series D',
+      website: domain,
+      linkedin: `linkedin.com/company/${companySlug}`
+    },
+    mcpInsights: {
+      toolsUsed: ['search_engine', 'scrape_as_markdown', 'web_unlocker'],
+      dataQuality: 'high',
+      coverageScore: 95
+    },
+    news: [
+      { date: 'Apr 24', headline: `${companyName} announces Series D — $250M round led by Sequoia`, signal: 'HIGH', url: '#' },
+      { date: 'Apr 15', headline: `${companyName} launches AI-powered analytics suite`, signal: 'MED', url: '#' },
+      { date: 'Mar 25', headline: 'European expansion — new offices in London, Berlin, Paris', signal: 'MED', url: '#' },
+      { date: 'Mar 12', headline: `${companyName} named leader in Gartner Magic Quadrant`, signal: 'LOW', url: '#' }
+    ],
+    products: [
+      { name: 'Core Platform', description: 'Enterprise software suite with AI-powered analytics' },
+      { name: 'Integration Hub', description: 'Connectors for 200+ enterprise systems' },
+      { name: 'Analytics Suite', description: 'Next-generation predictive capabilities' }
+    ],
+    competitive: [
+      { competitor: 'Salesforce', weakness: 'Expensive, complex onboarding vs ' + companyName + ' streamlined approach' },
+      { competitor: 'ServiceNow', weakness: 'IT-focused only — ' + companyName + ' broader platform' },
+      { competitor: 'Atlassian', weakness: 'Fragmented product suite — ' + companyName + ' unified experience' }
+    ],
+    hiring: [
+      { role: 'AI/ML Engineers', count: 12, signal: 'Next-gen product launch imminent — AI core to roadmap' },
+      { role: 'Enterprise Sales', count: 8, signal: 'Upmarket push targeting Fortune 1000' }
+    ],
+    strategic: [
+      'MCP protocol reveals clean, structured data — high API quality signals engineering excellence',
+      'All 4 MCP tools succeeded with high coverage — robust web presence across homepage + about pages',
+      'Search engine data shows strong brand presence — consistent positive sentiment across sources',
+      'Enterprise-first strategy evident from scraped content — moving upmarket to Fortune 1000'
+    ],
+    sources: [
+      { tool: 'BD MCP search_engine ×2', icon: '🔗', target: 'Google company overview + competitors', sections: ['News', 'Competitive', 'Market Position'] },
+      { tool: 'BD MCP scrape_as_markdown', icon: '📄', target: `https://${domain}`, sections: ['Products', 'Snapshot', 'Tech Stack'] },
+      { tool: 'BD MCP web_unlocker', icon: '🔓', target: `https://${domain}/about`, sections: ['Company Info', 'Team', 'Culture'] }
+    ],
+    cost: {
+      mcpSearch: 0.00,
+      mcpScrape: 0.00,
+      mcpUnlocker: 0.00,
+      claude: 2.00,
+      total: 2.00
+    }
+  };
 }
 
 /**
@@ -1152,6 +1366,205 @@ function generateMockFootprintReport(domain, facts) {
 }
 
 /**
+ * Synthesize lookup report with Claude
+ */
+async function synthesizeLookupWithClaude(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  // Format facts for Claude
+  let factsContext = '';
+  if (facts.lookup) {
+    factsContext += `\nDEEP LOOKUP DATA (${facts.lookup.totalSources} web sources analyzed):\n`;
+    facts.lookup.results?.forEach(r => {
+      factsContext += `\nQUERY: ${r.query}\nANSWER: ${r.answer}\nCONFIDENCE: ${(r.confidence * 100).toFixed(0)}%\n`;
+    });
+  }
+  if (facts.news) {
+    factsContext += `\n\nSERP NEWS:\n${facts.news.results?.map(r => `${r.title}: ${r.snippet}`).join('\n')}`;
+  }
+  if (facts.homepage) {
+    factsContext += `\n\nHOMEPAGE SNAPSHOT:\n${facts.homepage.text?.substring(0, 1500)}`;
+  }
+
+  const response = await anthropic.messages.create({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 4096,
+    system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    messages: [{
+      role: 'user',
+      content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
+
+TODAY: ${today}
+
+COLLECTED INTELLIGENCE:
+${factsContext.substring(0, 8000)}
+
+Return ONLY valid JSON with this exact structure:
+{
+  "meta": {
+    "domain": "${domain}",
+    "companyName": "${companyName}",
+    "analysisDate": "${today}",
+    "mode": "lookup",
+    "confidence": "high",
+    "sourcesAnalyzed": 47
+  },
+  "signals": [
+    { "level": "high|medium|positive", "text": "specific insight from deep lookup data", "icon": "🔴|🟡|🟢" }
+  ],
+  "snapshot": {
+    "founded": "YYYY",
+    "hq": "City, Country",
+    "employees": "N (verified)",
+    "stage": "Series X / Growth",
+    "website": "${domain}",
+    "linkedin": "linkedin.com/company/${companySlug}"
+  },
+  "deepInsights": {
+    "revenueStreams": [
+      { "stream": "SaaS subscriptions", "estimate": "$80M ARR", "confidence": "high|medium|low" }
+    ],
+    "keyCustomers": ["Customer 1", "Customer 2", "Customer 3"],
+    "techStack": ["React", "Node.js", "PostgreSQL", "AWS"],
+    "competitiveWeaknesses": [
+      { "weakness": "Pricing complexity drives churn", "severity": "HIGH|MED|LOW" }
+    ]
+  },
+  "strategicMoves": [
+    { "date": "Apr 2026", "move": "Series D funding ($250M)", "signal": "HIGH|MED|LOW" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Name", "weakness": "specific weakness vs ${companyName}" }
+  ],
+  "hiring": [
+    { "role": "AI/ML Engineers", "count": 12, "signal": "Next-gen product launch imminent" }
+  ],
+  "strategic": [
+    "Strategic insight 1",
+    "Strategic insight 2",
+    "Strategic insight 3"
+  ],
+  "sources": [
+    { "tool": "BD Deep Lookup", "icon": "🔬", "target": "47 web sources", "sections": ["Revenue", "Customers", "Tech Stack"] },
+    { "tool": "BD SERP API", "icon": "🔍", "target": "${companySlug} analysis", "sections": ["Recent News"] },
+    { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Homepage"] }
+  ],
+  "cost": { "deepLookup": 5.00, "serpApi": 0.30, "webUnlocker": 0.20, "claude": 2.50, "total": 8.00 }
+}`
+    }]
+  });
+
+  const text = response.content[0].text.trim()
+    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  return JSON.parse(text);
+}
+
+/**
+ * Mock lookup report fallback
+ */
+function generateMockLookupReport(domain, facts) {
+  const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
+  const companySlug = domain.split('.')[0];
+  const today = new Date().toISOString().split('T')[0];
+
+  return {
+    meta: {
+      domain,
+      companyName,
+      analysisDate: today,
+      mode: 'lookup',
+      confidence: 'high',
+      sourcesAnalyzed: 47
+    },
+    signals: [
+      { level: 'high', text: `${companyName} revenue model heavily weighted to SaaS (80%) — strong recurring base indicates stability`, icon: '🔴' },
+      { level: 'medium', text: 'Fortune 500 customer concentration in financial services — sector risk if fintech slowdown', icon: '🟡' },
+      { level: 'positive', text: 'Recent Series D ($250M) + acquisition ($30M) signals aggressive growth phase', icon: '🟢' },
+      { level: 'positive', text: 'Modern tech stack (React/Node.js/AWS) attracts engineering talent', icon: '🟢' }
+    ],
+    snapshot: {
+      founded: '2017',
+      hq: 'San Francisco, CA',
+      employees: '850 (LinkedIn verified)',
+      stage: 'Growth / Series D',
+      website: domain,
+      linkedin: `linkedin.com/company/${companySlug}`
+    },
+    deepInsights: {
+      revenueStreams: [
+        { stream: 'Enterprise SaaS subscriptions', estimate: '$80M ARR', confidence: 'high' },
+        { stream: 'Professional services & consulting', estimate: '$20M (25%)', confidence: 'medium' },
+        { stream: 'API usage fees & marketplace', estimate: '$15M (15%)', confidence: 'medium' }
+      ],
+      keyCustomers: [
+        'JPMorgan Chase',
+        'Goldman Sachs',
+        'Adobe',
+        'Atlassian',
+        'Target',
+        'Walmart'
+      ],
+      techStack: [
+        'React',
+        'TypeScript',
+        'Node.js',
+        'Go',
+        'PostgreSQL',
+        'Redis',
+        'Kafka',
+        'AWS',
+        'Kubernetes'
+      ],
+      competitiveWeaknesses: [
+        { weakness: 'Pricing complexity drives mid-market churn', severity: 'HIGH' },
+        { weakness: 'Onboarding 4-6 weeks vs competitors\' 2 weeks', severity: 'MED' },
+        { weakness: 'Limited international support (EMEA only, no APAC/LATAM)', severity: 'MED' },
+        { weakness: 'Technical documentation gaps noted in G2 reviews', severity: 'LOW' }
+      ]
+    },
+    strategicMoves: [
+      { date: 'Apr 2026', move: 'Series D funding ($250M) led by Sequoia & a16z', signal: 'HIGH' },
+      { date: 'Mar 2026', move: 'Acquired DataViz Corp ($30M) to strengthen analytics', signal: 'HIGH' },
+      { date: 'Feb 2026', move: 'Launched AI-powered predictive analytics suite', signal: 'MED' },
+      { date: 'Q1 2026', move: 'Expanded European offices (London, Berlin, Paris)', signal: 'MED' },
+      { date: 'Jan 2026', move: 'Hired ex-Salesforce VP Sales for enterprise push', signal: 'LOW' }
+    ],
+    competitive: [
+      { competitor: 'Salesforce', weakness: 'Expensive, complex onboarding, bloated UX — ' + companyName + ' simpler & faster' },
+      { competitor: 'ServiceNow', weakness: 'IT-focused only, limited analytics — ' + companyName + ' broader platform' },
+      { competitor: 'Atlassian', weakness: 'Fragmented product suite — ' + companyName + ' unified experience' },
+      { competitor: 'Monday.com', weakness: 'Mid-market focus, limited enterprise features — ' + companyName + ' enterprise-first' }
+    ],
+    hiring: [
+      { role: 'AI/ML Engineers', count: 12, signal: 'Next-gen AI product launch imminent — major roadmap investment' },
+      { role: 'Enterprise Sales', count: 8, signal: 'Upmarket push targeting Fortune 1000 — enterprise GTM expansion' },
+      { role: 'DevOps Engineers', count: 6, signal: 'Scaling infrastructure for growth — multi-region deployment' }
+    ],
+    strategic: [
+      'Enterprise-first strategy — moving upmarket to Fortune 1000 with dedicated sales team',
+      'AI-powered analytics as key differentiator vs legacy competitors (Salesforce, ServiceNow)',
+      'International expansion underway — Europe first (Q1 2026), APAC planned for H2 2026',
+      'Acquisition strategy for capabilities — DataViz Corp buy signals product gap filling',
+      'Strong financial backing — $425M total raised, runway for 3+ years at current burn'
+    ],
+    sources: [
+      { tool: 'BD Deep Lookup', icon: '🔬', target: '47 web sources', sections: ['Revenue', 'Customers', 'Tech Stack', 'Weaknesses', 'Strategic Moves'] },
+      { tool: 'BD SERP API', icon: '🔍', target: `${companySlug} "${domain}" detailed analysis`, sections: ['Recent News', 'Funding Announcements'] },
+      { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Homepage', 'Product Overview'] }
+    ],
+    cost: {
+      deepLookup: 5.00,
+      serpApi: 0.30,
+      webUnlocker: 0.20,
+      claude: 2.50,
+      total: 8.00
+    }
+  };
+}
+
+/**
  * Mock person report fallback
  */
 function generateMockPersonReport(personName) {
@@ -1478,7 +1891,7 @@ app.post('/api/save-report', (req, res) => {
   const { report } = req.body;
   const mode = req.body.mode || 'standard';
 
-  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
+  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint', 'lookup', 'mcp'].includes(mode)) {
     return res.status(400).json({ error: 'invalid mode' });
   }
 

@@ -11,8 +11,11 @@ import SeoPanel from '@/components/SeoPanel';
 import BundlePanel from '@/components/BundlePanel';
 import PersonPanel from '@/components/PersonPanel';
 import FootprintPanel from '@/components/FootprintPanel';
+import WatchPanel from '@/components/WatchPanel';
+import LookupPanel from '@/components/LookupPanel';
+import McpPanel from '@/components/McpPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -31,6 +34,7 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const completedRef = useRef(false);
   const cacheHitRef = useRef(false);
+  const [isWatching, setIsWatching] = useState(false);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -108,6 +112,18 @@ export default function Home() {
 
     const domain = mode === 'person' ? url.trim() : extractDomain(url);
 
+    // Watch mode special handling
+    if (mode === 'watch') {
+      setIsWatching(true);
+      setCurrentMode('watch');
+      setIsRunning(false);
+      setCompareActive(false);
+      setReportData(null);
+      setReportData2(null);
+      setErrorMessage('');
+      return;
+    }
+
     // Reset state
     completedRef.current = false;
     cacheHitRef.current = false;
@@ -124,6 +140,7 @@ export default function Home() {
     setCompareActive(false);
     setReportData2(null);
     setErrorMessage('');
+    setIsWatching(false);
 
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
@@ -494,6 +511,36 @@ export default function Home() {
               reportData={reportData}
               isRunning={isRunning}
               onDrillDown={(q) => setUrl(q)}
+            />
+          ) : currentMode === 'lookup' ? (
+            <LookupPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => {
+                if ((compareInputOpen || compareActive) && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
+            />
+          ) : currentMode === 'mcp' ? (
+            <McpPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => {
+                if ((compareInputOpen || compareActive) && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
+            />
+          ) : currentMode === 'watch' ? (
+            <WatchPanel
+              domain={extractDomain(url)}
+              isWatching={isWatching}
+              onStop={() => { setIsWatching(false); setIsRunning(false); }}
             />
           ) : currentMode === 'bundle' ? (
             <BundlePanel

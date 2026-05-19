@@ -7,6 +7,8 @@ interface ComparePanelProps {
   report2: any;
   isLoading1: boolean;
   isLoading2: boolean;
+  domain1?: string;
+  domain2?: string;
 }
 
 export default function ComparePanel({ report1, report2, isLoading1, isLoading2 }: ComparePanelProps) {
