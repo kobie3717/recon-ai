@@ -57,7 +57,7 @@ export default function WatchPanel({ domain, isWatching, onStop }: WatchPanelPro
     }
 
     // Start EventSource
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource = new EventSource(
       `${backendUrl}/api/watch?domain=${encodeURIComponent(domain)}`
     );
