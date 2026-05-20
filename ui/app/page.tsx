@@ -155,7 +155,7 @@ export default function Home() {
     setIsWatching(false);
 
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource = new EventSource(
       `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`
     );
@@ -273,7 +273,7 @@ export default function Home() {
     setFreshTime(undefined);
     setCostBreakdown(undefined);
     // Connect to first SSE stream (direct to Railway)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource1 = new EventSource(
       `${backendUrl}/api/report?domain=${encodeURIComponent(domain1)}&mode=${mode}`
     );
