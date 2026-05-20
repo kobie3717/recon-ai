@@ -1,21 +1,16 @@
 'use client';
 
+import { useState } from 'react';
+import { downloadPdf } from '@/lib/downloadPdf';
+
 interface LookupPanelProps {
   reportData: any;
   isRunning: boolean;
   onDrillDown?: (q: string) => void;
 }
 
-function handlePrint(reportData: any) {
-  const domain = reportData?.meta?.domain || 'lookup';
-  const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
-  const prev = document.title;
-  document.title = `Recon Deep Lookup - ${domain} - ${date}`;
-  window.print();
-  setTimeout(() => { document.title = prev; }, 1000);
-}
-
 export default function LookupPanel({ reportData, isRunning, onDrillDown }: LookupPanelProps) {
+  const [isPrinting, setIsPrinting] = useState(false);
   const showLoading = isRunning && !reportData;
 
   return (
@@ -27,10 +22,18 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
         </div>
         {reportData && (
           <button
-            onClick={() => handlePrint(reportData)}
-            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+            onClick={async () => {
+              if (!reportData || isPrinting) return;
+              setIsPrinting(true);
+              const domain = reportData?.meta?.domain || 'report';
+              const date = reportData?.meta?.analysisDate || new Date().toISOString().split('T')[0];
+              const modeLabel = reportData?.meta?.mode || 'recon';
+              await downloadPdf(`recon-${modeLabel}-${domain}-${date}.pdf`, reportData).finally(() => setIsPrinting(false));
+            }}
+            disabled={isPrinting}
+            className="text-recon-grey hover:text-white text-sm flex items-center gap-1.5 px-3 py-1 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            ↓ PDF
+            {isPrinting ? 'Generating...' : '↓ PDF'}
           </button>
         )}
       </div>

@@ -35,6 +35,7 @@ export default function Home() {
   const completedRef = useRef(false);
   const cacheHitRef = useRef(false);
   const [isWatching, setIsWatching] = useState(false);
+  const evtSourceRef = useRef<EventSource | null>(null);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -67,6 +68,17 @@ export default function Home() {
       setHistory([]);
     }
   }, []);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isRunning || isRunning2) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isRunning, isRunning2]);
 
   const extractDomain = (input: string): string => {
     try {
@@ -147,6 +159,7 @@ export default function Home() {
     const evtSource = new EventSource(
       `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}`
     );
+    evtSourceRef.current = evtSource;
 
     evtSource.onmessage = (e) => {
       try {
@@ -429,17 +442,23 @@ export default function Home() {
                 <button
                   key={i}
                   onClick={() => {
+                    if (isRunning || isRunning2) {
+                      // Scan in progress — just close dropdown, don't interrupt
+                      setShowHistory(false);
+                      return;
+                    }
                     setCurrentMode(entry.mode as Mode);
                     setReportData(entry.report);
                     setUrl(entry.domain);
                     setShowHistory(false);
                     setCompareActive(false);
                     setReportData2(null);
-                    setIsRunning(false);
-                    setIsRunning2(false);
                     setErrorMessage('');
                   }}
-                  className="w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group"
+                  className={`w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group ${
+                    isRunning || isRunning2 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title={isRunning || isRunning2 ? 'Scan in progress' : ''}
                 >
                   <div>
                     <span className="text-white text-sm font-medium">{entry.domain}</span>
