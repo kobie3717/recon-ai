@@ -127,7 +127,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               <button
                 key={mode}
                 onClick={() => onGenerate(url, mode, cost)}
-                disabled={isRunning || !url.trim()}
+                disabled={isRunning || !url.trim() || (url.trim() ? isPerson !== (mode === 'person') : false)}
                 className={buttonClasses(color, mode === 'person' && isPerson)}
               >
                 {icon && <span className="mr-1">{icon}</span>}
