@@ -16,16 +16,16 @@ interface UrlInputProps {
 }
 
 const reportModes = [
-  { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '' },
-  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤' },
-  { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭' },
-  { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗' },
-  { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●' },
-  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈' },
-  { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬' },
-  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔' },
-  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦' },
-  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★' },
+  { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
+  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
+  { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
+  { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
+  { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
+  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
+  { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
+  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
+  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
+  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -123,12 +123,13 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       <div className="relative">
         <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
           {!compareMode ? (
-            reportModes.map(({ mode, label, cost, color, icon }) => (
+            reportModes.map(({ mode, label, cost, color, icon, description }) => (
               <button
                 key={mode}
                 onClick={() => onGenerate(url, mode, cost)}
                 disabled={isRunning || !url.trim() || (url.trim() ? isPerson !== (mode === 'person') : false)}
                 className={buttonClasses(color, mode === 'person' && isPerson)}
+                title={description}
               >
                 {icon && <span className="mr-1">{icon}</span>}
                 {label} {cost > 0 ? `$${cost.toFixed(2)}` : 'FREE'}
