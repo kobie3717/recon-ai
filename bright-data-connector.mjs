@@ -311,3 +311,513 @@ export async function webScraperApi(url) {
     }
   };
 }
+
+/**
+ * Crawl API - crawl up to 15 pages from a domain and return as markdown
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @returns {Promise<{domain: string, pages: Array, pageCount: number, totalChars: number}>}
+ */
+export async function crawlApi(domain) {
+  await sleep(2800);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - return 5 plausible pages
+    const mockPages = [
+      {
+        url: `https://${domain}`,
+        title: 'Home - Industry-Leading Platform',
+        text: 'Welcome to our enterprise platform. We help businesses transform with cutting-edge technology. Trusted by over 5,000 companies worldwide. Our mission is to deliver innovative solutions that drive measurable results and accelerate digital transformation.'
+      },
+      {
+        url: `https://${domain}/about`,
+        title: 'About Us - Our Story',
+        text: 'Founded in 2018 by industry veterans from Google and Stripe. Our team of 850+ employees across 12 offices is dedicated to solving complex enterprise challenges. Backed by Sequoia Capital and Andreessen Horowitz. We believe in transparency, innovation, and customer-first culture.'
+      },
+      {
+        url: `https://${domain}/pricing`,
+        title: 'Pricing - Choose Your Plan',
+        text: 'Starter Plan: $299/month - Perfect for growing teams up to 50 users. Includes core features and email support. Professional Plan: $999/month - For mid-market teams up to 500 users. Advanced analytics and priority support. Enterprise Plan: Custom pricing - Unlimited users, dedicated account manager, SLA guarantees, custom integrations, and white-glove onboarding.'
+      },
+      {
+        url: `https://${domain}/careers`,
+        title: 'Careers - Join Our Team',
+        text: 'We are hiring talented people to join our mission. Currently 12 open roles in Engineering (Backend, Frontend, ML), Product Management, Sales, and Customer Success. We offer competitive compensation, equity, comprehensive benefits, remote-friendly culture, and unlimited PTO. Offices in San Francisco, New York, London, and Berlin.'
+      },
+      {
+        url: `https://${domain}/blog`,
+        title: 'Blog - Latest Updates',
+        text: 'Recent posts: Announcing our Series D funding round ($250M). How we scaled to 99.99% uptime with multi-region architecture. Interview with our CEO on the future of enterprise software. Customer story: How Fortune 500 company saved $2M annually. Engineering deep dive: Our migration to Kubernetes and service mesh.'
+      }
+    ];
+
+    const totalChars = mockPages.reduce((sum, p) => sum + p.text.length, 0);
+
+    return {
+      domain,
+      pages: mockPages,
+      pageCount: mockPages.length,
+      totalChars
+    };
+  }
+
+  // Real BD Crawl API
+  const response = await fetch('https://api.brightdata.com/crawler/v1/crawl', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      url: `https://${domain}`,
+      max_pages: 15,
+      format: 'markdown'
+    })
+  });
+
+  const data = await response.json();
+  const pages = data.pages || [];
+  const totalChars = pages.reduce((sum, p) => sum + (p.text || '').length, 0);
+
+  return {
+    domain,
+    pages,
+    pageCount: pages.length,
+    totalChars
+  };
+}
+
+/**
+ * Discover API - find subdomains, related domains, and web properties (FREE)
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @returns {Promise<{domain: string, subdomains: string[], relatedDomains: string[], webProperties: Array, totalFound: number}>}
+ */
+export async function discoverApi(domain) {
+  await sleep(1200);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - realistic discovery data
+    const baseSlug = domain.split('.')[0];
+    const tld = domain.split('.').slice(1).join('.');
+
+    const mockSubdomains = [
+      `api.${domain}`,
+      `docs.${domain}`,
+      `app.${domain}`,
+      `status.${domain}`,
+      `cdn.${domain}`,
+      `blog.${domain}`,
+      `dev.${domain}`,
+      `staging.${domain}`
+    ];
+
+    const mockRelatedDomains = [
+      `${baseSlug}.io`,
+      `${baseSlug}.co`,
+      `get${baseSlug}.com`
+    ];
+
+    const mockWebProperties = [
+      { type: 'Twitter', url: `https://twitter.com/${baseSlug}`, platform: 'twitter', followers: '45K' },
+      { type: 'GitHub', url: `https://github.com/${baseSlug}`, platform: 'github', repos: 34 },
+      { type: 'LinkedIn', url: `https://linkedin.com/company/${baseSlug}`, platform: 'linkedin', followers: '12K' },
+      { type: 'YouTube', url: `https://youtube.com/@${baseSlug}`, platform: 'youtube', subscribers: '8.2K' },
+      { type: 'Facebook', url: `https://facebook.com/${baseSlug}`, platform: 'facebook', followers: '22K' }
+    ];
+
+    return {
+      domain,
+      subdomains: mockSubdomains,
+      relatedDomains: mockRelatedDomains,
+      webProperties: mockWebProperties,
+      totalFound: mockSubdomains.length + mockRelatedDomains.length + mockWebProperties.length
+    };
+  }
+
+  // Real BD Discover API
+  const response = await fetch('https://api.brightdata.com/discover/v1/search', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      query: domain,
+      type: 'domain_discovery'
+    })
+  });
+
+  const data = await response.json();
+
+  return {
+    domain,
+    subdomains: data.subdomains || [],
+    relatedDomains: data.related_domains || [],
+    webProperties: data.web_properties || [],
+    totalFound: (data.subdomains?.length || 0) + (data.related_domains?.length || 0) + (data.web_properties?.length || 0)
+  };
+}
+
+/**
+ * LinkedIn Scraper API - company profile data
+ * @param {string} companySlug - LinkedIn company slug (e.g. "stripe")
+ * @returns {Promise<{companySlug: string, name: string, employees: string, followers: string, founded: string, hq: string, description: string, specialties: string[], recentPosts: Array, topRoles: string[]}>}
+ */
+export async function linkedinScraperApi(companySlug) {
+  await sleep(1800);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - realistic LinkedIn company data
+    const companyName = companySlug.charAt(0).toUpperCase() + companySlug.slice(1);
+
+    return {
+      companySlug,
+      name: `${companyName} Inc.`,
+      employees: '850',
+      followers: '12,400',
+      founded: '2018',
+      hq: 'San Francisco, California',
+      description: `${companyName} provides enterprise software solutions that help businesses transform digitally. Our platform serves thousands of customers globally with best-in-class reliability, security, and innovation.`,
+      specialties: [
+        'Enterprise Software',
+        'Cloud Computing',
+        'SaaS',
+        'Data Analytics',
+        'API Infrastructure',
+        'Developer Tools'
+      ],
+      recentPosts: [
+        { text: 'Excited to announce our Series D funding round! Thank you to our investors and customers for believing in our mission.', date: '2026-04-25', likes: 847 },
+        { text: 'Join us at TechConf 2026 next month where our CEO will keynote on the future of enterprise software.', date: '2026-04-18', likes: 312 },
+        { text: 'We are hiring! 12 open roles across Engineering, Product, Sales, and Customer Success. Check our careers page.', date: '2026-04-10', likes: 523 }
+      ],
+      topRoles: [
+        'Software Engineer',
+        'Senior Product Manager',
+        'Enterprise Account Executive',
+        'Customer Success Manager',
+        'DevOps Engineer',
+        'Data Scientist'
+      ]
+    };
+  }
+
+  // Real BD LinkedIn Scraper API
+  const response = await fetch('https://api.brightdata.com/datasets/v3/snapshot', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      dataset_id: 'gd_l1viktl72bvl7bjuj0',
+      params: [{
+        url: `https://www.linkedin.com/company/${companySlug}`
+      }]
+    })
+  });
+
+  const data = await response.json();
+  const company = data.results?.[0] || {};
+
+  return {
+    companySlug,
+    name: company.name || '',
+    employees: company.employees || '',
+    followers: company.followers || '',
+    founded: company.founded || '',
+    hq: company.headquarters || '',
+    description: company.description || '',
+    specialties: company.specialties || [],
+    recentPosts: company.recent_posts || [],
+    topRoles: company.top_roles || []
+  };
+}
+
+/**
+ * Social Media Scraper - Twitter and Reddit presence
+ * @param {string} companySlug - Company slug/handle
+ * @param {string} domain - Domain for fallback searches
+ * @returns {Promise<{companySlug: string, twitter: Object, reddit: Object}>}
+ */
+export async function socialMediaScraper(companySlug, domain) {
+  await sleep(1500);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - realistic social media data
+    return {
+      companySlug,
+      twitter: {
+        handle: `@${companySlug}`,
+        followers: '45,200',
+        recentMentions: [
+          { text: `Just migrated our entire infrastructure to ${companySlug}. Best decision we made this year. Performance is incredible!`, date: '2026-05-18', sentiment: 'positive', likes: 234 },
+          { text: `${companySlug} support team is top-notch. Had an issue resolved in under 30 minutes. This is how you do enterprise software.`, date: '2026-05-15', sentiment: 'positive', likes: 156 },
+          { text: `Pricing on ${companySlug} is a bit steep for our team size, but the features are solid. Wish they had a better mid-tier option.`, date: '2026-05-12', sentiment: 'neutral', likes: 89 }
+        ],
+        sentimentBreakdown: {
+          positive: 68,
+          neutral: 24,
+          negative: 8
+        }
+      },
+      reddit: {
+        subreddit: `r/${companySlug}`,
+        subscribers: '3,200',
+        recentPosts: [
+          { title: `How we achieved 99.99% uptime with ${companySlug} - our 2-year journey`, score: 142, comments: 34 },
+          { title: `${companySlug} vs [competitor] - detailed comparison for enterprise teams`, score: 98, comments: 56 },
+          { title: `Feature request: would love to see better Slack integration`, score: 67, comments: 23 }
+        ]
+      }
+    };
+  }
+
+  // Real BD Social Media Scraper API
+  const response = await fetch('https://api.brightdata.com/datasets/v3/snapshot', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      dataset_id: 'gd_lwxkxvnf1cynvib3no',
+      params: [{
+        keyword: companySlug,
+        platform: 'twitter'
+      }]
+    })
+  });
+
+  const data = await response.json();
+  const twitterData = data.results?.twitter || {};
+  const redditData = data.results?.reddit || {};
+
+  return {
+    companySlug,
+    twitter: {
+      handle: twitterData.handle || `@${companySlug}`,
+      followers: twitterData.followers || '',
+      recentMentions: twitterData.recent_mentions || [],
+      sentimentBreakdown: twitterData.sentiment_breakdown || {}
+    },
+    reddit: {
+      subreddit: redditData.subreddit || '',
+      subscribers: redditData.subscribers || '',
+      recentPosts: redditData.recent_posts || []
+    }
+  };
+}
+
+/**
+ * Data Firehose - stream real-time web mentions
+ * @param {string} domain - Target domain
+ * @param {function} onEvent - Callback for each event: { source, url, title, snippet, sentiment, timestamp }
+ * @param {number} durationMs - Max stream duration (default 30000ms)
+ * @returns {function} stopFn - Call to cancel the stream
+ */
+export function dataFirehose(domain, onEvent, durationMs = 30000) {
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - emit 8 simulated events over ~15 seconds
+    const mockEvents = [
+      { source: 'reddit', url: `https://reddit.com/r/technology/comments/abc123/${domain.replace(/\./g, '_')}_discussion`, title: `Discussion: ${domain} new features`, snippet: `Just tried the new dashboard from ${domain}. Really impressed with the speed improvements and UI refinements. Anyone else using it?`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'twitter', url: 'https://twitter.com/techuser/status/123456789', title: 'Tweet mention', snippet: `Migrated to ${domain} last week. Best decision for our team. The API docs are actually readable!`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'news', url: 'https://techcrunch.com/2026/05/article', title: `${domain} announces partnership`, snippet: `${domain} today announced a strategic partnership with a major cloud provider, expanding its enterprise offerings and market reach.`, sentiment: 'neutral', timestamp: new Date().toISOString() },
+      { source: 'blog', url: `https://devblog.example.com/review-${domain}`, title: `Review: ${domain} in production`, snippet: `After 6 months in production with ${domain}, here are our thoughts. Performance is solid, though pricing could be more transparent.`, sentiment: 'neutral', timestamp: new Date().toISOString() },
+      { source: 'reddit', url: `https://reddit.com/r/devops/comments/def456/${domain}_outage`, title: `${domain} experiencing issues?`, snippet: `Anyone else seeing slow response times from ${domain} API? Been getting 500s for the past hour.`, sentiment: 'negative', timestamp: new Date().toISOString() },
+      { source: 'twitter', url: 'https://twitter.com/developer/status/987654321', title: 'Tweet mention', snippet: `The new ${domain} SDK makes integration so much easier. Cut our implementation time in half.`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'news', url: 'https://venturebeat.com/2026/05/funding-news', title: `${domain} raises Series C`, snippet: `Enterprise software company ${domain} has closed a $100M Series C round led by top-tier VCs, signaling strong market traction.`, sentiment: 'positive', timestamp: new Date().toISOString() },
+      { source: 'blog', url: `https://engineering.company.com/${domain}-migration`, title: `Migrating to ${domain}: lessons learned`, snippet: `Our team migrated from legacy infrastructure to ${domain}. Here's what went well and what surprised us during the transition.`, sentiment: 'neutral', timestamp: new Date().toISOString() }
+    ];
+
+    let eventIndex = 0;
+    let stopped = false;
+
+    const interval = setInterval(() => {
+      if (stopped || eventIndex >= mockEvents.length) {
+        clearInterval(interval);
+        return;
+      }
+      const event = { ...mockEvents[eventIndex], timestamp: new Date().toISOString() };
+      onEvent(event);
+      eventIndex++;
+    }, 1800);
+
+    // Auto-stop after duration
+    const timeout = setTimeout(() => {
+      stopped = true;
+      clearInterval(interval);
+    }, durationMs);
+
+    return () => {
+      stopped = true;
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }
+
+  // Real BD Data Firehose API
+  let stopped = false;
+  let controller = new AbortController();
+
+  (async () => {
+    try {
+      const response = await fetch('https://api.brightdata.com/firehose/v1/stream', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${BD_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          query: domain,
+          max_duration_ms: durationMs
+        }),
+        signal: controller.signal
+      });
+
+      if (!response.ok) {
+        console.error(`[dataFirehose] BD API error: ${response.status}`);
+        return;
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (!stopped) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.trim() || stopped) continue;
+          try {
+            const event = JSON.parse(line);
+            onEvent({
+              source: event.source || 'unknown',
+              url: event.url || '',
+              title: event.title || '',
+              snippet: event.snippet || event.text || '',
+              sentiment: event.sentiment || 'neutral',
+              timestamp: event.timestamp || new Date().toISOString()
+            });
+          } catch (err) {
+            console.error('[dataFirehose] Failed to parse event:', err);
+          }
+        }
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('[dataFirehose] Stream error:', err);
+      }
+    }
+  })();
+
+  return () => {
+    stopped = true;
+    controller.abort();
+  };
+}
+
+/**
+ * Deep Lookup API - web-scale indexed intelligence (BETA)
+ * @param {string} domain - Target domain
+ * @param {string[]} queries - Array of query strings
+ * @returns {Promise<{domain: string, results: Array, totalSources: number, processingTime: number}>}
+ */
+export async function deepLookup(domain, queries = []) {
+  await sleep(3500); // Simulate deep web analysis
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock mode - realistic deep lookup intelligence
+    const mockQueries = queries.length > 0 ? queries : [
+      'What are their main revenue streams?',
+      'Who are their biggest customers?',
+      'What are their competitive weaknesses?',
+      'What technology stack do they use?',
+      'What are recent strategic moves?'
+    ];
+
+    const mockResults = mockQueries.map((query, idx) => {
+      const confidences = [0.92, 0.87, 0.73, 0.95, 0.81];
+      const answers = [
+        `Primary revenue from enterprise SaaS subscriptions ($80M ARR), followed by professional services (25%) and API usage fees (15%). Growing marketplace revenue from third-party integrations.`,
+        `Fortune 500 customers include major banks (JPMorgan, Goldman Sachs), tech companies (Adobe, Atlassian), and retailers (Target, Walmart). Strong presence in financial services sector.`,
+        `Pricing complexity drives churn in mid-market. Limited international support (EMEA only). Customer onboarding takes 4-6 weeks vs competitors' 2 weeks. Technical documentation gaps noted in G2 reviews.`,
+        `React/TypeScript frontend, Node.js/Go backend, PostgreSQL primary database, Redis caching, Kafka event streaming, AWS infrastructure with multi-region deployment, Kubernetes orchestration.`,
+        `Series D funding ($250M, Apr 2026), acquired DataViz Corp ($30M, Mar 2026), launched AI analytics suite (Feb 2026), expanded European offices (Q1 2026), hired ex-Salesforce VP Sales (Jan 2026).`
+      ];
+      const sources = [
+        [
+          { url: `https://techcrunch.com/2026/04/${domain}-business-model`, snippet: 'Breaking down their $95M ARR across product lines and customer segments...' },
+          { url: `https://saasmetrics.io/companies/${domain}`, snippet: 'Revenue composition shows 80% recurring, 20% services...' },
+          { url: `https://investors.${domain}/earnings-call`, snippet: 'Q4 2025 earnings call transcript reveals revenue breakdown...' }
+        ],
+        [
+          { url: `https://linkedin.com/company/${domain}/about`, snippet: 'Trusted by Fortune 500 companies including JPMorgan, Adobe, Target...' },
+          { url: `https://www.${domain}/customers`, snippet: 'Case studies featuring Goldman Sachs, Atlassian, Walmart deployments...' },
+          { url: `https://g2.com/products/${domain}/reviews`, snippet: 'Enterprise customers from banking, tech, and retail sectors...' }
+        ],
+        [
+          { url: `https://g2.com/products/${domain}/reviews`, snippet: 'Users cite pricing complexity and onboarding challenges...' },
+          { url: `https://trustradius.com/products/${domain}`, snippet: 'Average onboarding 4-6 weeks compared to competitors at 2 weeks...' },
+          { url: `https://reddit.com/r/saas/comments/xyz/${domain}_review`, snippet: 'International support limited to EMEA, lacking APAC/LATAM presence...' }
+        ],
+        [
+          { url: `https://github.com/${domain}`, snippet: 'OSS projects show React, TypeScript, Node.js, Go stack...' },
+          { url: `https://stackshare.io/${domain}`, snippet: 'Tech stack: PostgreSQL, Redis, Kafka, AWS, Kubernetes...' },
+          { url: `https://engineering.${domain}/blog/architecture`, snippet: 'Multi-region AWS deployment with k8s orchestration layer...' }
+        ],
+        [
+          { url: `https://techcrunch.com/2026/04/${domain}-series-d`, snippet: 'Closes $250M Series D led by Sequoia and a16z...' },
+          { url: `https://venturebeat.com/2026/03/${domain}-acquisition`, snippet: 'Acquires DataViz Corp for $30M to strengthen analytics...' },
+          { url: `https://www.${domain}/blog/ai-analytics-launch`, snippet: 'Launches AI-powered predictive analytics suite in February...' }
+        ]
+      ];
+
+      return {
+        query: mockQueries[idx],
+        answer: answers[idx] || `Analysis for "${query}" shows positive indicators based on web-scale data across 47 sources.`,
+        sources: sources[idx] || [
+          { url: `https://example.com/source1`, snippet: 'Relevant data point...' },
+          { url: `https://example.com/source2`, snippet: 'Additional context...' },
+          { url: `https://example.com/source3`, snippet: 'Supporting evidence...' }
+        ],
+        confidence: confidences[idx] || (0.7 + Math.random() * 0.25)
+      };
+    });
+
+    return {
+      domain,
+      results: mockResults,
+      totalSources: 47,
+      processingTime: 3.2
+    };
+  }
+
+  // Real BD Deep Lookup API
+  const response = await fetch('https://api.brightdata.com/deep-lookup/v1/query', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      domain,
+      queries,
+      depth: 'comprehensive'
+    })
+  });
+
+  if (!response.ok) throw new Error(`BD Deep Lookup ${response.status}`);
+  const data = await response.json();
+
+  return {
+    domain: data.domain || domain,
+    results: data.results || [],
+    totalSources: data.totalSources || 0,
+    processingTime: data.processingTime || 0
+  };
+}

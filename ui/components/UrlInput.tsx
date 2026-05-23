@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -16,12 +16,16 @@ interface UrlInputProps {
 }
 
 const reportModes = [
-  { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '' },
-  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤' },
-  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈' },
-  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔' },
-  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦' },
-  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★' },
+  { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
+  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
+  { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
+  { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
+  { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
+  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
+  { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
+  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
+  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
+  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -45,7 +49,11 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
     switch (color) {
       case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
       case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
+      case 'teal': return `${base} bg-recon-navy border border-teal-500/50 text-teal-400 hover:bg-teal-500/10`;
+      case 'orange': return `${base} bg-orange-900/40 border border-orange-500/50 text-orange-400 hover:bg-orange-500/10`;
+      case 'green': return `${base} bg-green-900/40 border border-green-500/50 text-green-400 hover:bg-green-500/10 ${isPulse ? 'animate-pulse' : ''}`;
       case 'yellow': return `${base} bg-yellow-400 text-black hover:bg-yellow-300`;
+      case 'violet': return `${base} bg-violet-900/40 border border-violet-500/50 text-violet-400 hover:bg-violet-500/10`;
       case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
       case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
       case 'black': return `${base} bg-gray-900 border border-gray-600 text-white hover:bg-black`;
@@ -117,10 +125,8 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       <div className="relative">
         <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
           {!compareMode ? (
-            reportModes.map(({ mode, label, cost, color, icon }) => {
+            reportModes.map(({ mode, label, cost, color, icon, description }) => {
               const isPersonMode = mode === 'person';
-              // No dot → treat as person context: enable Person Intel, gray others
-              // Has dot → treat as URL: enable others, gray Person Intel
               const disabledByContext = hasInput && (isPersonMode ? hasDot : !hasDot);
               return (
                 <button
@@ -128,9 +134,10 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
                   onClick={() => onGenerate(url, mode, cost)}
                   disabled={isRunning || !hasInput || disabledByContext}
                   className={buttonClasses(color, isPersonMode && isPerson)}
+                  title={description}
                 >
                   {icon && <span className="mr-1">{icon}</span>}
-                  {label} ${cost.toFixed(2)}
+                  {label} {cost > 0 ? `$${cost.toFixed(2)}` : 'FREE'}
                 </button>
               );
             })

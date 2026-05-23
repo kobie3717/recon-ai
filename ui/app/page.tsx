@@ -10,8 +10,12 @@ import RedteamPanel from '@/components/RedteamPanel';
 import SeoPanel from '@/components/SeoPanel';
 import BundlePanel from '@/components/BundlePanel';
 import PersonPanel from '@/components/PersonPanel';
+import FootprintPanel from '@/components/FootprintPanel';
+import WatchPanel from '@/components/WatchPanel';
+import LookupPanel from '@/components/LookupPanel';
+import McpPanel from '@/components/McpPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -30,6 +34,8 @@ export default function Home() {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const completedRef = useRef(false);
   const cacheHitRef = useRef(false);
+  const [isWatching, setIsWatching] = useState(false);
+  const evtSourceRef = useRef<EventSource | null>(null);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -62,6 +68,17 @@ export default function Home() {
       setHistory([]);
     }
   }, []);
+
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (isRunning || isRunning2) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isRunning, isRunning2]);
 
   const extractDomain = (input: string): string => {
     try {
@@ -110,6 +127,18 @@ export default function Home() {
     const effectiveMode: Mode = looksLikePerson ? 'person' : mode;
     const domain = effectiveMode === 'person' ? url.trim() : extractDomain(url);
 
+    // Watch mode special handling
+    if (mode === 'watch') {
+      setIsWatching(true);
+      setCurrentMode('watch');
+      setIsRunning(false);
+      setCompareActive(false);
+      setReportData(null);
+      setReportData2(null);
+      setErrorMessage('');
+      return;
+    }
+
     // Reset state
     completedRef.current = false;
     cacheHitRef.current = false;
@@ -126,12 +155,14 @@ export default function Home() {
     setCompareActive(false);
     setReportData2(null);
     setErrorMessage('');
+    setIsWatching(false);
 
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource = new EventSource(
       `${backendUrl}/api/report?domain=${encodeURIComponent(domain)}&mode=${effectiveMode}`
     );
+    evtSourceRef.current = evtSource;
 
     evtSource.onmessage = (e) => {
       try {
@@ -245,7 +276,7 @@ export default function Home() {
     setFreshTime(undefined);
     setCostBreakdown(undefined);
     // Connect to first SSE stream (direct to Railway)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://powerful-mindfulness-production-56ff.up.railway.app';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource1 = new EventSource(
       `${backendUrl}/api/report?domain=${encodeURIComponent(domain1)}&mode=${mode}`
     );
@@ -414,17 +445,23 @@ export default function Home() {
                 <button
                   key={i}
                   onClick={() => {
+                    if (isRunning || isRunning2) {
+                      // Scan in progress — just close dropdown, don't interrupt
+                      setShowHistory(false);
+                      return;
+                    }
                     setCurrentMode(entry.mode as Mode);
                     setReportData(entry.report);
                     setUrl(entry.domain);
                     setShowHistory(false);
                     setCompareActive(false);
                     setReportData2(null);
-                    setIsRunning(false);
-                    setIsRunning2(false);
                     setErrorMessage('');
                   }}
-                  className="w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group"
+                  className={`w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group ${
+                    isRunning || isRunning2 ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                  title={isRunning || isRunning2 ? 'Scan in progress' : ''}
                 >
                   <div>
                     <span className="text-white text-sm font-medium">{entry.domain}</span>
@@ -490,6 +527,42 @@ export default function Home() {
                   setUrl(q);
                 }
               }}
+            />
+          ) : currentMode === 'footprint' ? (
+            <FootprintPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => setUrl(q)}
+            />
+          ) : currentMode === 'lookup' ? (
+            <LookupPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => {
+                if ((compareInputOpen || compareActive) && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
+            />
+          ) : currentMode === 'mcp' ? (
+            <McpPanel
+              reportData={reportData}
+              isRunning={isRunning}
+              onDrillDown={(q) => {
+                if ((compareInputOpen || compareActive) && url.trim()) {
+                  setUrl2(q);
+                } else {
+                  setUrl(q);
+                }
+              }}
+            />
+          ) : currentMode === 'watch' ? (
+            <WatchPanel
+              domain={extractDomain(url)}
+              isWatching={isWatching}
+              onStop={() => { setIsWatching(false); setIsRunning(false); }}
             />
           ) : currentMode === 'bundle' ? (
             <BundlePanel

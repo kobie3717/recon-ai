@@ -3,7 +3,7 @@
 ![Recon Dashboard](./cover.jpg)
 
 > **Bright Data AI Agents Web Data Hackathon** · May 2026
-> Live demo: [ui-beta-green.vercel.app](https://ui-beta-green.vercel.app) · GitHub: [kobie3717/recon-ai](https://github.com/kobie3717/recon-ai)
+> Live demo: [recon.whatshubb.co.za](https://recon.whatshubb.co.za) · GitHub: [kobie3717/recon-ai](https://github.com/kobie3717/recon-ai)
 
 Recon is a real-time competitive intelligence platform that deploys a parallel fleet of AI agents to build comprehensive company intelligence reports in under 10 seconds.
 

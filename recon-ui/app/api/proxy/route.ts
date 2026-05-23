@@ -1,4 +1,4 @@
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,https://recon.whatshubb.co.za,http://localhost:3000,http://localhost:3001,http://localhost:3002').split(',');
 
 export async function GET(request: Request) {
   // CORS / origin check — prevent public abuse of this proxy
@@ -27,7 +27,7 @@ export async function GET(request: Request) {
       headers: { 'Content-Type': 'application/json' },
     });
   }
-  const validModes = ['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'];
+  const validModes = ['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint', 'watch', 'lookup', 'mcp', 'agentic'];
   if (!validModes.includes(mode)) {
     return new Response(JSON.stringify({ error: 'invalid mode' }), {
       status: 400,
