@@ -15,7 +15,7 @@ import WatchPanel from '@/components/WatchPanel';
 import LookupPanel from '@/components/LookupPanel';
 import McpPanel from '@/components/McpPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
 
 export default function Home() {
   const [url, setUrl] = useState('');
