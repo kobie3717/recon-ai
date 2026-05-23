@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -26,6 +26,7 @@ const reportModes = [
   { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
   { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
   { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
+  { mode: 'agentic' as Mode, label: 'Agentic', cost: 2.5, color: 'fuchsia', icon: '🧠', description: '2-round self-directing intelligence: classify → scout → reason → follow-up' },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -57,6 +58,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
       case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
       case 'black': return `${base} bg-gray-900 border border-gray-600 text-white hover:bg-black`;
+      case 'fuchsia': return `${base} bg-fuchsia-900/40 border border-fuchsia-500/50 text-fuchsia-300 hover:bg-fuchsia-500/10`;
       default: return `${base} bg-recon-navy border border-recon-grey/50 text-white hover:bg-recon-grey/20`;
     }
   };
