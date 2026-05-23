@@ -3,7 +3,7 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   const origin = request.headers.get('origin');
-  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://recon.whatshubb.co.za,https://ui-beta-green.vercel.app,http://localhost:3000,http://localhost:3001').split(',');
   if (origin && !allowedOrigins.includes(origin)) {
     return new Response(JSON.stringify({ error: 'Forbidden' }), { status: 403, headers: { 'Content-Type': 'application/json' } });
   }
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const domain = searchParams.get('domain') || '';
   const mode = searchParams.get('mode') || 'standard';
 
-  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle'].includes(mode)) {
+  if (!['standard', 'deep', 'person', 'redteam', 'seo', 'bundle', 'footprint', 'watch', 'lookup', 'mcp', 'agentic'].includes(mode)) {
     return new Response(JSON.stringify({ error: 'invalid mode' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
   }
 
