@@ -292,3 +292,220 @@ export async function mcpScrape(url) {
   const result = await mcpFetch(domain, 'standard');
   return result.scraped;
 }
+
+/**
+ * New exports for MCP showcase mode
+ */
+
+/**
+ * Run search_engine tool
+ * @param {string} query - Search query
+ * @returns {Promise<Object>}
+ */
+export async function mcpSearchEngine(query) {
+  await sleep(200);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock: return realistic search results
+    await sleep(800);
+    return {
+      query,
+      results: [
+        { title: `${query} - Overview`, snippet: 'Comprehensive analysis and insights...', url: 'https://example.com/1' },
+        { title: `Latest news about ${query}`, snippet: 'Recent developments and announcements...', url: 'https://example.com/2' },
+        { title: `${query} funding and growth`, snippet: 'Investment rounds and expansion details...', url: 'https://example.com/3' },
+        { title: `${query} competitors analysis`, snippet: 'Market positioning and competitive landscape...', url: 'https://example.com/4' },
+        { title: `${query} technology stack`, snippet: 'Technical infrastructure and engineering...', url: 'https://example.com/5' }
+      ],
+      tool: 'search_engine',
+      via: 'mock'
+    };
+  }
+
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    const result = await Promise.race([
+      client.callTool({ name: 'search_engine', arguments: { query, num: 8 } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const text = Array.isArray(result.content)
+      ? result.content.map(c => c.text || '').join('\n')
+      : String(result.content || '');
+
+    // Parse results from text response
+    let results = [];
+    try {
+      const parsed = JSON.parse(text);
+      results = Array.isArray(parsed) ? parsed : parsed.results || [];
+    } catch {
+      results = [{ title: 'Search Results', snippet: text.substring(0, 200), url: '#' }];
+    }
+
+    return { query, results, tool: 'search_engine', via: 'bd-mcp' };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * Run scrape_as_markdown tool
+ * @param {string} url - Target URL
+ * @returns {Promise<Object>}
+ */
+export async function mcpScrapeMarkdown(url) {
+  await sleep(200);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock: return realistic markdown
+    await sleep(1400);
+    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+    const slug = domain.split('.')[0];
+    const companyName = slug.charAt(0).toUpperCase() + slug.slice(1);
+    return {
+      url,
+      markdown: `# ${companyName}\n\n## Enterprise Software Platform\n\nLeading provider of enterprise solutions serving 5,000+ customers globally.\n\n### Products\n- Core Platform\n- Analytics Suite\n- Integration Hub\n\n### Recent News\n- Series D funding announced\n- European expansion\n- New product launches\n\n### About Us\nFounded in 2018, ${companyName} has grown to 850+ employees and raised $425M from top-tier VCs including Sequoia Capital and Andreessen Horowitz.`,
+      chars: 450,
+      tool: 'scrape_as_markdown',
+      via: 'mock'
+    };
+  }
+
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    const result = await Promise.race([
+      client.callTool({ name: 'scrape_as_markdown', arguments: { url } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const markdown = Array.isArray(result.content)
+      ? result.content.map(c => c.text || '').join('\n')
+      : String(result.content || '');
+
+    return {
+      url,
+      markdown,
+      chars: markdown.length,
+      tool: 'scrape_as_markdown',
+      via: 'bd-mcp'
+    };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * Run web_unlocker tool (if available)
+ * @param {string} url - Target URL
+ * @returns {Promise<Object>}
+ */
+export async function mcpWebUnlocker(url) {
+  await sleep(200);
+
+  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+    // Mock: return realistic unlocked content
+    await sleep(900);
+    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
+    const slug = domain.split('.')[0];
+    const companyName = slug.charAt(0).toUpperCase() + slug.slice(1);
+    return {
+      url,
+      content: `About ${companyName}\n\nMission: Transforming enterprise workflows through innovative technology.\n\nTeam: 850+ employees across San Francisco, London, and Berlin.\n\nCustomers: Trusted by 5,000+ companies including Fortune 500 leaders.\n\nFunding: $425M raised from Sequoia Capital, Andreessen Horowitz, and Accel Partners.\n\nCulture: Fast-paced, innovative, and customer-focused.`,
+      chars: 380,
+      tool: 'web_unlocker',
+      via: 'mock'
+    };
+  }
+
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    const result = await Promise.race([
+      client.callTool({ name: 'web_unlocker', arguments: { url } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const content = Array.isArray(result.content)
+      ? result.content.map(c => c.text || '').join('\n')
+      : String(result.content || '');
+
+    return {
+      url,
+      content,
+      chars: content.length,
+      tool: 'web_unlocker',
+      via: 'bd-mcp'
+    };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * Comprehensive MCP showcase - runs all 4 tools in parallel
+ * @param {string} domain - Target domain
+ * @returns {Promise<Object>}
+ */
+export async function mcpComprehensive(domain) {
+  const startTime = Date.now();
+
+  const [search1, search2, homepage, about] = await Promise.all([
+    mcpSearchEngine(`${domain} company overview funding news 2026`),
+    mcpSearchEngine(`${domain} competitors market position`),
+    mcpScrapeMarkdown(`https://${domain}`),
+    mcpWebUnlocker(`https://${domain}/about`)
+  ]);
+
+  const elapsed = (Date.now() - startTime) / 1000;
+
+  return {
+    domain,
+    search1,
+    search2,
+    homepage,
+    about,
+    toolsUsed: 4,
+    elapsed
+  };
+}

@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000",
+    "start": "next start -p 3002",
     "lint": "next lint"
   },
   "dependencies": {
@@ -16,6 +16,7 @@
     "autoprefixer": "^10.5.0",
     "eslint": "^9.39.4",
     "eslint-config-next": "^16.2.6",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.16.0",
     "next": "^16.2.6",
     "postcss": "^8.5.14",
