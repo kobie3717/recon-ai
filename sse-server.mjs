@@ -800,8 +800,8 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    max_tokens: 2048,
+    system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
     messages: [{ role: 'user', content: prompt }]
   });
 
@@ -972,7 +972,7 @@ async function synthesizeAgenticWithClaude(domain, facts, signals) {
   const r1Facts = { ...facts };
   delete r1Facts.agenticSignals;
   delete r1Facts.followupData;
-  const r1Text = formatFacts(r1Facts).substring(0, 5000);
+  const r1Text = formatFacts(r1Facts).substring(0, 3000);
 
   // Build R2 followup text
   const r2Parts = [];
@@ -1022,8 +1022,8 @@ Return ONLY valid JSON:
 
   const response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst running an agentic two-round research pipeline. Output ONLY valid JSON — no markdown, no explanation.',
+    max_tokens: 2048,
+    system: 'You are a competitive intelligence analyst running an agentic two-round research pipeline. Output ONLY valid JSON — no markdown, no explanation. Be concise.',
     messages: [{ role: 'user', content: prompt }]
   });
 
