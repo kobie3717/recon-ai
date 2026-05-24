@@ -174,7 +174,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = mode === 'bundle' ? 300000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 300000 : 60000);
+  const timeoutMs = mode === 'bundle' ? 300000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 300000 : mode === 'agentic' ? 150000 : 60000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({
