@@ -416,35 +416,15 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         ? await synthesizeMcpWithClaude(domain, factsData)
         : generateMockMcpReport(domain, factsData);
     } else if (mode === 'agentic') {
-      // AGENTIC MODE: Round 1 → signal extraction → Round 2 → synthesis
+      // AGENTIC MODE: R1 scan → classify+extract (1 merged Haiku call) → R2 → synthesis
 
-      // CLASSIFY + ROUND 1 in parallel — saves one sequential Haiku RTT
-      let classification = { type: 'unknown', stage: 'unknown', priority_signals: [], scout_focus: 'general' };
-      emitter.emit('event', { agent: 'claude', status: 'classifying', message: `Classifying ${domain}...`, elapsed: 0 });
       emitter.emit('event', { agent: 'circus', status: 'agentic-start', round: 1, message: `Round 1: parallel scan launching...`, elapsed: 0 });
 
-      const [classResult, r1Result] = await Promise.allSettled([
-        anthropic ? classifyDomain(domain) : Promise.resolve(classification),
-        runStandardWorker(domain, emitter, 'standard')
-      ]);
-
-      if (classResult.status === 'fulfilled' && classResult.value) {
-        classification = classResult.value;
-        emitter.emit('event', {
-          agent: 'claude',
-          status: 'classified',
-          type: classification.type,
-          stage: classification.stage,
-          focus: classification.scout_focus,
-          message: `${classification.type} · ${classification.stage} → focusing on: ${classification.scout_focus}`,
-          elapsed: 0
-        });
-      }
-
-      result = r1Result.status === 'fulfilled' ? r1Result.value : { facts: {}, elapsed: 0 };
+      // ROUND 1: Standard parallel scan
+      result = await runStandardWorker(domain, emitter, 'standard');
       const r1Facts = result.facts || {};
 
-      // QUALITY GATE: Assess R1 data before signal extraction
+      // QUALITY GATE
       const r1Quality = assessDataQuality(r1Facts);
       emitter.emit('event', {
         agent: 'claude',
@@ -455,15 +435,27 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         elapsed: result.elapsed
       });
 
-      // SIGNAL EXTRACTION: Fast Claude Haiku analyzes findings
-      emitter.emit('event', { agent: 'claude', status: 'analyzing-signals', message: 'Analyzing Round 1 findings for strategic signals...', elapsed: result.elapsed });
+      // CLASSIFY + EXTRACT SIGNALS in one Haiku call
+      emitter.emit('event', { agent: 'claude', status: 'analyzing-signals', message: 'Classifying company + extracting signals...', elapsed: result.elapsed });
 
+      let classification = { type: 'unknown', stage: 'unknown', scout_focus: 'general', priority_signals: [] };
       let agenticSignals = [];
       if (anthropic) {
         try {
-          agenticSignals = await extractAgenticSignals(domain, r1Facts, classification, r1Quality.score);
-        } catch (sigErr) {
-          console.error('[agentic] Signal extraction failed:', sigErr.message);
+          const { classification: cls, signals } = await classifyAndExtract(domain, r1Facts, r1Quality.score);
+          classification = cls;
+          agenticSignals = signals;
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'classified',
+            type: classification.type,
+            stage: classification.stage,
+            focus: classification.scout_focus,
+            message: `${classification.type} · ${classification.stage} → ${classification.scout_focus}`,
+            elapsed: result.elapsed
+          });
+        } catch (err) {
+          console.error('[agentic] classify+extract failed:', err.message);
           agenticSignals = getDefaultSignals(domain);
         }
       } else {
@@ -879,72 +871,36 @@ function assessDataQuality(facts) {
 }
 
 /**
- * Pre-scout domain classifier — adapts agent approach before Round 1
- * Uses Claude Haiku (fast, cheap)
+ * Classify domain AND extract R1 signals in a single Haiku call.
+ * Replaces separate classifyDomain + extractAgenticSignals — saves one API RTT (~15s).
  */
-async function classifyDomain(domain) {
-  const response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 150,
-    system: 'You classify company domains for competitive intelligence. Output ONLY valid JSON.',
-    messages: [{
-      role: 'user',
-      content: `Domain: ${domain}\n\nClassify this company. Return ONLY this JSON (no markdown):\n{"type":"B2B SaaS|fintech|marketplace|crypto|enterprise|consumer|agency|other","stage":"early-startup|growth|scale-up|public|unknown","priority_signals":["signal1","signal2","signal3"],"scout_focus":"what to prioritize in intelligence gathering"}`
-    }]
-  });
-  const text = response.content[0].text.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
-}
-
-/**
- * Extract strategic signals from Round 1 data for agentic follow-up
- * Uses Claude Haiku (fast + cheap) — not full synthesis
- */
-async function extractAgenticSignals(domain, facts, classification = {}, qualityScore = 0.5) {
-  const companySlug = domain.split('.')[0];
-
-  // Build a compact facts summary for signal extraction
+async function classifyAndExtract(domain, facts, qualityScore = 0.5) {
   const parts = [];
-  if (facts.news?.results?.length) {
-    parts.push('NEWS: ' + facts.news.results.slice(0, 5).map(r => r.title + ': ' + r.snippet).join(' | '));
-  }
-  if (facts.structured?.company) {
-    parts.push('COMPANY: ' + JSON.stringify(facts.structured.company).substring(0, 500));
-  }
-  if (facts.linkedin?.text) {
-    parts.push('LINKEDIN: ' + facts.linkedin.text.substring(0, 500));
-  }
-  if (facts.homepage?.text) {
-    parts.push('HOMEPAGE: ' + facts.homepage.text.substring(0, 400));
-  }
-  const factsSnippet = parts.join('\n').substring(0, 3000);
+  if (facts.news?.results?.length) parts.push('NEWS: ' + facts.news.results.slice(0, 4).map(r => r.title + ': ' + r.snippet).join(' | '));
+  if (facts.structured?.company) parts.push('CO: ' + JSON.stringify(facts.structured.company).substring(0, 300));
+  if (facts.homepage?.text) parts.push('HP: ' + facts.homepage.text.substring(0, 300));
+  const factsSnippet = parts.join('\n').substring(0, 1500);
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 350,
+    max_tokens: 450,
     system: 'Competitive intelligence analyst. Output ONLY valid JSON.',
     messages: [{
       role: 'user',
-      content: `Company: ${domain}
-Type: ${classification.type || 'unknown'} | Stage: ${classification.stage || 'unknown'}
-Focus: ${classification.scout_focus || 'general intelligence'}
-Data quality: ${Math.round((qualityScore || 0.5) * 100)}%
+      content: `Domain: ${domain}
+Data quality: ${Math.round(qualityScore * 100)}%
+R1 DATA: ${factsSnippet || 'none — use domain knowledge'}
 
-ROUND 1 DATA:
-${factsSnippet || 'No data — use domain knowledge for queries'}
-
-Identify 2-3 follow-up research queries. For each signal, show your reasoning chain.
-
-Return ONLY this JSON (no markdown):
-{"signals":[{"finding":"specific observation from data","reasoning":"[observation] → implies [strategic meaning] → therefore search for [specific thing]","hypothesis":"strategic hypothesis this supports or refutes","followup_query":"exact google search query","confidence":"high|medium|low","type":"serp"}]}`
+Return ONLY this JSON:
+{"type":"B2B SaaS|fintech|marketplace|enterprise|consumer|other","stage":"startup|growth|scale-up|public|unknown","scout_focus":"one-line focus","signals":[{"finding":"observation","reasoning":"chain","hypothesis":"hypothesis","followup_query":"google query","confidence":"high|medium|low"}]}`
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-
+  const text = response.content[0].text.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
   const parsed = JSON.parse(text);
-  return (parsed.signals || []).slice(0, 3).filter(s => s.followup_query && s.finding);
+  const classification = { type: parsed.type || 'unknown', stage: parsed.stage || 'unknown', scout_focus: parsed.scout_focus || 'general', priority_signals: [] };
+  const signals = (parsed.signals || []).slice(0, 2).filter(s => s.followup_query && s.finding);
+  return { classification, signals };
 }
 
 /**
