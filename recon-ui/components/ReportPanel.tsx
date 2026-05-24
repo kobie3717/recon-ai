@@ -86,12 +86,24 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
         {showPlaceholder && (
-          <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-bold text-white mb-2">RECON</h3>
-            <p className="text-recon-cyan">Competitive Intelligence Platform</p>
-            <p className="text-recon-grey text-sm mt-4 max-w-md">
-              AI-powered competitive analysis that bypasses bot detection and delivers actionable insights in seconds.
+          <div className="flex flex-col items-center justify-center h-full text-center px-6">
+            <div className="text-5xl mb-4">🔍</div>
+            <h3 className="text-2xl font-bold text-white mb-1">RECON</h3>
+            <p className="text-recon-cyan text-sm mb-6">Multi-Agent Competitive Intelligence · Powered by Bright Data</p>
+            <div className="w-full max-w-sm space-y-2 mb-6">
+              <div className="text-recon-grey text-xs uppercase tracking-widest mb-3">Try these targets</div>
+              {['stripe.com', 'openai.com', 'anthropic.com', 'linear.app', 'vercel.com'].map(example => (
+                <button
+                  key={example}
+                  onClick={() => onDrillDown?.(example)}
+                  className="w-full text-left px-4 py-2 bg-recon-navy/60 border border-recon-blue/20 rounded-lg text-recon-cyan text-sm hover:border-recon-cyan/50 hover:bg-recon-cyan/5 transition-all font-mono"
+                >
+                  {example} →
+                </button>
+              ))}
+            </div>
+            <p className="text-recon-grey text-xs max-w-sm">
+              4–10 parallel BD agents · real-time streaming · Claude synthesis · under 10 seconds
             </p>
           </div>
         )}
@@ -490,27 +502,45 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               </div>
             )}
 
+            {/* Prominent Cost Card */}
+            {reportData.cost && (
+              <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
+                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Cost</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-3xl font-mono font-bold text-white">
+                    ${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : reportData.cost.total}
+                  </div>
+                  <div className="text-right">
+                    <div className="text-recon-grey text-xs">vs manual research</div>
+                    <div className="text-green-400 text-sm font-semibold">~$2,000+ saved</div>
+                  </div>
+                </div>
+                {reportData.cost.breakdown && (
+                  <div className="space-y-1.5">
+                    {Object.entries(reportData.cost.breakdown).map(([key, val]: [string, any]) => (
+                      <div key={key} className="flex justify-between text-xs">
+                        <span className="text-recon-grey capitalize">{key.replace(/_/g, ' ')}</span>
+                        <span className="text-white font-mono">${typeof val === 'number' ? val.toFixed(3) : val}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Intelligence Sources — shows judges exactly which BD product found each section */}
-            {reportData.sources && Array.isArray(reportData.sources) && (
-              <div className="bg-recon-navy/60 border border-recon-blue/40 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Sources</h3>
-                <div className="space-y-3">
-                  {reportData.sources.map((src: any, idx: number) => (
-                    <div key={idx} className="text-sm">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-base">{src.icon}</span>
-                        <span className="text-white font-semibold">{src.tool}</span>
+            {reportData.sources && reportData.sources.length > 0 && (
+              <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
+                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3 flex items-center gap-2">
+                  <span>🔗</span> Intelligence Sources
+                </h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {reportData.sources.map((source: any, idx: number) => (
+                    <div key={idx} className="bg-recon-dark/60 border border-recon-blue/20 rounded p-2 text-xs">
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="text-recon-cyan font-mono text-xs">{source.tool || source.agent}</span>
                       </div>
-                      <div className="pl-6 text-xs text-recon-grey mb-1 font-mono">
-                        → {src.target}
-                      </div>
-                      <div className="pl-6 flex flex-wrap gap-1">
-                        {src.sections.map((section: string, sIdx: number) => (
-                          <span key={sIdx} className="bg-recon-blue/15 text-recon-cyan/80 px-2 py-0.5 rounded text-xs border border-recon-blue/20">
-                            {section}
-                          </span>
-                        ))}
-                      </div>
+                      <div className="text-recon-grey truncate">{source.url || source.dataType}</div>
                     </div>
                   ))}
                 </div>

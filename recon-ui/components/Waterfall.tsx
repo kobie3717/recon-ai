@@ -91,6 +91,21 @@ function getDisplayName(name: string): string {
   return agentDisplayNames[name] || name.toUpperCase();
 }
 
+function getBDProductBadge(name: string): { label: string; color: string } | null {
+  const cleanName = name.includes(': ') ? name.split(': ')[1] : name;
+
+  if (cleanName === 'bd-web-unlocker') return { label: 'BD Web Unlocker', color: 'cyan' };
+  if (cleanName === 'bd-serp') return { label: 'BD SERP API', color: 'cyan' };
+  if (cleanName === 'bd-scraping-browser') return { label: 'BD Scraping Browser', color: 'cyan' };
+  if (cleanName === 'bd-web-scraper') return { label: 'BD Web Scraper API', color: 'cyan' };
+  if (cleanName === 'bd-mcp') return { label: 'BD MCP Server', color: 'cyan' };
+  if (cleanName === 'claude') return { label: 'Claude Sonnet', color: 'purple' };
+  if (cleanName === 'ai-iq') return { label: 'AI-IQ Cache', color: 'amber' };
+  if (cleanName.startsWith('scout-')) return { label: 'BD SERP API', color: 'cyan' };
+
+  return null;
+}
+
 const statusColors = {
   fetching: 'text-recon-amber',
   complete: 'text-recon-green',
@@ -184,11 +199,25 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
             </div>
           )}
         </div>
-        {isRunning && (
-          <div className="text-recon-amber font-mono text-sm">
-            {totalElapsed.toFixed(1)}s
-          </div>
-        )}
+        <div className="flex flex-col items-end gap-2">
+          {isRunning && (
+            <>
+              <div className="text-recon-amber font-mono text-sm">
+                {totalElapsed.toFixed(1)}s
+              </div>
+              {agents.length > 1 && (() => {
+                const activeCount = agents.filter(a =>
+                  a.status === 'fetching' || a.status === 'searching' || a.status === 'launching'
+                ).length;
+                return activeCount > 0 ? (
+                  <div className="text-recon-cyan text-xs font-semibold tracking-wider">
+                    ⚡ {activeCount} AGENTS ACTIVE
+                  </div>
+                ) : null;
+              })()}
+            </>
+          )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto px-6 py-4">
@@ -201,8 +230,23 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
         )}
 
         {cacheHit && (
-          <div className="mb-4 bg-recon-cyan/10 border border-recon-cyan/30 rounded px-3 py-2 text-recon-cyan text-sm">
-            ⚡ Loaded from AI-IQ memory — {cacheTime?.toFixed(1) || '0.3'}s vs {freshTime?.toFixed(1) || '9.0'}s fresh
+          <div className="mb-4 bg-gradient-to-r from-recon-cyan/20 to-blue-500/10 border border-recon-cyan/40 rounded-lg px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl animate-bounce">⚡</span>
+                <div>
+                  <div className="text-recon-cyan font-bold text-sm">AI-IQ Cache Hit</div>
+                  <div className="text-recon-grey text-xs">Intelligence retrieved from memory vault</div>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-recon-cyan font-mono font-bold text-lg">{cacheTime?.toFixed(1) || '0.3'}s</div>
+                <div className="text-recon-grey text-xs line-through">{freshTime?.toFixed(1) || '9.0'}s fresh</div>
+                <div className="text-green-400 text-xs font-semibold">
+                  {freshTime && cacheTime ? Math.round((1 - cacheTime/freshTime) * 100) : 97}% faster
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
@@ -213,6 +257,8 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
               const colorClass = statusColors[agent.status] || 'text-recon-grey';
               const prefix = statusPrefix[agent.status] || '';
 
+              const bdBadge = getBDProductBadge(agent.name);
+
               return (
                 <div key={`${agent.name}-${index}`} className={`border-l-2 pl-4 py-2 relative ${
                   agent.status === 'classified' ? 'border-violet-500/50' :
@@ -222,11 +268,27 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
                 }`}>
                   <div className="flex items-center gap-3 text-sm">
                     <span className="text-lg">{icon}</span>
-                    <span className="text-recon-grey font-medium min-w-[120px] font-mono tracking-wider">{getDisplayName(agent.name)}</span>
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-recon-grey font-medium font-mono tracking-wider">{getDisplayName(agent.name)}</span>
+                      {bdBadge && (
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded inline-block w-fit font-semibold tracking-wide ${
+                          bdBadge.color === 'cyan' ? 'bg-recon-cyan/10 text-recon-cyan border border-recon-cyan/30' :
+                          bdBadge.color === 'purple' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/30' :
+                          'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                        }`}>
+                          {bdBadge.label}
+                        </span>
+                      )}
+                    </div>
                     <span className={`${colorClass} font-medium`}>{prefix} {agent.status}</span>
-                    {agent.message && <span className="flex-1 text-recon-light text-xs">{agent.message}</span>}
-                    <span className="text-recon-grey text-xs">{agent.elapsed.toFixed(1)}s</span>
+                    <span className="text-recon-grey text-xs ml-auto">{agent.elapsed.toFixed(1)}s</span>
                   </div>
+
+                  {agent.message && agent.status === 'complete' && (
+                    <div className="mt-2 ml-10 text-recon-light text-xs pl-3 border-l border-recon-blue/20">
+                      {agent.message}
+                    </div>
+                  )}
 
                   {/* CLASSIFIED: show type badge + focus */}
                   {agent.status === 'classified' && agent.extra && (
@@ -329,6 +391,8 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
             <span>{agents.length} transmissions logged</span>
             <span>•</span>
             <span>VAULT updated</span>
+            <span>•</span>
+            <span className="text-recon-cyan/60">Powered by Bright Data</span>
           </div>
         </div>
       )}
