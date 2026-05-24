@@ -418,30 +418,30 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     } else if (mode === 'agentic') {
       // AGENTIC MODE: Round 1 → signal extraction → Round 2 → synthesis
 
-      // CLASSIFY: Adapt agent approach before dispatching scouts
+      // CLASSIFY + ROUND 1 in parallel — saves one sequential Haiku RTT
       let classification = { type: 'unknown', stage: 'unknown', priority_signals: [], scout_focus: 'general' };
-      if (anthropic) {
-        try {
-          emitter.emit('event', { agent: 'claude', status: 'classifying', message: `Classifying ${domain}...`, elapsed: 0 });
-          classification = await classifyDomain(domain);
-          emitter.emit('event', {
-            agent: 'claude',
-            status: 'classified',
-            type: classification.type,
-            stage: classification.stage,
-            focus: classification.scout_focus,
-            message: `${classification.type} · ${classification.stage} → focusing on: ${classification.scout_focus}`,
-            elapsed: 0
-          });
-        } catch (classErr) {
-          console.error('[agentic] Classification failed:', classErr.message);
-        }
+      emitter.emit('event', { agent: 'claude', status: 'classifying', message: `Classifying ${domain}...`, elapsed: 0 });
+      emitter.emit('event', { agent: 'circus', status: 'agentic-start', round: 1, message: `Round 1: parallel scan launching...`, elapsed: 0 });
+
+      const [classResult, r1Result] = await Promise.allSettled([
+        anthropic ? classifyDomain(domain) : Promise.resolve(classification),
+        runStandardWorker(domain, emitter, 'standard')
+      ]);
+
+      if (classResult.status === 'fulfilled' && classResult.value) {
+        classification = classResult.value;
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'classified',
+          type: classification.type,
+          stage: classification.stage,
+          focus: classification.scout_focus,
+          message: `${classification.type} · ${classification.stage} → focusing on: ${classification.scout_focus}`,
+          elapsed: 0
+        });
       }
 
-      emitter.emit('event', { agent: 'circus', status: 'agentic-start', round: 1, message: `Round 1: parallel scan (${classification.type || 'unknown'} profile)`, elapsed: 0 });
-
-      // ROUND 1: Standard parallel scan
-      result = await runStandardWorker(domain, emitter, 'standard');
+      result = r1Result.status === 'fulfilled' ? r1Result.value : { facts: {}, elapsed: 0 };
       const r1Facts = result.facts || {};
 
       // QUALITY GATE: Assess R1 data before signal extraction
@@ -921,8 +921,8 @@ async function extractAgenticSignals(domain, facts, classification = {}, quality
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 600,
-    system: 'You are a competitive intelligence analyst. Think step by step. Output ONLY valid JSON.',
+    max_tokens: 350,
+    system: 'Competitive intelligence analyst. Output ONLY valid JSON.',
     messages: [{
       role: 'user',
       content: `Company: ${domain}
@@ -1022,8 +1022,8 @@ Return ONLY valid JSON:
 
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 2048,
-    system: 'You are a competitive intelligence analyst running an agentic two-round research pipeline. Output ONLY valid JSON — no markdown, no explanation. Be concise.',
+    max_tokens: 1200,
+    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings.',
     messages: [{ role: 'user', content: prompt }]
   });
 
