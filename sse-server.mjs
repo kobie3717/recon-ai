@@ -1021,7 +1021,7 @@ Return ONLY valid JSON:
 }`;
 
   const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
+    model: 'claude-haiku-4-5-20251001',
     max_tokens: 2048,
     system: 'You are a competitive intelligence analyst running an agentic two-round research pipeline. Output ONLY valid JSON — no markdown, no explanation. Be concise.',
     messages: [{ role: 'user', content: prompt }]
