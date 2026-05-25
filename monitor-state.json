@@ -1,0 +1,12 @@
+{
+  "domains": [
+    {
+      "domain": "stripe.com",
+      "addedAt": "2026-05-24T15:07:27.544Z",
+      "slackWebhook": null,
+      "intervalHours": 24,
+      "lastChecked": "2026-05-24T15:08:12.852Z",
+      "lastDiff": []
+    }
+  ]
+}

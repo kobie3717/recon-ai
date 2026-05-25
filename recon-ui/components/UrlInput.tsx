@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic' | 'monitor';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -17,16 +17,17 @@ interface UrlInputProps {
 
 const reportModes = [
   { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
-  { mode: 'agentic' as Mode, label: 'Agentic', cost: 2.5, color: 'purple-glow', icon: '🧠', description: '2-round self-directing intelligence: AI agent decides follow-up queries' },
   { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
   { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
   { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
+  { mode: 'monitor' as Mode, label: 'Monitor', cost: 0.0, color: 'green', icon: '📡', description: 'Always-on monitoring: detect funding, pricing, hiring changes 24/7' },
   { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
   { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
   { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
   { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
   { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
+  { mode: 'agentic' as Mode, label: 'Agentic', cost: 2.5, color: 'fuchsia', icon: '🧠', description: '2-round self-directing intelligence: classify → scout → reason → follow-up' },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -49,7 +50,6 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
     const pulse = isPulse ? " ring-2 ring-purple-400 ring-offset-1 ring-offset-recon-dark" : "";
     switch (color) {
       case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
-      case 'purple-glow': return `${base} bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/50`;
       case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
       case 'teal': return `${base} bg-recon-navy border border-teal-500/50 text-teal-400 hover:bg-teal-500/10`;
       case 'orange': return `${base} bg-orange-900/40 border border-orange-500/50 text-orange-400 hover:bg-orange-500/10`;
@@ -59,6 +59,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
       case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
       case 'black': return `${base} bg-gray-900 border border-gray-600 text-white hover:bg-black`;
+      case 'fuchsia': return `${base} bg-fuchsia-900/40 border border-fuchsia-500/50 text-fuchsia-300 hover:bg-fuchsia-500/10`;
       default: return `${base} bg-recon-navy border border-recon-grey/50 text-white hover:bg-recon-grey/20`;
     }
   };

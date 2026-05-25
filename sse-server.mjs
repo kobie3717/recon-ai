@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker, runAgenticFollowups } from './bd-worker.mjs';
 import { dataFirehose } from './bright-data-connector.mjs';
+import { startMonitorScheduler, getMonitorState, updateMonitorState, getDiffHistory, triggerDomainCheck } from './monitor-scheduler.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -2242,11 +2243,143 @@ app.get('/api/reports', reportLimiter, (req, res) => {
   }
 });
 
+/**
+ * Monitor API: Add domain to watch list
+ * POST /api/monitor
+ * Body: { domain: string, slackWebhook?: string, intervalHours?: number }
+ */
+app.post('/api/monitor', express.json(), (req, res) => {
+  try {
+    const { domain, slackWebhook, intervalHours } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Load current state
+    const state = getMonitorState();
+
+    // Check if already exists
+    if (state.domains.some(d => d.domain === validatedDomain)) {
+      return res.status(400).json({ error: 'Domain already monitored' });
+    }
+
+    // Add new domain
+    state.domains.push({
+      domain: validatedDomain,
+      addedAt: new Date().toISOString(),
+      slackWebhook: slackWebhook || null,
+      intervalHours: intervalHours || 24,
+      lastChecked: null,
+      lastDiff: null,
+    });
+
+    // Save state
+    updateMonitorState(state);
+
+    res.json({ success: true, domain: validatedDomain });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: Remove domain from watch list
+ * DELETE /api/monitor
+ * Body: { domain: string }
+ */
+app.delete('/api/monitor', express.json(), (req, res) => {
+  try {
+    const { domain } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Load current state
+    const state = getMonitorState();
+
+    // Remove domain
+    const originalLength = state.domains.length;
+    state.domains = state.domains.filter(d => d.domain !== validatedDomain);
+
+    if (state.domains.length === originalLength) {
+      return res.status(404).json({ error: 'Domain not found' });
+    }
+
+    // Save state
+    updateMonitorState(state);
+
+    res.json({ success: true, domain: validatedDomain });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: List all monitored domains
+ * GET /api/monitor
+ */
+app.get('/api/monitor', (req, res) => {
+  try {
+    const state = getMonitorState();
+    res.json({ domains: state.domains });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load monitor state' });
+  }
+});
+
+/**
+ * Monitor API: Get diff history for a domain
+ * GET /api/monitor/diff?domain=stripe.com
+ */
+app.get('/api/monitor/diff', (req, res) => {
+  try {
+    const { domain } = req.query;
+
+    if (!domain) {
+      return res.status(400).json({ error: 'domain parameter required' });
+    }
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Get diff history
+    const history = getDiffHistory(validatedDomain);
+
+    res.json({ domain: validatedDomain, history });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: Trigger immediate check for a domain
+ * POST /api/monitor/check
+ * Body: { domain: string }
+ */
+app.post('/api/monitor/check', express.json(), async (req, res) => {
+  try {
+    const { domain } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Trigger check
+    const result = await triggerDomainCheck(validatedDomain);
+
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 const server = app.listen(PORT, () => {
   console.log(`🚀 Recon SSE server listening on port ${PORT}`);
   console.log(`   Claude synthesis: ${anthropic ? 'ENABLED' : 'MOCK (set ANTHROPIC_API_KEY)'}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Report: http://localhost:${PORT}/api/report?domain=stripe.com&mode=standard`);
+
+  // Start monitor scheduler
+  startMonitorScheduler();
 });
 
 // Global error handlers

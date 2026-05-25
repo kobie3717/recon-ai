@@ -14,8 +14,9 @@ import FootprintPanel from '@/components/FootprintPanel';
 import WatchPanel from '@/components/WatchPanel';
 import LookupPanel from '@/components/LookupPanel';
 import McpPanel from '@/components/McpPanel';
+import MonitorPanel from '@/components/MonitorPanel';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic' | 'monitor';
 
 export default function Home() {
   const [url, setUrl] = useState('');
@@ -136,6 +137,18 @@ export default function Home() {
       setReportData(null);
       setReportData2(null);
       setErrorMessage('');
+      return;
+    }
+
+    // Monitor mode special handling
+    if (mode === 'monitor') {
+      setCurrentMode('monitor');
+      setIsRunning(false);
+      setCompareActive(false);
+      setReportData(null);
+      setReportData2(null);
+      setErrorMessage('');
+      setIsWatching(false);
       return;
     }
 
@@ -564,6 +577,8 @@ export default function Home() {
               isWatching={isWatching}
               onStop={() => { setIsWatching(false); setIsRunning(false); }}
             />
+          ) : currentMode === 'monitor' ? (
+            <MonitorPanel />
           ) : currentMode === 'bundle' ? (
             <BundlePanel
               reportData={reportData}

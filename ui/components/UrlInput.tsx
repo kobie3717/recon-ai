@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
+type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic' | 'monitor';
 
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
@@ -20,6 +20,7 @@ const reportModes = [
   { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
   { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
   { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
+  { mode: 'monitor' as Mode, label: 'Monitor', cost: 0.0, color: 'green', icon: '📡', description: 'Always-on monitoring: detect funding, pricing, hiring changes 24/7' },
   { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
   { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
