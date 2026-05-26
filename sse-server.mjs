@@ -995,7 +995,82 @@ async function synthesizeWithClaude(domain, facts, mode, emitter = null) {
 
   const safeDomain = domain.replace(/[^\w.-]/g, '').substring(0, 100);
   const safeCompanyName = companyName.replace(/[^\w\s]/g, '').substring(0, 50);
-  const prompt = `Analyze the company at domain [${safeDomain}] (company name: ${safeCompanyName}) and produce a competitive intelligence report as JSON.
+
+  // Standard mode uses markdown-first format; all other modes use pure JSON
+  const prompt = mode === 'standard' ? `Analyze the company at domain [${safeDomain}] (company name: ${safeCompanyName}) and produce a competitive intelligence report.
+
+TODAY: ${today}
+MODE: ${mode}
+
+SCRAPED WEB DATA:
+${factsText}
+
+Output format: Start with human-readable markdown executive summary, then emit structured JSON.
+
+## Executive Summary
+
+[Write 2-3 paragraphs for human readers. Include key findings, strategic positioning, and notable signals. Plain markdown, NO JSON in this section.]
+
+## Key Signals
+
+- 🟢 [High-priority signal/insight about ${domain}]
+- 🟢 [Another high-priority signal]
+- 🟡 [Medium-priority signal]
+
+\`\`\`json
+{
+  "meta": {
+    "domain": "${domain}",
+    "companyName": "${companyName}",
+    "analysisDate": "${today}",
+    "mode": "${mode}",
+    "confidence": "medium-high"
+  },
+  "signals": [
+    {"level": "high|medium|positive", "text": "specific actionable insight about ${domain}", "icon": "🔴|🟡|🟢"}
+  ],
+  "snapshot": {
+    "founded": "YYYY",
+    "hq": "City, State/Country",
+    "employees": "N (source verified)",
+    "stage": "Stage / Series X",
+    "website": "${domain}",
+    "linkedin": "linkedin.com/company/${companySlug}"
+  },
+  "financials": {
+    "totalRaised": "$XM",
+    "lastRound": "Series X — $XM (Mon YYYY)",
+    "valuation": "~$XB (est.)",
+    "revenue": "~$XM ARR (est.)",
+    "investors": ["Investor 1", "Investor 2"]
+  },
+  "news": [
+    {"date": "Mon DD", "headline": "real headline about ${companyName}", "signal": "HIGH|MED|LOW", "url": "#"}
+  ],
+  "products": [
+    {"name": "Product Name", "description": "What it does"}
+  ],
+  "competitive": [
+    {"competitor": "Company Name", "weakness": "specific weakness vs ${companyName}"}
+  ],
+  "hiring": [
+    {"role": "Role Type", "count": 0, "signal": "what this signals about strategy"}
+  ],
+  "strategic": [
+    "Strategic direction 1",
+    "Strategic direction 2",
+    "Strategic direction 3"
+  ],${newFields}
+  "cost": {
+    "webUnlocker": 0.30,
+    "serpApi": 0.50,
+    "scrapingBrowser": 0.80,
+    "webScraperApi": 0.40,
+    "total": 2.00
+  }
+}
+\`\`\`
+` : `Analyze the company at domain [${safeDomain}] (company name: ${safeCompanyName}) and produce a competitive intelligence report as JSON.
 
 TODAY: ${today}
 MODE: ${mode}
@@ -1057,15 +1132,20 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 }`;
 
   // Use streaming API
+  const systemPrompt = mode === 'standard'
+    ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise.'
+    : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.';
+
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
+    system: systemPrompt,
     messages: [{ role: 'user', content: prompt }]
   });
 
   let accumulatedText = '';
   let tokenCount = 0;
+  let jsonStartEmitted = false;
 
   // Stream deltas to SSE if emitter provided
   for await (const chunk of stream) {
@@ -1076,6 +1156,13 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 
       if (emitter) {
         const elapsed = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+
+        // Standard mode: detect JSON fence transition and emit json-start event once
+        if (mode === 'standard' && !jsonStartEmitted && accumulatedText.includes('```json')) {
+          emitter.emit('event', { agent: 'claude', status: 'json-start', elapsed });
+          jsonStartEmitted = true;
+        }
+
         emitter.emit('event', {
           agent: 'claude',
           status: 'streaming',
@@ -1098,12 +1185,13 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
+      system: systemPrompt,
       messages: [{ role: 'user', content: prompt }]
     });
 
     accumulatedText = '';
     tokenCount = 0;
+    jsonStartEmitted = false;
 
     for await (const chunk of retryStream) {
       if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
@@ -1113,6 +1201,13 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 
         if (emitter) {
           const elapsed = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+
+          // Standard mode: detect JSON fence transition
+          if (mode === 'standard' && !jsonStartEmitted && accumulatedText.includes('```json')) {
+            emitter.emit('event', { agent: 'claude', status: 'json-start', elapsed });
+            jsonStartEmitted = true;
+          }
+
           emitter.emit('event', {
             agent: 'claude',
             status: 'streaming',
@@ -1139,11 +1234,26 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
  * Parse accumulated synthesis text into structured report
  */
 function parseSynthesisResult(rawText, domain, companySlug, mode, usage) {
-  // Extract the first balanced JSON object from the text (handles truncation better)
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch
-    ? jsonMatch[0]
-    : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  let text = rawText;
+
+  // Standard mode: extract JSON from markdown fence
+  if (mode === 'standard') {
+    const fenceMatch = rawText.match(/```json\s*([\s\S]*?)```/);
+    if (fenceMatch) {
+      text = fenceMatch[1];
+    } else {
+      console.warn(`[${mode}] No JSON fence found in standard mode output, falling back to full text parse`);
+      // Fallback: try to extract first balanced JSON object
+      const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+      text = jsonMatch ? jsonMatch[0] : rawText;
+    }
+  } else {
+    // Other modes: extract first balanced JSON object (handles truncation better)
+    const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+    text = jsonMatch
+      ? jsonMatch[0]
+      : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  }
 
   let parsed;
   try {

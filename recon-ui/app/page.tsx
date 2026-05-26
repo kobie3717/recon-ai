@@ -38,6 +38,8 @@ export default function Home() {
   const evtSourceRef = useRef<EventSource | null>(null);
   const [synthesisText, setSynthesisText] = useState<string>('');
   const [synthesisTokens, setSynthesisTokens] = useState<number>(0);
+  const [livePreview, setLivePreview] = useState<string>('');
+  const isJsonPhaseRef = useRef<boolean>(false);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -160,6 +162,8 @@ export default function Home() {
     setIsWatching(false);
     setSynthesisText('');
     setSynthesisTokens(0);
+    setLivePreview('');
+    isJsonPhaseRef.current = false;
 
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
@@ -174,9 +178,19 @@ export default function Home() {
 
         // Agent pipeline events — backend sends { agent, status, elapsed } with no type field
         if (event.agent) {
+          // Handle json-start event
+          if (event.agent === 'claude' && event.status === 'json-start') {
+            isJsonPhaseRef.current = true;
+          }
+
           // Handle streaming synthesis deltas
           if (event.agent === 'claude' && event.status === 'streaming' && event.delta) {
-            setSynthesisText(prev => prev + event.delta);
+            // Standard mode: route markdown to livePreview, JSON to synthesisText
+            if (effectiveMode === 'standard' && !isJsonPhaseRef.current) {
+              setLivePreview(prev => prev + event.delta);
+            } else {
+              setSynthesisText(prev => prev + event.delta);
+            }
             if (event.tokens) setSynthesisTokens(event.tokens);
           }
 
@@ -612,6 +626,8 @@ export default function Home() {
               isRunning={isRunning}
               synthesisText={synthesisText}
               synthesisTokens={synthesisTokens}
+              livePreview={livePreview}
+              isJsonPhase={isJsonPhaseRef.current}
               onDrillDown={(q) => {
                 if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);
