@@ -36,6 +36,8 @@ export default function Home() {
   const cacheHitRef = useRef(false);
   const [isWatching, setIsWatching] = useState(false);
   const evtSourceRef = useRef<EventSource | null>(null);
+  const [synthesisText, setSynthesisText] = useState<string>('');
+  const [synthesisTokens, setSynthesisTokens] = useState<number>(0);
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -156,6 +158,8 @@ export default function Home() {
     setReportData2(null);
     setErrorMessage('');
     setIsWatching(false);
+    setSynthesisText('');
+    setSynthesisTokens(0);
 
     // Connect to SSE via direct Railway URL (bypass Vercel 10s timeout)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
@@ -170,6 +174,12 @@ export default function Home() {
 
         // Agent pipeline events — backend sends { agent, status, elapsed } with no type field
         if (event.agent) {
+          // Handle streaming synthesis deltas
+          if (event.agent === 'claude' && event.status === 'streaming' && event.delta) {
+            setSynthesisText(prev => prev + event.delta);
+            if (event.tokens) setSynthesisTokens(event.tokens);
+          }
+
           setAgents((prev) => {
             const { agent: _a, status, elapsed, message, type: _t, ...rest } = event;
             const extra = Object.keys(rest).length > 0 ? rest : undefined;
@@ -600,6 +610,8 @@ export default function Home() {
               reportData={reportData}
               costBreakdown={costBreakdown}
               isRunning={isRunning}
+              synthesisText={synthesisText}
+              synthesisTokens={synthesisTokens}
               onDrillDown={(q) => {
                 if ((compareInputOpen || compareActive) && url.trim()) {
                   setUrl2(q);

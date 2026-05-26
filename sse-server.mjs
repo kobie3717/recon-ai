@@ -595,16 +595,49 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
       }
     } else {
-      result = await runStandardWorker(domain, emitter, mode);
+      // PROGRESSIVE SYNTHESIS: Start synthesis when partial facts ready, not after all agents complete
+      let synthResult = null;
+      let synthPromise = null;
+      const claudeStart = Date.now();
+
+      // Start worker — it will return a promise and also populate facts object progressively
+      const workerPromise = runStandardWorker(domain, emitter, mode);
+
+      // Listen for partial facts signal from worker to start synthesis early
+      const synthListener = (evt) => {
+        if (evt.agent === 'orchestrator' && evt.status === 'facts-partial' && !synthPromise && anthropic) {
+          emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Early-start synthesis on partial facts', elapsed: evt.elapsed });
+          // Start synthesis NOW — facts object in worker is already populated with fast agent results
+          // The worker result will have the facts object which is being mutated in real-time
+          synthPromise = (async () => {
+            // Wait for worker to complete so we have the facts reference
+            const workerResult = await workerPromise;
+            const factsData = workerResult.facts || {};
+            return await synthesizeWithClaude(domain, factsData, mode, emitter);
+          })();
+        }
+      };
+      emitter.on('event', synthListener);
+
+      // Wait for worker to complete
+      result = await workerPromise;
+      emitter.off('event', synthListener);
+
       const factsData = result.facts || result.scouts || {};
+
       if (anthropic) {
-        const claudeStart = Date.now();
-        emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
-        const synthResult = await synthesizeWithClaude(domain, factsData, mode);
+        // If synthesis didn't start early (orchestrator event missed), start it now
+        if (!synthPromise) {
+          emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
+          synthPromise = synthesizeWithClaude(domain, factsData, mode, emitter);
+        }
+
+        synthResult = await synthPromise;
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
-        emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
+        const totalElapsed = parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2));
+        emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: totalElapsed });
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -936,12 +969,15 @@ function calculateClaudeCost(usage, model = 'claude-sonnet-4-6') {
 
 /**
  * Call Claude to synthesize a structured intelligence report from scraped facts
+ * Now uses streaming for progressive output
+ * @param {EventEmitter} emitter - Optional emitter for streaming deltas to SSE
  */
-async function synthesizeWithClaude(domain, facts, mode) {
+async function synthesizeWithClaude(domain, facts, mode, emitter = null) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
   const factsText = formatFacts(facts);
+  const startTime = Date.now();
 
   const deepFields = mode === 'deep' ? `
   "techStack": [{"category": "Backend|Frontend|Infra|Data", "items": ["..."]}],
@@ -1020,31 +1056,89 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
   }
 }`;
 
-  let response = await anthropic.messages.create({
+  // Use streaming API
+  const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
     system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
     messages: [{ role: 'user', content: prompt }]
   });
 
-  // Retry once with doubled token budget if truncated
-  if (response.stop_reason === 'max_tokens') {
+  let accumulatedText = '';
+  let tokenCount = 0;
+
+  // Stream deltas to SSE if emitter provided
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      const delta = chunk.delta.text;
+      accumulatedText += delta;
+      tokenCount++;
+
+      if (emitter) {
+        const elapsed = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta,
+          tokens: tokenCount,
+          elapsed
+        });
+      }
+    }
+  }
+
+  // Get final message with usage stats
+  const finalMessage = await stream.finalMessage();
+  const usage = finalMessage.usage;
+
+  // Check if truncated and retry once with doubled token budget
+  if (finalMessage.stop_reason === 'max_tokens') {
     console.warn(`[${mode}] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
       messages: [{ role: 'user', content: prompt }]
     });
 
-    // Still truncated after retry - log and attempt to parse anyway
-    if (response.stop_reason === 'max_tokens') {
-      console.error(`[${mode}] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    accumulatedText = '';
+    tokenCount = 0;
+
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        const delta = chunk.delta.text;
+        accumulatedText += delta;
+        tokenCount++;
+
+        if (emitter) {
+          const elapsed = parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta,
+            tokens: tokenCount,
+            elapsed
+          });
+        }
+      }
     }
+
+    const retryFinalMessage = await retryStream.finalMessage();
+    if (retryFinalMessage.stop_reason === 'max_tokens') {
+      console.error(`[${mode}] Claude STILL truncated at 16384 tokens for ${domain} (${retryFinalMessage.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+
+    return parseSynthesisResult(accumulatedText, domain, companySlug, mode, retryFinalMessage.usage);
   }
 
-  const rawText = response.content[0].text.trim();
+  return parseSynthesisResult(accumulatedText, domain, companySlug, mode, usage);
+}
 
+/**
+ * Parse accumulated synthesis text into structured report
+ */
+function parseSynthesisResult(rawText, domain, companySlug, mode, usage) {
   // Extract the first balanced JSON object from the text (handles truncation better)
   const jsonMatch = rawText.match(/\{[\s\S]*\}/);
   const text = jsonMatch
@@ -1057,7 +1151,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
   } catch (parseErr) {
     // Log first 500 chars of failed output for debugging
     console.error(`[${mode}] JSON parse failed for ${domain}:`, parseErr.message);
-    console.error(`[${mode}] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[${mode}] output_tokens: ${usage?.output_tokens || 'unknown'}`);
     console.error(`[${mode}] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
@@ -1078,7 +1172,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
   // Append BD source attribution (metadata Claude doesn't need to generate)
   parsed.sources = buildSources(domain, companySlug, mode);
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage };
 }
 
 /**

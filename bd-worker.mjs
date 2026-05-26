@@ -46,7 +46,13 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   const searchQuery = `${companySlug} company news`;
 
   // Fire all 8 BD calls in parallel with individual event tracking
+  // Use a shared facts object that gets populated as agents complete
   const facts = {};
+
+  // Helper to update facts as results arrive
+  const updateFacts = (key, value) => {
+    facts[key] = value;
+  };
 
   const webUnlockerPromise = (async () => {
     emitter.emit('event', {
@@ -56,6 +62,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await webUnlocker(homepage);
+    updateFacts('homepage', result);
     emitter.emit('event', {
       agent: 'bd-web-unlocker',
       status: 'complete',
@@ -73,6 +80,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await serpApi(searchQuery);
+    updateFacts('news', result);
     emitter.emit('event', {
       agent: 'bd-serp',
       status: 'complete',
@@ -107,6 +115,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await webScraperApi(homepage);
+    updateFacts('structured', result);
     emitter.emit('event', {
       agent: 'bd-web-scraper',
       status: 'complete',
@@ -124,6 +133,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await mcpFetch(domain, mode);
+    updateFacts('mcp', result);
     emitter.emit('event', {
       agent: 'bd-mcp',
       status: 'complete',
@@ -145,6 +155,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       `find official pages, news articles, and competitive intelligence about ${domain}`,
       10
     );
+    updateFacts('discover', result);
     emitter.emit('event', {
       agent: 'bd-discover',
       status: 'complete',
@@ -164,6 +175,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await crawlSite(domain);
+    updateFacts('crawl', result);
     // scrape_batch returns concatenated content — report URL count attempted, not block count
     const pagesAttempted = result.urls?.length || 8;
     const totalChars = (result.pages || []).reduce((sum, p) => sum + (p.markdown?.length || 0), 0);
@@ -371,6 +383,29 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       return null;
     }
   })();
+
+  // EARLY SYNTHESIS TRIGGER: Wait for fast agents (first 6) to complete, then signal ready
+  // Fast agents: web-unlocker, serp, web-scraper, mcp, discover, crawl (~6-10s)
+  // Slow agents: scraping-browser (12s), assistant (33s), datasets, browser, geo, batch (continue in background)
+  const fastAgents = [
+    webUnlockerPromise,
+    serpPromise,
+    webScraperPromise,
+    mcpPromise,
+    discoverPromise,
+    crawlPromise
+  ];
+
+  // Wait for fast agents, then emit partial facts signal
+  Promise.allSettled(fastAgents).then(() => {
+    emitter.emit('event', {
+      agent: 'orchestrator',
+      status: 'facts-partial',
+      factCount: 6,
+      message: 'Core facts collected — synthesis starting',
+      elapsed: parseFloat(elapsed())
+    });
+  });
 
   // Wait for all to complete (now 12 products)
   const settled = await Promise.allSettled([

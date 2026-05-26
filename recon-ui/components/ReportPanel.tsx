@@ -16,11 +16,14 @@ interface ReportPanelProps {
   };
   isRunning: boolean;
   onDrillDown?: (domain: string) => void;
+  synthesisText?: string;
+  synthesisTokens?: number;
 }
 
-export default function ReportPanel({ content, reportData, costBreakdown, isRunning, onDrillDown }: ReportPanelProps) {
+export default function ReportPanel({ content, reportData, costBreakdown, isRunning, onDrillDown, synthesisText, synthesisTokens }: ReportPanelProps) {
   const showPlaceholder = !isRunning && !content && !reportData;
-  const showLoading = isRunning && !content && !reportData;
+  const showLoading = isRunning && !content && !reportData && !synthesisText;
+  const showSynthesisPreview = isRunning && synthesisText && !reportData;
   const [isPrinting, setIsPrinting] = useState(false);
 
   const onPrint = () => {
@@ -127,6 +130,31 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               <div className="h-8 bg-recon-navy/80 rounded w-2/3 mx-auto" />
               <div className="h-20 bg-recon-navy/80 rounded" />
               <div className="h-12 bg-recon-navy/80 rounded" />
+            </div>
+          </div>
+        )}
+
+        {showSynthesisPreview && (
+          <div className="space-y-4 pb-6">
+            <div className="bg-gradient-to-br from-recon-cyan/10 to-recon-blue/10 border border-recon-cyan/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-recon-cyan font-bold text-sm uppercase flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-recon-cyan animate-pulse"></span>
+                  Claude Synthesis (Streaming)
+                </h3>
+                {synthesisTokens && synthesisTokens > 0 && (
+                  <div className="text-recon-grey text-xs">
+                    {synthesisTokens} tokens
+                  </div>
+                )}
+              </div>
+              <div className="bg-recon-navy/40 rounded p-4 font-mono text-sm text-recon-light leading-relaxed max-h-96 overflow-y-auto">
+                {synthesisText}
+                <span className="inline-block w-2 h-4 bg-recon-cyan ml-1 animate-pulse"></span>
+              </div>
+              <div className="text-recon-grey text-xs mt-3 italic">
+                Live synthesis — parsing structured report when complete...
+              </div>
             </div>
           </div>
         )}
