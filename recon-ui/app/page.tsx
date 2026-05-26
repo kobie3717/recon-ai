@@ -513,7 +513,7 @@ export default function Home() {
       )}
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="w-1/2 h-full" id="waterfall-panel">
+        <div className="hidden md:block md:w-1/2 h-full" id="waterfall-panel">
           <Waterfall
             agents={agents}
             totalElapsed={totalElapsed}
@@ -524,7 +524,7 @@ export default function Home() {
             mode={currentMode}
           />
         </div>
-        <div className="w-1/2 h-full">
+        <div className="w-full md:w-1/2 h-full">
           {compareActive && (reportData || isRunning || reportData2 || isRunning2) ? (
             <ComparePanel
               report1={reportData}

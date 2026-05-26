@@ -100,7 +100,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             <p className="text-recon-cyan text-sm mb-6">Multi-Agent Competitive Intelligence · Powered by Bright Data</p>
             <div className="w-full max-w-sm space-y-2 mb-6">
               <div className="text-recon-grey text-xs uppercase tracking-widest mb-3">Try these targets</div>
-              {['stripe.com', 'openai.com', 'anthropic.com', 'linear.app', 'vercel.com'].map(example => (
+              {['brightdata.com', 'lablab.ai', 'stripe.com', 'openai.com', 'anthropic.com'].map(example => (
                 <button
                   key={example}
                   onClick={() => onDrillDown?.(example)}

@@ -62,13 +62,23 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
       elapsed: parseFloat(elapsed())
     });
     const result = await webUnlocker(homepage);
-    updateFacts('homepage', result);
-    emitter.emit('event', {
-      agent: 'bd-web-unlocker',
-      status: 'complete',
-      chars: result.chars,
-      elapsed: parseFloat(elapsed())
-    });
+    if (result.chars === 0) {
+      emitter.emit('event', {
+        agent: 'bd-web-unlocker',
+        status: 'complete',
+        chars: 0,
+        note: 'bot-protection: empty body',
+        elapsed: parseFloat(elapsed())
+      });
+    } else {
+      updateFacts('homepage', result);
+      emitter.emit('event', {
+        agent: 'bd-web-unlocker',
+        status: 'complete',
+        chars: result.chars,
+        elapsed: parseFloat(elapsed())
+      });
+    }
     return result;
   })();
 

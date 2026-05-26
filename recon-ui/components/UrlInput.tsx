@@ -45,7 +45,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
   const hasDot = url.includes('.');
 
   const buttonClasses = (color: string, isPulse = false) => {
-    const base = "px-4 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    const base = "px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-medium text-xs md:text-sm md:whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
     const pulse = isPulse ? " ring-2 ring-purple-400 ring-offset-1 ring-offset-recon-dark" : "";
     switch (color) {
       case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
@@ -125,7 +125,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
 
       {/* Buttons Row */}
       <div className="relative">
-        <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-4 py-2 flex items-center gap-3 overflow-x-auto">
+        <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-2 py-2 md:px-4 grid grid-cols-2 gap-1.5 md:flex md:items-center md:gap-3 md:overflow-x-auto" style={{ touchAction: 'manipulation' }}>
           {!compareMode ? (
             reportModes.map(({ mode, label, cost, color, icon, description }) => {
               const isPersonMode = mode === 'person';
@@ -162,7 +162,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
             </>
           )}
         </div>
-        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-recon-navy/80 to-transparent pointer-events-none" />
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-recon-navy/80 to-transparent pointer-events-none" />
       </div>
     </div>
   );
