@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useEffect, useRef, useMemo, useState } from 'react';
 import AgentCard from './AgentCard';
+import TimelineView from './TimelineView';
 
 export type AgentStatus = 'fetching' | 'complete' | 'error' | 'unavailable' | 'routing' | 'launching' | 'searching' | 'analyzing-signals' | 'agent-decided' | 'agentic-start' | 'agentic-round-2' | 'synthesizing' | 'storing' | 'classifying' | 'classified' | 'quality-gate' | 'retrying' | 'extracting' | 'querying' | 'asking';
 
@@ -245,9 +246,35 @@ function calculateConfidence(name: string, status: AgentStatus, extra?: Record<s
 
 export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, freshTime, isRunning, mode }: WaterfallProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'timeline'>('cards');
+  const [agentTimings, setAgentTimings] = useState<Record<string, { start: number; end?: number }>>({});
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [agents]);
+
+  // Track agent timings for timeline view
+  useEffect(() => {
+    setAgentTimings(prev => {
+      const next = { ...prev };
+
+      agents.forEach(agent => {
+        if (!next[agent.name]) {
+          // First time seeing this agent — record start time
+          next[agent.name] = { start: agent.elapsed };
+        }
+
+        // Update end time if agent is complete/error/unavailable
+        if (agent.status === 'complete' || agent.status === 'error' || agent.status === 'unavailable') {
+          next[agent.name] = {
+            start: next[agent.name].start,
+            end: agent.elapsed,
+          };
+        }
+      });
+
+      return next;
+    });
   }, [agents]);
 
   const showPlaceholder = !isRunning && agents.length === 0;
@@ -274,7 +301,33 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
     <div className="flex flex-col h-full bg-recon-dark">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex flex-col">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-widest">OPERATIVE FEED</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-recon-cyan uppercase font-bold tracking-widest">OPERATIVE FEED</h2>
+
+            {/* Toggle button for cards/timeline view */}
+            <div className="flex items-center gap-1 bg-recon-dark/50 rounded-lg p-1 border border-recon-blue/20">
+              <button
+                onClick={() => setViewMode('cards')}
+                className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
+                  viewMode === 'cards'
+                    ? 'bg-recon-cyan text-recon-dark'
+                    : 'text-recon-grey hover:text-recon-cyan'
+                }`}
+              >
+                Cards
+              </button>
+              <button
+                onClick={() => setViewMode('timeline')}
+                className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
+                  viewMode === 'timeline'
+                    ? 'bg-recon-cyan text-recon-dark'
+                    : 'text-recon-grey hover:text-recon-cyan'
+                }`}
+              >
+                Timeline
+              </button>
+            </div>
+          </div>
           {isDeepMode && (
             <div className="text-indigo-400 text-xs mt-1 font-semibold tracking-widest">
               DEEP RECON — 10 PARALLEL FIELD OPERATIVES
@@ -327,7 +380,7 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-6 py-4">
+      <div className="flex-1 overflow-y-auto">
         {showPlaceholder && (
           <div className="flex items-center justify-center h-full">
             <p className="text-recon-grey text-center max-w-md">
@@ -336,53 +389,63 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
           </div>
         )}
 
-        {cacheHit && (
-          <div className="mb-4 bg-gradient-to-r from-recon-cyan/20 to-blue-500/10 border border-recon-cyan/40 rounded-lg px-4 py-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl animate-bounce">⚡</span>
-                <div>
-                  <div className="text-recon-cyan font-bold text-sm">AI-IQ Cache Hit</div>
-                  <div className="text-recon-grey text-xs">Intelligence retrieved from memory vault</div>
+        {viewMode === 'cards' ? (
+          <div className="px-6 py-4">
+            {cacheHit && (
+              <div className="mb-4 bg-gradient-to-r from-recon-cyan/20 to-blue-500/10 border border-recon-cyan/40 rounded-lg px-4 py-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl animate-bounce">⚡</span>
+                    <div>
+                      <div className="text-recon-cyan font-bold text-sm">AI-IQ Cache Hit</div>
+                      <div className="text-recon-grey text-xs">Intelligence retrieved from memory vault</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-recon-cyan font-mono font-bold text-lg">{cacheTime?.toFixed(1) || '0.3'}s</div>
+                    <div className="text-recon-grey text-xs line-through">{freshTime?.toFixed(1) || '9.0'}s fresh</div>
+                    <div className="text-green-400 text-xs font-semibold">
+                      {freshTime && cacheTime ? Math.round((1 - cacheTime/freshTime) * 100) : 97}% faster
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-recon-cyan font-mono font-bold text-lg">{cacheTime?.toFixed(1) || '0.3'}s</div>
-                <div className="text-recon-grey text-xs line-through">{freshTime?.toFixed(1) || '9.0'}s fresh</div>
-                <div className="text-green-400 text-xs font-semibold">
-                  {freshTime && cacheTime ? Math.round((1 - cacheTime/freshTime) * 100) : 97}% faster
-                </div>
+            )}
+
+            {agentCards.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
+                {agentCards.map((agent, index) => {
+                  const icon = getAgentIcon(agent.name);
+                  const displayName = getDisplayName(agent.name);
+                  const bdBadge = getBDProductBadge(agent.name);
+                  const confidence = calculateConfidence(agent.name, agent.status, agent.extra);
+
+                  return (
+                    <AgentCard
+                      key={`${agent.name}-${index}`}
+                      name={agent.name}
+                      displayName={displayName}
+                      icon={icon}
+                      status={agent.status}
+                      elapsed={agent.elapsed}
+                      message={agent.message}
+                      extra={agent.extra}
+                      confidence={confidence}
+                      bdBadge={bdBadge}
+                    />
+                  );
+                })}
               </div>
-            </div>
+            )}
+            <div ref={bottomRef} />
           </div>
+        ) : (
+          <TimelineView
+            agents={agents}
+            agentTimings={agentTimings}
+            totalElapsed={totalElapsed}
+          />
         )}
-
-        {agentCards.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pb-4">
-            {agentCards.map((agent, index) => {
-              const icon = getAgentIcon(agent.name);
-              const displayName = getDisplayName(agent.name);
-              const bdBadge = getBDProductBadge(agent.name);
-              const confidence = calculateConfidence(agent.name, agent.status, agent.extra);
-
-              return (
-                <AgentCard
-                  key={`${agent.name}-${index}`}
-                  name={agent.name}
-                  displayName={displayName}
-                  icon={icon}
-                  status={agent.status}
-                  elapsed={agent.elapsed}
-                  message={agent.message}
-                  extra={agent.extra}
-                  confidence={confidence}
-                  bdBadge={bdBadge}
-                />
-              );
-            })}
-          </div>
-        )}
-        <div ref={bottomRef} />
       </div>
 
       {showFooter && (
