@@ -35,6 +35,28 @@ function getConfidenceColor(confidence: number): string {
   return 'bg-recon-red';
 }
 
+// Per-agent cost map (matches sse-server.mjs cost breakdown)
+const agentCostMap: Record<string, number> = {
+  'bd-web-unlocker': 0.30,
+  'bd-serp': 0.50,
+  'bd-serp-batch': 0.50,
+  'bd-scraping-browser': 0.80,
+  'bd-web-scraper': 0.40,
+  'bd-mcp': 0.20,
+  'bd-discover': 0.00,
+  'bd-crawl': 0.00,
+  'bd-assistant': 0.00,
+  'bd-datasets': 0.00,
+  'bd-mcp-browser': 0.00,
+  'bd-mcp-geo': 0.00,
+};
+
+function getAgentCost(name: string): number | null {
+  const cleanName = name.includes(': ') ? name.split(': ')[1] : name;
+  if (cleanName in agentCostMap) return agentCostMap[cleanName];
+  return null;
+}
+
 export default function AgentCard({
   name,
   displayName,
@@ -119,6 +141,15 @@ export default function AgentCard({
       {/* Expandable details */}
       {isExpanded && (
         <div className="px-4 py-3 bg-recon-dark/50 border-t border-recon-blue/20 text-xs space-y-2">
+          {/* Agent identifier */}
+          <div className="text-recon-grey/60 font-mono text-[10px]">
+            agent: <span className="text-recon-cyan/80">{name}</span>
+          </div>
+          {/* Status line */}
+          <div className="text-recon-grey">
+            status: <span className={statusColor}>{status}</span>
+            <span className="text-recon-grey/50 ml-2">@ {elapsed.toFixed(2)}s</span>
+          </div>
           {/* Status reason for unavailable */}
           {status === 'unavailable' && extra?.reason && (
             <div className="flex items-start gap-2 text-amber-400">
@@ -170,12 +201,16 @@ export default function AgentCard({
             </div>
           )}
 
-          {/* Cost contribution */}
-          {extra?.cost && (
-            <div className="text-recon-amber font-mono">
-              Cost: ${extra.cost.toFixed(2)}
-            </div>
-          )}
+          {/* Cost contribution (from per-agent rate map) */}
+          {(() => {
+            const cost = getAgentCost(name);
+            if (cost === null) return null;
+            return (
+              <div className="text-recon-amber font-mono">
+                Cost: {cost === 0 ? 'FREE' : `$${cost.toFixed(2)}`}
+              </div>
+            );
+          })()}
 
           {/* Confidence score display */}
           {showConfidence && (
