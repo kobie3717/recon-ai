@@ -17,7 +17,7 @@ export default function FootprintPanel({ reportData, isRunning, onDrillDown }: F
     <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Digital Footprint</h2>
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Brand Footprint</h2>
           <span className="bg-teal-600/20 text-teal-300 border border-teal-600/30 px-2 py-0.5 rounded text-xs">🔭 OSINT</span>
         </div>
         {reportData && (

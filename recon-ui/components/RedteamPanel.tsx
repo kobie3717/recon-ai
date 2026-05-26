@@ -38,7 +38,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
     <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Red Team Analysis</h2>
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Security Audit</h2>
           <span className="bg-red-600/20 text-red-300 border border-red-600/30 px-2 py-0.5 rounded text-xs">⚔ SECURITY</span>
         </div>
         {reportData && (

@@ -16,17 +16,17 @@ interface UrlInputProps {
 }
 
 const reportModes = [
-  { mode: 'standard' as Mode, label: 'Generate Report', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
-  { mode: 'agentic' as Mode, label: 'Agentic', cost: 2.5, color: 'purple-glow', icon: '🧠', description: '2-round self-directing intelligence: AI agent decides follow-up queries' },
-  { mode: 'person' as Mode, label: 'Person Intel', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
-  { mode: 'footprint' as Mode, label: 'Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
-  { mode: 'mcp' as Mode, label: 'MCP Intel', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
-  { mode: 'watch' as Mode, label: 'Watch Live', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
+  { mode: 'standard' as Mode, label: 'Business Intelligence', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
+  { mode: 'agentic' as Mode, label: 'AI Auto-Recon', cost: 2.5, color: 'purple-glow', icon: '🧠', description: '2-round self-directing intelligence: AI agent decides follow-up queries' },
+  { mode: 'person' as Mode, label: 'Executive Profile', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
+  { mode: 'footprint' as Mode, label: 'Brand Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
+  { mode: 'mcp' as Mode, label: 'Quick Scan', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
+  { mode: 'watch' as Mode, label: 'Live Monitor', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
   { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
-  { mode: 'lookup' as Mode, label: 'Deep Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
-  { mode: 'redteam' as Mode, label: 'Red Team', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
-  { mode: 'deep' as Mode, label: 'Deep Search', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
-  { mode: 'bundle' as Mode, label: 'Bundle All', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
+  { mode: 'lookup' as Mode, label: 'Market Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
+  { mode: 'redteam' as Mode, label: 'Security Audit', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
+  { mode: 'deep' as Mode, label: 'Deep Investigation', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
+  { mode: 'bundle' as Mode, label: 'Executive Summary', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -119,7 +119,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       {isPerson && !compareMode && (
         <div className="bg-purple-600/10 border-b border-purple-500/20 px-6 py-1.5 flex items-center gap-2 text-xs text-purple-300">
           <span>👤</span>
-          <span>Looks like a person — try <strong>Person Intel</strong> for executive profile</span>
+          <span>Looks like a person — try <strong>Executive Profile</strong> for executive profile</span>
         </div>
       )}
 

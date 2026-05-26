@@ -26,7 +26,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
     <div className="flex flex-col h-full bg-recon-dark">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <h2 className="text-recon-cyan uppercase font-bold tracking-wide">
-          👤 Person Intel
+          👤 Executive Profile
         </h2>
         {reportData?.meta?.name && (
           <span className="text-white text-sm font-semibold">{reportData.meta.name}</span>
@@ -48,9 +48,9 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
         {showPlaceholder && (
           <div className="flex flex-col items-center justify-center h-full text-center">
             <div className="text-6xl mb-4">👤</div>
-            <h3 className="text-2xl font-bold text-white mb-2">Person Intel</h3>
+            <h3 className="text-2xl font-bold text-white mb-2">Executive Profile</h3>
             <p className="text-recon-grey text-sm mt-2 max-w-md">
-              Enter a person's full name and click <strong className="text-purple-400">Person Intel</strong> to generate an executive profile.
+              Enter a person's full name and click <strong className="text-purple-400">Executive Profile</strong> to generate an executive profile.
             </p>
           </div>
         )}

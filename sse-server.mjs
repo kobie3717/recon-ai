@@ -215,7 +215,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
 
       if (anthropic) {
-        report = await synthesizePersonWithClaude(personName);
+        const synthResult = await synthesizePersonWithClaude(personName);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { serpApi: 0.50, webScraperApi: 0.40, claude: claudeCost, total: parseFloat((0.90 + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -266,13 +269,17 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
       if (anthropic) {
-        report = await synthesizeRedteamWithClaude(domain, {});
+        const synthResult = await synthesizeRedteamWithClaude(domain, {});
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const costBreakdown = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: claudeCost };
+        const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+        costBreakdown.total = parseFloat(totalCost.toFixed(2));
+        report.cost = costBreakdown;
+        result = { elapsed: (Date.now() - startTime) / 1000, domain, mode: 'redteam', cost: costBreakdown.total, costBreakdown };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
-
-      const elapsed = (Date.now() - startTime) / 1000;
-      result = { elapsed, domain, mode: 'redteam', cost: 12.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 } };
     } else if (mode === 'seo') {
       const startTime = Date.now();
       const seoElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
@@ -313,13 +320,17 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
       if (anthropic) {
-        report = await synthesizeSeoWithClaude(domain, {});
+        const synthResult = await synthesizeSeoWithClaude(domain, {});
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const costBreakdown = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: claudeCost };
+        const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+        costBreakdown.total = parseFloat(totalCost.toFixed(2));
+        report.cost = costBreakdown;
+        result = { elapsed: (Date.now() - startTime) / 1000, domain, mode: 'seo', cost: costBreakdown.total, costBreakdown };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
-
-      const elapsed = (Date.now() - startTime) / 1000;
-      result = { elapsed, domain, mode: 'seo', cost: 5.00, costBreakdown: { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 } };
     } else if (mode === 'bundle') {
       const startTime = Date.now();
       const bElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
@@ -371,21 +382,46 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         throw new Error('ANTHROPIC_API_KEY not configured — bundle mode requires synthesis');
       }
 
-      const [standardReport, seoReport, redteamReport] = await Promise.all([
+      const [standardResult, seoResult, redteamResult] = await Promise.all([
         synthesizeWithClaude(domain, facts, 'standard'),
         synthesizeSeoWithClaude(domain, facts),
         synthesizeRedteamWithClaude(domain, facts),
       ]);
       emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: bElapsed() });
 
+      // Calculate dynamic costs
+      const standardClaudeCost = calculateClaudeCost(standardResult.usage);
+      const seoClaudeCost = calculateClaudeCost(seoResult.usage);
+      const redteamClaudeCost = calculateClaudeCost(redteamResult.usage);
+      const totalClaudeCost = standardClaudeCost + seoClaudeCost + redteamClaudeCost;
+
+      // BD agent costs (run once, shared across all 3 reports)
+      const costBreakdown = {
+        webUnlocker: 0.30,
+        serpApi: 0.50,
+        scrapingBrowser: 0.80,
+        bdMcp: 0.20,
+        claude: parseFloat(totalClaudeCost.toFixed(4))
+      };
+      const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+      costBreakdown.total = parseFloat(totalCost.toFixed(2));
+
       const elapsed = (Date.now() - startTime) / 1000;
-      report = { standard: standardReport, seo: seoReport, redteam: redteamReport, meta: { domain, mode: 'bundle', analysisDate: new Date().toISOString().split('T')[0] } };
-      result = { elapsed, domain, mode: 'bundle', cost: 25.00 };
+      report = {
+        standard: standardResult.report,
+        seo: seoResult.report,
+        redteam: redteamResult.report,
+        meta: { domain, mode: 'bundle', analysisDate: new Date().toISOString().split('T')[0] }
+      };
+      result = { elapsed, domain, mode: 'bundle', cost: costBreakdown.total, costBreakdown };
     } else if (mode === 'footprint') {
       result = await runFootprintWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        report = await synthesizeFootprintWithClaude(domain, factsData);
+        const synthResult = await synthesizeFootprintWithClaude(domain, factsData);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -402,7 +438,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = await runLookupWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        report = await synthesizeLookupWithClaude(domain, factsData);
+        const synthResult = await synthesizeLookupWithClaude(domain, factsData);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -419,7 +458,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = await runMcpWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        report = await synthesizeMcpWithClaude(domain, factsData);
+        const synthResult = await synthesizeMcpWithClaude(domain, factsData);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { bdMcp: 0.20, claude: claudeCost, total: parseFloat((0.20 + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -515,7 +557,12 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const claudeStart = Date.now();
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Final synthesis: R1 + R2 intelligence...', elapsed: result.elapsed });
-        report = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
+        const synthResult = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        // Agentic mode uses Haiku for signal extraction (~$0.02) + Sonnet for synthesis
+        const haikusCost = 0.02;
+        report.cost = { ...result.costBreakdown, claudeHaiku: haikusCost, claudeSonnet: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + haikusCost + claudeCost).toFixed(2)) };
         const totalElapsed = parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2));
         emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: totalElapsed });
         result = { ...result, elapsed: totalElapsed, mode: 'agentic', rounds: 2, signalsFound: agenticSignals.length };
@@ -537,7 +584,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const claudeStart = Date.now();
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
-        report = await synthesizeWithClaude(domain, factsData, mode);
+        const synthResult = await synthesizeWithClaude(domain, factsData, mode);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
         emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
@@ -557,7 +607,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const claudeStart = Date.now();
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
-        report = await synthesizeWithClaude(domain, factsData, mode);
+        const synthResult = await synthesizeWithClaude(domain, factsData, mode);
+        report = synthResult.report;
+        const claudeCost = calculateClaudeCost(synthResult.usage);
+        report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
         emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
@@ -694,9 +747,13 @@ app.post('/api/synthesize', reportLimiter, express.json({ limit: '2mb' }), async
   }
 
   try {
-    const report = anthropic
-      ? await synthesizeWithClaude(domain, facts, mode)
-      : generateReport(domain, facts || {}, mode);
+    let report;
+    if (anthropic) {
+      const synthResult = await synthesizeWithClaude(domain, facts, mode);
+      report = synthResult.report;
+    } else {
+      report = generateReport(domain, facts || {}, mode);
+    }
     res.json({ domain, mode, report, claudeEnabled: !!anthropic });
   } catch (err) {
     res.status(500).json({ error: 'synthesis failed' });
@@ -860,6 +917,31 @@ function buildSources(domain, companySlug, mode) {
 }
 
 /**
+ * Calculate Claude API cost from usage object
+ * Pricing as of 2024: Sonnet 4 input $3/MTok, output $15/MTok
+ * Haiku input $0.25/MTok, output $1.25/MTok
+ */
+function calculateClaudeCost(usage, model = 'claude-sonnet-4-6') {
+  if (!usage || !usage.input_tokens || !usage.output_tokens) return 0.50; // fallback estimate
+
+  const inputTokens = usage.input_tokens;
+  const outputTokens = usage.output_tokens;
+
+  let inputCostPerMTok = 3.0;
+  let outputCostPerMTok = 15.0;
+
+  if (model.includes('haiku')) {
+    inputCostPerMTok = 0.25;
+    outputCostPerMTok = 1.25;
+  }
+
+  const inputCost = (inputTokens / 1_000_000) * inputCostPerMTok;
+  const outputCost = (outputTokens / 1_000_000) * outputCostPerMTok;
+
+  return parseFloat((inputCost + outputCost).toFixed(4));
+}
+
+/**
  * Call Claude to synthesize a structured intelligence report from scraped facts
  */
 async function synthesizeWithClaude(domain, facts, mode) {
@@ -1000,19 +1082,10 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     parsed.risks = null;
   }
 
-  // Override cost — don't trust Claude's generated value
-  parsed.cost = {
-    webUnlocker: 0.30,
-    serpApi: 0.50,
-    scrapingBrowser: 0.80,
-    webScraperApi: 0.40,
-    total: mode === 'deep' ? 15.00 : 2.00
-  };
-
   // Append BD source attribution (metadata Claude doesn't need to generate)
   parsed.sources = buildSources(domain, companySlug, mode);
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1205,8 +1278,6 @@ Return ONLY valid JSON:
     intelligenceUpgrade: 'Round 2 targeted queries surfaced additional context'
   };
 
-  parsed.cost = { webUnlocker: 0.30, serpApi: 0.80, scrapingBrowser: 0.80, webScraperApi: 0.40, claudeHaiku: 0.02, claudeSonnet: 0.20, total: 2.52 };
-
   const companySlugFinal = domain.split('.')[0];
   parsed.sources = [
     ...buildSources(domain, companySlugFinal, 'standard'),
@@ -1214,7 +1285,7 @@ Return ONLY valid JSON:
     { tool: 'BD SERP API (Round 2)', icon: '🔍', target: signals.map(s => s.followup_query).join(' · '), sections: ['Agentic Insights'] }
   ];
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1345,7 +1416,7 @@ Return ONLY valid JSON — see previous message for structure.`
     throw new Error('Claude returned invalid JSON');
   }
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1510,7 +1581,7 @@ async function synthesizePersonWithClaude(personName) {
     throw new Error('Claude returned malformed JSON structure');
   }
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1676,16 +1747,15 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     throw new Error('Claude returned malformed JSON structure');
   }
 
-  // Add sources and cost (server-side metadata, not Claude's job)
+  // Add sources (server-side metadata, not Claude's job)
   parsed.sources = [
     { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Technical Issues', 'Page Speed'] },
     { tool: 'BD SERP API', icon: '🔍', target: `site:${domain} keyword ranking`, sections: ['Top Keywords', 'SERP Features'] },
     { tool: 'BD Scraping Browser', icon: '🖥', target: `${domain} + competitors`, sections: ['Core Web Vitals', 'Content'] },
     { tool: 'BD MCP Server', icon: '🔗', target: `${domain} backlinks authority`, sections: ['Backlink Profile', 'Opportunities'] }
   ];
-  parsed.cost = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 3.20, total: 5.00 };
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1820,16 +1890,15 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     throw new Error('Claude returned malformed JSON structure');
   }
 
-  // Add sources and cost (server-side metadata, not Claude's job)
+  // Add sources (server-side metadata, not Claude's job)
   parsed.sources = [
     { tool: 'BD Web Unlocker', icon: '🌐', target: `https://${domain}`, sections: ['Tech Stack', 'Security Headers'] },
     { tool: 'BD SERP API', icon: '🔍', target: `${domain} CVE breach security`, sections: ['Exposures'] },
     { tool: 'BD Scraping Browser', icon: '🖥', target: 'shodan.io · securityheaders.com', sections: ['Attack Surface'] },
     { tool: 'BD MCP Server', icon: '🔗', target: `${domain} bug bounty credentials`, sections: ['Social Engineering'] }
   ];
-  parsed.cost = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: 10.20, total: 12.00 };
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -1969,7 +2038,7 @@ Return ONLY valid JSON — see previous message for structure.`
     throw new Error('Claude returned invalid JSON');
   }
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**
@@ -2214,7 +2283,7 @@ Return ONLY valid JSON — see previous message for structure.`
     throw new Error('Claude returned invalid JSON');
   }
 
-  return parsed;
+  return { report: parsed, usage: response.usage };
 }
 
 /**

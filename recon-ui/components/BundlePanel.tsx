@@ -39,7 +39,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
       {/* Header */}
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Bundle Report</h2>
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Executive Summary</h2>
           <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded text-xs">★ ALL MODES</span>
         </div>
         {reportData && (

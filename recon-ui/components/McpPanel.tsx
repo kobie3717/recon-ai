@@ -17,7 +17,7 @@ export default function McpPanel({ reportData, isRunning, onDrillDown }: McpPane
     <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-orange-500/30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-orange-400 uppercase font-bold tracking-wide">MCP Intelligence</h2>
+          <h2 className="text-orange-400 uppercase font-bold tracking-wide">Quick Scan</h2>
           <span className="bg-orange-600/20 text-orange-300 border border-orange-600/30 px-2 py-0.5 rounded text-xs">🔗 MCP</span>
         </div>
         {reportData && (

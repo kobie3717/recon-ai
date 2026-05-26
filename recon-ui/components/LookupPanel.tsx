@@ -17,7 +17,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
     <div className="flex flex-col h-full bg-recon-dark" id="report-panel">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Deep Lookup</h2>
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">Market Lookup</h2>
           <span className="bg-violet-600/20 text-violet-300 border border-violet-600/30 px-2 py-0.5 rounded text-xs">🔬 BETA</span>
         </div>
         {reportData && (
@@ -56,7 +56,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
             <div className="border-b border-recon-blue/20 pb-4">
               <h1 className="text-3xl font-bold text-white">{reportData.meta?.domain}</h1>
               <p className="text-violet-400 mt-1 text-sm">
-                Deep Lookup analysis · {reportData.meta?.analysisDate}
+                Market Lookup analysis · {reportData.meta?.analysisDate}
                 {reportData.meta?.sourcesAnalyzed && (
                   <span className="ml-2 text-recon-grey">· {reportData.meta.sourcesAnalyzed} web sources</span>
                 )}
@@ -282,7 +282,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                 <div className="font-mono text-xs space-y-1">
                   {reportData.cost.deepLookup > 0 && (
                     <div className="flex justify-between text-recon-grey">
-                      <span>Deep Lookup API</span>
+                      <span>Market Lookup API</span>
                       <span>${reportData.cost.deepLookup.toFixed(2)}</span>
                     </div>
                   )}
