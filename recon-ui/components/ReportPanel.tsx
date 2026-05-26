@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { downloadPdf } from '@/lib/downloadPdf';
+import GraphView from './GraphView';
 
 interface ReportPanelProps {
   content?: string;
@@ -18,13 +19,17 @@ interface ReportPanelProps {
   onDrillDown?: (domain: string) => void;
   synthesisText?: string;
   synthesisTokens?: number;
+  livePreview?: string;
+  isJsonPhase?: boolean;
 }
 
-export default function ReportPanel({ content, reportData, costBreakdown, isRunning, onDrillDown, synthesisText, synthesisTokens }: ReportPanelProps) {
-  const showPlaceholder = !isRunning && !content && !reportData;
-  const showLoading = isRunning && !content && !reportData && !synthesisText;
-  const showSynthesisPreview = isRunning && synthesisText && !reportData;
+export default function ReportPanel({ content, reportData, costBreakdown, isRunning, onDrillDown, synthesisText, synthesisTokens, livePreview, isJsonPhase }: ReportPanelProps) {
+  const showPlaceholder = !isRunning && !content && !reportData && !livePreview;
+  const showLoading = isRunning && !content && !reportData && !synthesisText && !livePreview;
+  const showLivePreview = isRunning && livePreview && !reportData;
+  const showSynthesisPreview = isRunning && synthesisText && !reportData && !livePreview;
   const [isPrinting, setIsPrinting] = useState(false);
+  const [showGraph, setShowGraph] = useState(false);
 
   const onPrint = () => {
     if (isPrinting || !reportData) return;
@@ -134,6 +139,35 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
           </div>
         )}
 
+        {showLivePreview && (
+          <div className="space-y-4 pb-6">
+            <div className="bg-gradient-to-br from-recon-cyan/10 to-recon-blue/10 border border-recon-cyan/30 rounded-lg p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-recon-cyan font-bold text-sm uppercase flex items-center gap-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-recon-cyan animate-pulse"></span>
+                  Claude Synthesis {isJsonPhase ? '(Finalizing)' : '(Streaming)'}
+                </h3>
+                {synthesisTokens && synthesisTokens > 0 && (
+                  <div className="text-recon-grey text-xs">
+                    {synthesisTokens} tokens
+                  </div>
+                )}
+              </div>
+              <div className="bg-recon-navy/40 rounded p-4 text-sm text-recon-light leading-relaxed max-h-96 overflow-y-auto">
+                <div className="prose prose-invert prose-sm prose-headings:text-recon-cyan prose-h2:text-base prose-h2:font-semibold prose-h2:mb-2 prose-p:text-recon-light prose-ul:text-recon-light prose-li:text-recon-light max-w-none">
+                  <ReactMarkdown>{livePreview}</ReactMarkdown>
+                </div>
+                {!isJsonPhase && (
+                  <span className="inline-block w-2 h-4 bg-recon-cyan ml-1 animate-pulse"></span>
+                )}
+              </div>
+              <div className="text-recon-grey text-xs mt-3 italic">
+                {isJsonPhase ? 'Building structured report cards...' : 'Live executive summary — structured cards coming next...'}
+              </div>
+            </div>
+          </div>
+        )}
+
         {showSynthesisPreview && (
           <div className="space-y-4 pb-6">
             <div className="bg-gradient-to-br from-recon-cyan/10 to-recon-blue/10 border border-recon-cyan/30 rounded-lg p-4">
@@ -179,6 +213,20 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                 ))}
               </div>
             )}
+
+            {/* Graph Toggle Button */}
+            <div className="flex justify-center">
+              <button
+                onClick={() => setShowGraph(!showGraph)}
+                className="text-recon-grey hover:text-white text-sm flex items-center gap-2 px-4 py-2 rounded border border-recon-blue/30 hover:border-recon-cyan/50 transition-colors"
+              >
+                <span className="text-lg">{showGraph ? '📊' : '🔗'}</span>
+                <span>{showGraph ? 'Hide' : 'Show'} Entity Graph</span>
+              </button>
+            </div>
+
+            {/* Entity Graph */}
+            {showGraph && <GraphView reportData={reportData} />}
 
             {/* Snapshot + Financials Grid */}
             <div className="grid grid-cols-2 gap-4">
