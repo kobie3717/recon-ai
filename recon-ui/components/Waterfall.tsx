@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-export type AgentStatus = 'fetching' | 'complete' | 'error' | 'routing' | 'launching' | 'searching' | 'analyzing-signals' | 'agent-decided' | 'agentic-start' | 'agentic-round-2' | 'synthesizing' | 'storing' | 'classifying' | 'classified' | 'quality-gate' | 'retrying' | 'extracting';
+export type AgentStatus = 'fetching' | 'complete' | 'error' | 'unavailable' | 'routing' | 'launching' | 'searching' | 'analyzing-signals' | 'agent-decided' | 'agentic-start' | 'agentic-round-2' | 'synthesizing' | 'storing' | 'classifying' | 'classified' | 'quality-gate' | 'retrying' | 'extracting' | 'querying' | 'asking';
 
 export interface AgentState {
   name: string;
@@ -27,9 +27,14 @@ const agentIcons: Record<string, string> = {
   'circus': '⚡',
   'bd-web-unlocker': '🌐',
   'bd-serp': '🔍',
+  'bd-serp-batch': '🔍',
   'bd-scraping-browser': '🖥',
   'bd-web-scraper': '📊',
   'bd-mcp': '🔗',
+  'bd-datasets': '📊',
+  'bd-discover': '✨',
+  'bd-crawl': '🕷️',
+  'bd-assistant': '🤖',
   'ai-iq': '🧠',
   'claude': '✨',
 };
@@ -39,9 +44,14 @@ const agentDisplayNames: Record<string, string> = {
   'circus': 'DISPATCH',
   'bd-web-unlocker': 'FIELD-OPS',
   'bd-serp': 'SIGINT',
+  'bd-serp-batch': 'MULTI-SIGINT',
   'bd-scraping-browser': 'DEEP-COVER',
   'bd-web-scraper': 'EXTRACTOR',
   'bd-mcp': 'SOURCE-NET',
+  'bd-datasets': 'DATASETS',
+  'bd-discover': 'DISCOVER',
+  'bd-crawl': 'CRAWL',
+  'bd-assistant': 'META-INTEL',
   'ai-iq': 'VAULT',
   'claude': 'ANALYST',
   'scout-homepage': 'TARGET-RECON',
@@ -96,9 +106,14 @@ function getBDProductBadge(name: string): { label: string; color: string } | nul
 
   if (cleanName === 'bd-web-unlocker') return { label: 'BD Web Unlocker', color: 'cyan' };
   if (cleanName === 'bd-serp') return { label: 'BD SERP API', color: 'cyan' };
+  if (cleanName === 'bd-serp-batch') return { label: 'BD Batch Search', color: 'cyan' };
   if (cleanName === 'bd-scraping-browser') return { label: 'BD Scraping Browser', color: 'cyan' };
   if (cleanName === 'bd-web-scraper') return { label: 'BD Web Scraper API', color: 'cyan' };
   if (cleanName === 'bd-mcp') return { label: 'BD MCP Server', color: 'cyan' };
+  if (cleanName === 'bd-datasets') return { label: 'BD Datasets', color: 'cyan' };
+  if (cleanName === 'bd-discover') return { label: 'BD Discover API', color: 'cyan' };
+  if (cleanName === 'bd-crawl') return { label: 'BD Crawl API', color: 'cyan' };
+  if (cleanName === 'bd-assistant') return { label: 'BD Assistant (Sophie)', color: 'violet' };
   if (cleanName === 'claude') return { label: 'Claude Sonnet', color: 'purple' };
   if (cleanName === 'ai-iq') return { label: 'AI-IQ Cache', color: 'amber' };
   if (cleanName.startsWith('scout-')) return { label: 'BD SERP API', color: 'cyan' };
@@ -110,9 +125,12 @@ const statusColors = {
   fetching: 'text-recon-amber',
   complete: 'text-recon-green',
   error: 'text-recon-red',
+  unavailable: 'text-amber-400',
   routing: 'text-recon-cyan',
   launching: 'text-recon-amber',
   searching: 'text-recon-amber',
+  querying: 'text-recon-amber',
+  asking: 'text-violet-400',
   'analyzing-signals': 'text-purple-400',
   'agent-decided': 'text-purple-300',
   'agentic-start': 'text-purple-400',
@@ -130,9 +148,12 @@ const statusPrefix = {
   fetching: '⋯',
   complete: '✓',
   error: '✗',
+  unavailable: 'ℹ',
   routing: '⋯',
   launching: '⋯',
   searching: '⋯',
+  querying: '⋯',
+  asking: '⋯',
   'analyzing-signals': '🧠',
   'agent-decided': '✓',
   'agentic-start': '▶',
@@ -290,6 +311,16 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
                     </div>
                   )}
 
+                  {/* UNAVAILABLE: show reason badge (yellow info for feature gating) */}
+                  {agent.status === 'unavailable' && agent.extra?.reason && (
+                    <div className="mt-2 ml-10">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded text-amber-400 text-xs">
+                        <span>ℹ</span>
+                        <span>{agent.extra.reason}</span>
+                      </div>
+                    </div>
+                  )}
+
                   {/* CLASSIFIED: show type badge + focus */}
                   {agent.status === 'classified' && agent.extra && (
                     <div className="mt-2 flex flex-wrap gap-2 ml-10">
@@ -367,6 +398,12 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
                   {agent.status === 'complete' && (
                     <div className="mt-2 h-1 bg-recon-navy rounded-full overflow-hidden">
                       <div className="h-full bg-recon-green w-full"></div>
+                    </div>
+                  )}
+
+                  {agent.status === 'unavailable' && (
+                    <div className="mt-2 h-1 bg-recon-navy rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-400 w-full"></div>
                     </div>
                   )}
                 </div>

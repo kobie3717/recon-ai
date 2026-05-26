@@ -121,6 +121,31 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
         {reportData && (
           <div className="space-y-6 pb-6">
+            {/* Degraded Mode Banner */}
+            {reportData.meta?.degraded && (
+              <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl">⚠</span>
+                  <div className="flex-1">
+                    <h4 className="text-amber-400 font-semibold mb-1">Running in Degraded Mode</h4>
+                    <p className="text-amber-300/80 text-sm mb-2">
+                      Bright Data zones not yet configured. Report generated from AI knowledge only.
+                    </p>
+                    {reportData.meta.bdErrors && reportData.meta.bdErrors.length > 0 && (
+                      <div className="text-xs text-amber-400/60 space-y-1 mt-2">
+                        {reportData.meta.bdErrors.map((err: string, i: number) => (
+                          <div key={i} className="font-mono">→ {err}</div>
+                        ))}
+                      </div>
+                    )}
+                    <div className="text-amber-400/60 text-xs mt-2">
+                      Configure BD zones in .env to enable real-time scraping
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Signal Banner */}
             {reportData.signals && (
               <div className="flex flex-wrap gap-2">
@@ -480,29 +505,29 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {reportData.cost && (
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3 font-sans">Cost Breakdown</h3>
-                <div className="space-y-1 text-recon-grey">
+                <div className={`space-y-1 ${reportData.meta?.degraded ? 'text-recon-grey/40' : 'text-recon-grey'}`}>
                   {reportData.cost.webUnlocker != null && typeof reportData.cost.webUnlocker === 'number' && Number(reportData.cost.webUnlocker) > 0 && (
                     <div className="flex justify-between">
                       <span>Web Unlocker</span>
-                      <span>${reportData.cost.webUnlocker.toFixed(2)}</span>
+                      <span>{reportData.meta?.degraded ? '$0.00 (BD unavailable)' : `$${reportData.cost.webUnlocker.toFixed(2)}`}</span>
                     </div>
                   )}
                   {reportData.cost.serpApi != null && typeof reportData.cost.serpApi === 'number' && Number(reportData.cost.serpApi) > 0 && (
                     <div className="flex justify-between">
                       <span>SERP API</span>
-                      <span>${reportData.cost.serpApi.toFixed(2)}</span>
+                      <span>{reportData.meta?.degraded ? '$0.00 (BD unavailable)' : `$${reportData.cost.serpApi.toFixed(2)}`}</span>
                     </div>
                   )}
                   {reportData.cost.scrapingBrowser != null && typeof reportData.cost.scrapingBrowser === 'number' && Number(reportData.cost.scrapingBrowser) > 0 && (
                     <div className="flex justify-between">
                       <span>Scraping Browser</span>
-                      <span>${reportData.cost.scrapingBrowser.toFixed(2)}</span>
+                      <span>{reportData.meta?.degraded ? '$0.00 (BD unavailable)' : `$${reportData.cost.scrapingBrowser.toFixed(2)}`}</span>
                     </div>
                   )}
                   {reportData.cost.webScraperApi != null && typeof reportData.cost.webScraperApi === 'number' && Number(reportData.cost.webScraperApi) > 0 && (
                     <div className="flex justify-between">
                       <span>Web Scraper API</span>
-                      <span>${reportData.cost.webScraperApi.toFixed(2)}</span>
+                      <span>{reportData.meta?.degraded ? '$0.00 (BD unavailable)' : `$${reportData.cost.webScraperApi.toFixed(2)}`}</span>
                     </div>
                   )}
                   {reportData.cost.claude != null && typeof reportData.cost.claude === 'number' && Number(reportData.cost.claude) > 0 && (

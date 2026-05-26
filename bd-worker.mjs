@@ -3,13 +3,13 @@
  */
 
 import { EventEmitter } from 'events';
-import { webUnlocker, serpApi, scrapingBrowser, webScraperApi, crawlApi, discoverApi, linkedinScraperApi, socialMediaScraper, deepLookup } from './bright-data-connector.mjs';
-import { mcpFetch, mcpSearch, mcpComprehensive } from './bd-mcp-client.mjs';
+import { webUnlocker, serpApi, scrapingBrowser, webScraperApi, crawlApi, crawlSite, discoverApi, domainDiscoveryApi, linkedinScraperApi, socialMediaScraper, deepLookup, queryDataset, DatasetNotEntitledError } from './bright-data-connector.mjs';
+import { mcpFetch, mcpSearch, mcpComprehensive, mcpBrowserCapture, mcpGeoIntel } from './bd-mcp-client.mjs';
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 /**
- * Standard recon worker - 5 parallel BD calls (including MCP)
+ * Standard recon worker - 8 parallel BD calls (including MCP + Discover API + Datasets API)
  * @param {string} domain - Target domain (e.g. "chain.link")
  * @param {EventEmitter} emitter - Event stream for real-time updates
  * @param {string} mode - Recon mode (standard, redteam, seo, etc.)
@@ -45,7 +45,7 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   const crunchbaseUrl = `https://crunchbase.com/organization/${companySlug}`;
   const searchQuery = `${companySlug} company news`;
 
-  // Fire all 5 BD calls in parallel with individual event tracking
+  // Fire all 8 BD calls in parallel with individual event tracking
   const facts = {};
 
   const webUnlockerPromise = (async () => {
@@ -133,20 +133,273 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
     return result;
   })();
 
-  // Wait for all to complete
+  const discoverPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-discover',
+      status: 'searching',
+      query: `${domain} company news products competitors`,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await discoverApi(
+      `${domain} company news products competitors 2026`,
+      `find official pages, news articles, and competitive intelligence about ${domain}`,
+      10
+    );
+    emitter.emit('event', {
+      agent: 'bd-discover',
+      status: 'complete',
+      results: result.results.length,
+      topScore: result.results[0]?.relevance_score?.toFixed(2),
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const crawlPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-crawl',
+      status: 'crawling',
+      pages: 8,
+      domain,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await crawlSite(domain);
+    // scrape_batch returns concatenated content — report URL count attempted, not block count
+    const pagesAttempted = result.urls?.length || 8;
+    const totalChars = (result.pages || []).reduce((sum, p) => sum + (p.markdown?.length || 0), 0);
+    emitter.emit('event', {
+      agent: 'bd-crawl',
+      status: 'complete',
+      pages: pagesAttempted,
+      chars: totalChars,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  const datasetsPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-datasets',
+      status: 'querying',
+      dataset: 'linkedin_companies',
+      domain,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const linkedin = await queryDataset('gd_l1viktl72bvl7bjuj0', domain);
+      emitter.emit('event', {
+        agent: 'bd-datasets',
+        status: 'complete',
+        records: linkedin?.length || 0,
+        elapsed: parseFloat(elapsed())
+      });
+      return { linkedin };
+    } catch (err) {
+      if (err.code === 'NOT_ENTITLED') {
+        // Honest signal — not an error, just feature gating
+        emitter.emit('event', {
+          agent: 'bd-datasets',
+          status: 'unavailable',
+          reason: 'trial tier - paid datasets',
+          elapsed: parseFloat(elapsed())
+        });
+        return null;
+      }
+      throw err;
+    }
+  })();
+
+  const browserCapturePromise = (async () => {
+    const pricingUrl = `https://${domain}/pricing`;
+    emitter.emit('event', {
+      agent: 'bd-mcp-browser',
+      status: 'capturing',
+      url: pricingUrl,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const result = await mcpBrowserCapture(pricingUrl);
+      if (result.status === 'unavailable') {
+        emitter.emit('event', {
+          agent: 'bd-mcp-browser',
+          status: 'unavailable',
+          reason: result.reason,
+          elapsed: parseFloat(elapsed())
+        });
+        return null;
+      }
+      if (result.status === 'error' && result.error?.includes('Unknown tool')) {
+        emitter.emit('event', {
+          agent: 'bd-mcp-browser',
+          status: 'unavailable',
+          reason: 'BD MCP browser group not available - upgrade required',
+          upstream: result.error.slice(0, 80),
+          elapsed: parseFloat(elapsed())
+        });
+        return null;
+      }
+      const screenshotSize = result.screenshot_b64?.length || 0;
+      emitter.emit('event', {
+        agent: 'bd-mcp-browser',
+        status: 'complete',
+        screenshot_kb: Math.round(screenshotSize / 1024),
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      const errorMsg = err.message || 'unknown error';
+      emitter.emit('event', {
+        agent: 'bd-mcp-browser',
+        status: 'error',
+        reason: errorMsg.slice(0, 120),
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
+  })();
+
+  const geoIntelPromise = (async () => {
+    const geoQuery = `What is ${domain}? Strengths, weaknesses, recent news`;
+    emitter.emit('event', {
+      agent: 'bd-mcp-geo',
+      status: 'querying',
+      llms: 'ChatGPT · Grok · Perplexity',
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const result = await mcpGeoIntel(domain, geoQuery);
+      if (result.status === 'unavailable') {
+        emitter.emit('event', {
+          agent: 'bd-mcp-geo',
+          status: 'unavailable',
+          reason: result.reason,
+          elapsed: parseFloat(elapsed())
+        });
+        return null;
+      }
+      // Check if all LLMs failed with "Unknown tool" - means geo group not available
+      const allUnknownTool = result.failures && result.failures.length === 3 &&
+        result.failures.every(f => f.error?.includes('Unknown tool'));
+      if (allUnknownTool) {
+        emitter.emit('event', {
+          agent: 'bd-mcp-geo',
+          status: 'unavailable',
+          reason: 'BD MCP geo group not available - upgrade required',
+          upstream: result.failures[0].error.slice(0, 80),
+          elapsed: parseFloat(elapsed())
+        });
+        return null;
+      }
+      const successCount = [result.chatgpt, result.grok, result.perplexity].filter(Boolean).length;
+      emitter.emit('event', {
+        agent: 'bd-mcp-geo',
+        status: 'complete',
+        llms_succeeded: successCount,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      const errorMsg = err.message || 'unknown error';
+      emitter.emit('event', {
+        agent: 'bd-mcp-geo',
+        status: 'error',
+        reason: errorMsg.slice(0, 120),
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
+  })();
+
+  const assistantPromise = (async () => {
+    emitter.emit('event', {
+      agent: 'bd-assistant',
+      status: 'asking',
+      question: `What do you know about ${domain}?`,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const { mcpAskAssistant } = await import('./bd-mcp-client.mjs');
+      const result = await mcpAskAssistant(`Tell me what Bright Data products would best be used to research the company at ${domain}, and what data sources you would recommend for competitive intelligence on them.`);
+      emitter.emit('event', {
+        agent: 'bd-assistant',
+        status: 'complete',
+        chars: result.answer?.length || 0,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      emitter.emit('event', {
+        agent: 'bd-assistant',
+        status: 'unavailable',
+        reason: err.message,
+        elapsed: parseFloat(elapsed())
+      });
+      return { question: '', answer: '' };
+    }
+  })();
+
+  const batchSearchPromise = (async () => {
+    const queries = [
+      `${companySlug} company overview news 2026`,
+      `${companySlug} competitors alternatives`,
+      `${companySlug} funding investors valuation`
+    ];
+    emitter.emit('event', {
+      agent: 'bd-serp-batch',
+      status: 'searching',
+      queries: queries.length,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const { mcpSearchEngineBatch } = await import('./bd-mcp-client.mjs');
+      const result = await mcpSearchEngineBatch(queries);
+      emitter.emit('event', {
+        agent: 'bd-serp-batch',
+        status: 'complete',
+        queries: result.queries.length,
+        results: result.results.length,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      emitter.emit('event', {
+        agent: 'bd-serp-batch',
+        status: 'error',
+        reason: err.message,
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
+  })();
+
+  // Wait for all to complete (now 12 products)
   const settled = await Promise.allSettled([
     webUnlockerPromise,
     serpPromise,
     scrapingBrowserPromise,
     webScraperPromise,
-    mcpPromise
+    mcpPromise,
+    discoverPromise,
+    crawlPromise,
+    datasetsPromise,
+    browserCapturePromise,
+    geoIntelPromise,
+    assistantPromise,
+    batchSearchPromise
   ]);
 
-  const [webPage, serpResults, browserPages, structuredData, mcpData] = settled.map((r, i) => {
-    if (r.status === 'fulfilled') return r.value;
-    const names = ['bd-web-unlocker', 'bd-serp', 'bd-scraping-browser', 'bd-web-scraper', 'bd-mcp'];
-    console.error(`[bd-worker] ${names[i]} failed:`, r.reason?.message);
-    emitter.emit('event', { agent: names[i], status: 'error', elapsed: parseFloat(elapsed()) });
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
+  const [webPage, serpResults, browserPages, structuredData, mcpData, discoverResults, crawlResult, datasetsResult, browserCapture, geoIntel, assistantResult, batchSearchResult] = settled.map((r, i) => {
+    const names = ['bd-web-unlocker', 'bd-serp', 'bd-scraping-browser', 'bd-web-scraper', 'bd-mcp', 'bd-discover', 'bd-crawl', 'bd-datasets', 'bd-mcp-browser', 'bd-mcp-geo', 'bd-assistant', 'bd-serp-batch'];
+    if (r.status === 'fulfilled') {
+      bdHealth.ok++;
+      return r.value;
+    }
+    bdHealth.failed++;
+    const errorMsg = r.reason?.message || 'unknown error';
+    bdHealth.errors.push(`${names[i]}: ${errorMsg.slice(0, 120)}`);
+    console.error(`[bd-worker] ${names[i]} failed:`, errorMsg);
+    emitter.emit('event', { agent: names[i], status: 'error', reason: errorMsg.slice(0, 120), elapsed: parseFloat(elapsed()) });
     return null;
   });
 
@@ -159,6 +412,13 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   }
   if (structuredData) facts.structured = structuredData;
   if (mcpData) facts.mcp = mcpData;
+  if (discoverResults) facts.discover = discoverResults;
+  if (crawlResult) facts.crawl = crawlResult;
+  if (datasetsResult) facts.datasets = datasetsResult;
+  if (browserCapture) facts.browserCapture = browserCapture;
+  if (geoIntel) facts.geoIntel = geoIntel;
+  if (assistantResult) facts.assistant = assistantResult;
+  if (batchSearchResult) facts.batchSearch = batchSearchResult;
 
   const factCount = Object.keys(facts).length;
 
@@ -178,7 +438,10 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
     serpApi: 0.50,
     scrapingBrowser: 0.80,
     webScraperApi: 0.40,
-    bdMcp: 0.20
+    bdMcp: 0.20,
+    discoverApi: 0.00,  // FREE
+    bdCrawl: 0.00,      // FREE (via MCP batch)
+    datasetsApi: 0.00   // $0.0025/record (negligible for 1-2 records)
   };
   const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
 
@@ -188,7 +451,8 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
     facts,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,
-    costBreakdown
+    costBreakdown,
+    bdHealth
   };
 
   // Final completion
@@ -248,6 +512,7 @@ export async function runDeepWorker(domain, emitter) {
   ];
 
   const scoutResults = {};
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
 
   // Launch all scouts in parallel
   const scoutPromises = scouts.map(async (scout) => {
@@ -277,20 +542,28 @@ export async function runDeepWorker(domain, emitter) {
 
       return { scout: scout.name, data: result };
     } catch (error) {
-      console.error(`[bd-worker] scout ${scout.name} failed:`, error.message);
+      const errorMsg = error.message || 'scout failed';
+      console.error(`[bd-worker] scout ${scout.name} failed:`, errorMsg);
       emitter.emit('event', {
         agent: `scout-${scout.name}`,
         status: 'error',
-        message: error.message,
+        reason: errorMsg.slice(0, 120),
         elapsed: parseFloat(elapsed())
       });
-      return { scout: scout.name, error: error.message || 'scout failed' };
+      return { scout: scout.name, error: errorMsg };
     }
   });
 
   const scoutData = await Promise.all(scoutPromises);
   scoutData.forEach(({ scout, data, error }) => {
-    scoutResults[scout] = error ? { error } : data;
+    if (error) {
+      bdHealth.failed++;
+      bdHealth.errors.push(`scout-${scout}: ${error.slice(0, 120)}`);
+      scoutResults[scout] = { error };
+    } else {
+      bdHealth.ok++;
+      scoutResults[scout] = data;
+    }
   });
 
   // AI-IQ storage
@@ -320,7 +593,8 @@ export async function runDeepWorker(domain, emitter) {
     scouts: scoutResults,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,
-    costBreakdown
+    costBreakdown,
+    bdHealth
   };
 
   // Final completion
@@ -369,16 +643,16 @@ export async function runFootprintWorker(domain, emitter) {
   // Fire all 5 BD calls in parallel with individual event tracking
   const facts = {};
 
-  const discoverPromise = (async () => {
+  const domainDiscoveryPromise = (async () => {
     emitter.emit('event', {
-      agent: 'bd-discover',
+      agent: 'bd-domain-discovery',
       status: 'scanning',
       domain,
       elapsed: parseFloat(elapsed())
     });
-    const result = await discoverApi(domain);
+    const result = await domainDiscoveryApi(domain);
     emitter.emit('event', {
-      agent: 'bd-discover',
+      agent: 'bd-domain-discovery',
       status: 'complete',
       totalFound: result.totalFound,
       elapsed: parseFloat(elapsed())
@@ -456,20 +730,35 @@ export async function runFootprintWorker(domain, emitter) {
   })();
 
   // Wait for all to complete
-  const [discover, crawl, linkedin, social, mentions] = await Promise.all([
-    discoverPromise,
+  const settled = await Promise.allSettled([
+    domainDiscoveryPromise,
     crawlPromise,
     linkedinPromise,
     socialPromise,
     serpPromise
   ]);
 
-  // Collect facts
-  facts.discover = discover;
-  facts.crawl = crawl;
-  facts.linkedin = linkedin;
-  facts.social = social;
-  facts.mentions = mentions;
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
+  const [domainDiscovery, crawl, linkedin, social, mentions] = settled.map((r, i) => {
+    const names = ['bd-domain-discovery', 'bd-crawl', 'bd-linkedin-scraper', 'bd-social', 'bd-serp'];
+    if (r.status === 'fulfilled') {
+      bdHealth.ok++;
+      return r.value;
+    }
+    bdHealth.failed++;
+    const errorMsg = r.reason?.message || 'unknown error';
+    bdHealth.errors.push(`${names[i]}: ${errorMsg.slice(0, 120)}`);
+    console.error(`[bd-worker] ${names[i]} failed:`, errorMsg);
+    emitter.emit('event', { agent: names[i], status: 'error', reason: errorMsg.slice(0, 120), elapsed: parseFloat(elapsed()) });
+    return null;
+  });
+
+  // Collect facts (skip null results from failed BD calls)
+  if (domainDiscovery) facts.domainDiscovery = domainDiscovery;
+  if (crawl) facts.crawl = crawl;
+  if (linkedin) facts.linkedin = linkedin;
+  if (social) facts.social = social;
+  if (mentions) facts.mentions = mentions;
 
   // AI-IQ storage
   emitter.emit('event', {
@@ -498,7 +787,7 @@ export async function runFootprintWorker(domain, emitter) {
 
   // Cost breakdown
   const costBreakdown = {
-    discoverApi: 0.00,    // FREE
+    domainDiscoveryApi: 0.00,    // FREE
     crawlApi: 1.20,
     linkedinScraper: 0.80,
     socialScraper: 0.60,
@@ -512,7 +801,8 @@ export async function runFootprintWorker(domain, emitter) {
     facts,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,
-    costBreakdown
+    costBreakdown,
+    bdHealth
   };
 
   // Final completion
@@ -782,16 +1072,31 @@ export async function runLookupWorker(domain, emitter) {
   })();
 
   // Wait for all to complete
-  const [lookupData, newsData, homepageData] = await Promise.all([
+  const settled = await Promise.allSettled([
     deepLookupPromise,
     serpPromise,
     webUnlockerPromise
   ]);
 
-  // Collect facts
-  facts.lookup = lookupData;
-  facts.news = newsData;
-  facts.homepage = homepageData;
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
+  const [lookupData, newsData, homepageData] = settled.map((r, i) => {
+    const names = ['bd-deep-lookup', 'bd-serp', 'bd-web-unlocker'];
+    if (r.status === 'fulfilled') {
+      bdHealth.ok++;
+      return r.value;
+    }
+    bdHealth.failed++;
+    const errorMsg = r.reason?.message || 'unknown error';
+    bdHealth.errors.push(`${names[i]}: ${errorMsg.slice(0, 120)}`);
+    console.error(`[bd-worker] ${names[i]} failed:`, errorMsg);
+    emitter.emit('event', { agent: names[i], status: 'error', reason: errorMsg.slice(0, 120), elapsed: parseFloat(elapsed()) });
+    return null;
+  });
+
+  // Collect facts (skip null results)
+  if (lookupData) facts.lookup = lookupData;
+  if (newsData) facts.news = newsData;
+  if (homepageData) facts.homepage = homepageData;
 
   // AI-IQ storage
   emitter.emit('event', {
@@ -832,7 +1137,8 @@ export async function runLookupWorker(domain, emitter) {
     facts,
     elapsed: parseFloat(elapsed()),
     cost: totalCost,
-    costBreakdown
+    costBreakdown,
+    bdHealth
   };
 
   // Final completion
@@ -872,7 +1178,8 @@ export async function runAgenticFollowups(signals, emitter) {
       });
       return { key: `followup_${i}`, signal, data: result };
     } catch (err) {
-      emitter.emit('event', { agent: agentName, status: 'error', elapsed: elapsed() });
+      const errorMsg = err.message || 'unknown error';
+      emitter.emit('event', { agent: agentName, status: 'error', reason: errorMsg.slice(0, 120), elapsed: elapsed() });
       return { key: `followup_${i}`, signal, data: null };
     }
   });

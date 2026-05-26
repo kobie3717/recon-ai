@@ -29,8 +29,10 @@ const agentIcons: Record<string, string> = {
   'bd-scraping-browser': '🖥',
   'bd-web-scraper': '📊',
   'bd-mcp': '🔗',
+  'bd-discover': '✨',
+  'bd-crawl': '🕷️',
   'ai-iq': '🧠',
-  'claude': '✨',
+  'claude': '🤖',
 };
 
 const agentDisplayNames: Record<string, string> = {
@@ -41,6 +43,8 @@ const agentDisplayNames: Record<string, string> = {
   'bd-scraping-browser': 'DEEP-COVER',
   'bd-web-scraper': 'EXTRACTOR',
   'bd-mcp': 'SOURCE-NET',
+  'bd-discover': 'DISCOVER',
+  'bd-crawl': 'CRAWL',
   'ai-iq': 'VAULT',
   'claude': 'ANALYST',
   'scout-homepage': 'TARGET-RECON',
@@ -198,6 +202,12 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
                   {agent.status === 'complete' && (
                     <div className="mt-2 h-1 bg-recon-navy rounded-full overflow-hidden">
                       <div className="h-full bg-recon-green w-full"></div>
+                    </div>
+                  )}
+
+                  {agent.status === 'error' && (
+                    <div className="mt-2 h-1 bg-recon-navy rounded-full overflow-hidden">
+                      <div className="h-full bg-recon-red w-full"></div>
                     </div>
                   )}
                 </div>

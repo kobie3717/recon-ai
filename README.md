@@ -30,14 +30,22 @@ Type a company URL (or executive name) and Recon:
 
 ## Bright Data Integration
 
-Four BD products used in parallel on every standard report:
+**12 BD products** used in parallel on every standard report:
 
 | BD Product | Agent | Purpose |
 |------------|-------|---------|
 | **Web Unlocker** | `bd-web-unlocker` | Bypass anti-bot to fetch company homepage |
 | **SERP API** | `bd-serp` | Real-time Google results: news, funding, press |
+| **Batch Search** | `bd-serp-batch` | Parallel multi-query SERP (3 queries at once) |
 | **Scraping Browser** | `bd-scraping-browser` | Playwright CDP on LinkedIn + Crunchbase (JS-heavy SPAs) |
-| **Web Unlocker (×2)** | `bd-web-scraper` | Homepage + /about structured extraction |
+| **Web Scraper** | `bd-web-scraper` | Homepage + /about structured extraction |
+| **MCP Server** | `bd-mcp` | Free-tier search_engine + scrape_as_markdown |
+| **Discover API** | `bd-discover` | AI-ranked relevant pages for target domain |
+| **Crawl API** | `bd-crawl` | Multi-page site crawl (up to 8 pages) |
+| **Datasets** | `bd-datasets` | LinkedIn company records (paid tier only) |
+| **MCP Browser** | `bd-mcp-browser` | Screenshot + DOM capture (paid tier only) |
+| **MCP Geo Intel** | `bd-mcp-geo` | ChatGPT/Grok/Perplexity AI perception (paid tier only) |
+| **BD Assistant** | `bd-assistant` | Sophie AI recommendations (meta-intelligence) |
 
 All BD calls fire in parallel via `Promise.all()` — wall-clock time = slowest single call, not sum.
 

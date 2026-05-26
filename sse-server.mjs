@@ -9,6 +9,7 @@ import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker, runAgenticFollowups } from './bd-worker.mjs';
 import { dataFirehose } from './bright-data-connector.mjs';
+import { startMonitorScheduler, getMonitorState, updateMonitorState, getDiffHistory, triggerDomainCheck } from './monitor-scheduler.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -214,14 +215,9 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
 
       if (anthropic) {
-        try {
-          report = await synthesizePersonWithClaude(personName);
-        } catch (synthErr) {
-          console.error('[person] Claude synthesis failed, using mock:', synthErr.message);
-          report = generateMockPersonReport(personName);
-        }
+        report = await synthesizePersonWithClaude(personName);
       } else {
-        report = generateMockPersonReport(personName);
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
 
       const elapsed = (Date.now() - startTime) / 1000;
@@ -270,14 +266,9 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
 
       if (anthropic) {
-        try {
-          report = await synthesizeRedteamWithClaude(domain, {});
-        } catch (synthErr) {
-          console.error('[redteam] Claude synthesis failed, using mock:', synthErr.message);
-          report = generateMockRedteamReport(domain);
-        }
+        report = await synthesizeRedteamWithClaude(domain, {});
       } else {
-        report = generateMockRedteamReport(domain);
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
 
       const elapsed = (Date.now() - startTime) / 1000;
@@ -322,14 +313,9 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
 
       if (anthropic) {
-        try {
-          report = await synthesizeSeoWithClaude(domain, {});
-        } catch (synthErr) {
-          console.error('[seo] Claude synthesis failed, using mock:', synthErr.message);
-          report = generateMockSeoReport(domain);
-        }
+        report = await synthesizeSeoWithClaude(domain, {});
       } else {
-        report = generateMockSeoReport(domain);
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
 
       const elapsed = (Date.now() - startTime) / 1000;
@@ -381,16 +367,14 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         console.error('[bundle] facts collection failed:', e.message);
       }
 
+      if (!anthropic) {
+        throw new Error('ANTHROPIC_API_KEY not configured — bundle mode requires synthesis');
+      }
+
       const [standardReport, seoReport, redteamReport] = await Promise.all([
-        anthropic
-          ? synthesizeWithClaude(domain, facts, 'standard').catch(e => { console.error('[bundle/standard]', e.message); return generateReport(domain, facts, 'standard'); })
-          : Promise.resolve(generateReport(domain, facts, 'standard')),
-        anthropic
-          ? synthesizeSeoWithClaude(domain, facts).catch(e => { console.error('[bundle/seo]', e.message); return generateMockSeoReport(domain); })
-          : Promise.resolve(generateMockSeoReport(domain)),
-        anthropic
-          ? synthesizeRedteamWithClaude(domain, facts).catch(e => { console.error('[bundle/redteam]', e.message); return generateMockRedteamReport(domain); })
-          : Promise.resolve(generateMockRedteamReport(domain)),
+        synthesizeWithClaude(domain, facts, 'standard'),
+        synthesizeSeoWithClaude(domain, facts),
+        synthesizeRedteamWithClaude(domain, facts),
       ]);
       emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: bElapsed() });
 
@@ -400,21 +384,54 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     } else if (mode === 'footprint') {
       result = await runFootprintWorker(domain, emitter);
       const factsData = result.facts || {};
-      report = anthropic
-        ? await synthesizeFootprintWithClaude(domain, factsData)
-        : generateMockFootprintReport(domain, factsData);
+      if (anthropic) {
+        report = await synthesizeFootprintWithClaude(domain, factsData);
+      } else {
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
+      }
     } else if (mode === 'lookup') {
       result = await runLookupWorker(domain, emitter);
       const factsData = result.facts || {};
-      report = anthropic
-        ? await synthesizeLookupWithClaude(domain, factsData)
-        : generateMockLookupReport(domain, factsData);
+      if (anthropic) {
+        report = await synthesizeLookupWithClaude(domain, factsData);
+      } else {
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
+      }
     } else if (mode === 'mcp') {
       result = await runMcpWorker(domain, emitter);
       const factsData = result.facts || {};
-      report = anthropic
-        ? await synthesizeMcpWithClaude(domain, factsData)
-        : generateMockMcpReport(domain, factsData);
+      if (anthropic) {
+        report = await synthesizeMcpWithClaude(domain, factsData);
+      } else {
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
+      }
     } else if (mode === 'agentic') {
       // AGENTIC MODE: R1 scan → classify+extract (1 merged Haiku call) → R2 → synthesis
 
@@ -496,55 +513,94 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
       // Final synthesis with full context
       if (anthropic) {
-        try {
-          const claudeStart = Date.now();
-          emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Final synthesis: R1 + R2 intelligence...', elapsed: result.elapsed });
-          report = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
-          const totalElapsed = parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2));
-          emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: totalElapsed });
-          result = { ...result, elapsed: totalElapsed, mode: 'agentic', rounds: 2, signalsFound: agenticSignals.length };
-        } catch (synthErr) {
-          console.error('[agentic] Synthesis failed:', synthErr.message);
-          report = generateReport(domain, mergedFacts, 'agentic');
-        }
+        const claudeStart = Date.now();
+        emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Final synthesis: R1 + R2 intelligence...', elapsed: result.elapsed });
+        report = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
+        const totalElapsed = parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2));
+        emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: totalElapsed });
+        result = { ...result, elapsed: totalElapsed, mode: 'agentic', rounds: 2, signalsFound: agenticSignals.length };
       } else {
-        report = generateReport(domain, mergedFacts, 'agentic');
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
       }
     } else if (mode === 'deep') {
       result = await runDeepWorker(domain, emitter);
       const factsData = result.facts || result.scouts || {};
       if (anthropic) {
-        try {
-          const claudeStart = Date.now();
-          emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
-          report = await synthesizeWithClaude(domain, factsData, mode);
-          emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
-        } catch (synthErr) {
-          console.error('[deep] Claude synthesis failed, using mock:', synthErr.message);
-          report = generateReport(domain, factsData, mode);
-        }
+        const claudeStart = Date.now();
+        emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
+        report = await synthesizeWithClaude(domain, factsData, mode);
+        emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
       } else {
-        report = generateReport(domain, factsData, mode);
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
       }
     } else {
       result = await runStandardWorker(domain, emitter, mode);
       const factsData = result.facts || result.scouts || {};
       if (anthropic) {
-        try {
-          const claudeStart = Date.now();
-          emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
-          report = await synthesizeWithClaude(domain, factsData, mode);
-          emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
-        } catch (synthErr) {
-          console.error('[standard] Claude synthesis failed, using mock:', synthErr.message);
-          report = generateReport(domain, factsData, mode);
-        }
+        const claudeStart = Date.now();
+        emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
+        report = await synthesizeWithClaude(domain, factsData, mode);
+        emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
       } else {
-        report = generateReport(domain, factsData, mode);
+        throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+      // Check BD health
+      if (result.bdHealth && result.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = result.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = result.bdHealth.ok;
+        report.meta.bdFailed = result.bdHealth.failed;
+        report.meta.bdErrors = result.bdHealth.errors.slice(0, 5);
       }
     }
 
     clearTimeout(timeout);
+
+    // Store screenshot if available (BD MCP browser capture)
+    if (result.facts?.browserCapture?.screenshot_b64 && result.facts.browserCapture.screenshot_b64.length > 100) {
+      try {
+        const timestamp = Date.now();
+        const screenshotDir = '/tmp/recon-screenshots';
+        if (!fs.existsSync(screenshotDir)) fs.mkdirSync(screenshotDir, { recursive: true });
+
+        const safeDomain = domain.replace(/[^a-z0-9.-]/gi, '_');
+        const filename = `${safeDomain}-${timestamp}.png`;
+        const filepath = path.join(screenshotDir, filename);
+
+        // Decode base64 to binary
+        const buffer = Buffer.from(result.facts.browserCapture.screenshot_b64, 'base64');
+        fs.writeFileSync(filepath, buffer);
+
+        // Add relative URL to report
+        if (report.pricingCapture) {
+          report.pricingCapture.screenshot_url = `/screenshots/${filename}`;
+          report.pricingCapture.screenshot_path = filepath;
+        }
+
+        console.log(`[screenshot] Saved ${filename} (${Math.round(buffer.length / 1024)}KB)`);
+      } catch (screenshotErr) {
+        console.error('[screenshot] Failed to save:', screenshotErr.message);
+      }
+    }
 
     // Cache for AI-IQ instant replay
     reportCache.set(cacheKey, { report, elapsed: result.elapsed, timestamp: Date.now() });
@@ -558,10 +614,24 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.end();
   } catch (error) {
     clearTimeout(timeout);
+    clearInterval(ping);
+
+    console.error(`[${mode}] Report generation failed for ${domain}:`, error.message);
+
+    // Emit explicit error event - never return fake data
+    emitter.emit('event', {
+      type: 'synthesis-error',
+      message: `Synthesis failed: ${error.message}`,
+      domain,
+      mode,
+      elapsed: result?.elapsed || 0
+    });
 
     res.write(`data: ${JSON.stringify({
       type: 'error',
-      message: process.env.NODE_ENV === 'production' ? 'Report failed' : error.message,
+      message: process.env.NODE_ENV === 'production' ? 'Synthesis failed — please retry' : `Synthesis failed: ${error.message}`,
+      domain,
+      mode
     })}\n\n`);
 
     res.end();
@@ -647,6 +717,23 @@ function formatFacts(facts) {
     const results = facts.news.results || [];
     parts.push(`NEWS (BD SERP API):\n${results.map(r => `- ${r.title}: ${r.snippet} [${r.date || ''}]`).join('\n')}`);
   }
+  if (facts.discover) {
+    const results = facts.discover.results || [];
+    const formatted = results.slice(0, 10).map((r, i) => {
+      const score = r.relevance_score ? `[score ${r.relevance_score.toFixed(2)}]` : '';
+      const desc = (r.description || '').substring(0, 200);
+      return `  ${i + 1}. ${score} ${r.title}\n     ${r.link}\n     ${desc}`;
+    }).join('\n\n');
+    parts.push(`DISCOVER API (intent-ranked sources, BD Discover):\n${formatted}`);
+  }
+  if (facts.crawl) {
+    const pages = facts.crawl.pages || [];
+    const formatted = pages.map((page, i) => {
+      const preview = (page.markdown || '').substring(0, 400).replace(/\n+/g, ' ');
+      return `  ${i + 1}. ${page.url}\n     ${preview}${preview.length >= 400 ? '...' : ''}`;
+    }).join('\n\n');
+    parts.push(`CRAWLED SITE PAGES (via BD scrape_batch, multi-page harvest):\n${formatted}`);
+  }
   if (facts.linkedin) {
     parts.push(`LINKEDIN (BD Scraping Browser):\n${facts.linkedin.text || facts.linkedin.content || ''}`);
   }
@@ -655,6 +742,37 @@ function formatFacts(facts) {
   }
   if (facts.structured) {
     parts.push(`STRUCTURED DATA (BD Web Scraper API):\n${JSON.stringify(facts.structured, null, 2)}`);
+  }
+  if (facts.datasets) {
+    const linkedinData = facts.datasets.linkedin || [];
+    if (linkedinData.length > 0) {
+      const formatted = linkedinData.map(record => {
+        return `Company: ${record.company_name || 'N/A'}
+        Domain: ${record.company_url || record.domain || 'N/A'}
+        Employees: ${record.employees || 'N/A'}
+        Employee Growth: ${record.employee_growth || 'N/A'}
+        Industry: ${record.industry || 'N/A'}
+        Founded: ${record.founded || 'N/A'}
+        Headquarters: ${record.headquarters || record.hq || 'N/A'}
+        Funding: ${record.funding_total || record.total_funding_usd || 'N/A'}
+        Revenue Range: ${record.revenue_range || 'N/A'}`;
+      }).join('\n\n');
+      parts.push(`PRE-COLLECTED DATASETS (BD Datasets API - LinkedIn Company):\n${formatted}`);
+    }
+  }
+  if (facts.browserCapture) {
+    const textPreview = (facts.browserCapture.dom_text || '').substring(0, 600);
+    const hasScreenshot = facts.browserCapture.screenshot_b64 ? 'Yes' : 'No';
+    parts.push(`PRICING PAGE CAPTURE (BD MCP Browser - ${facts.browserCapture.url}):\nScreenshot: ${hasScreenshot}\nVisible Text:\n${textPreview}${textPreview.length >= 600 ? '...' : ''}`);
+  }
+  if (facts.geoIntel) {
+    const sections = [];
+    if (facts.geoIntel.chatgpt) sections.push(`ChatGPT:\n${facts.geoIntel.chatgpt.substring(0, 600)}`);
+    if (facts.geoIntel.grok) sections.push(`Grok:\n${facts.geoIntel.grok.substring(0, 600)}`);
+    if (facts.geoIntel.perplexity) sections.push(`Perplexity:\n${facts.geoIntel.perplexity.substring(0, 600)}`);
+    if (sections.length > 0) {
+      parts.push(`AI PERCEPTION (BD MCP Geo - 3 LLM perspectives):\n${sections.join('\n\n')}`);
+    }
   }
 
   // Deep mode scouts
@@ -691,6 +809,18 @@ function buildSources(domain, companySlug, mode) {
       sections: ['Recent Signals', 'Hiring Signals']
     },
     {
+      tool: 'BD Discover API',
+      icon: '✨',
+      target: `${domain} company news products competitors (intent-ranked)`,
+      sections: ['Recent Signals', 'Company Snapshot', 'News']
+    },
+    {
+      tool: 'BD Crawl API',
+      icon: '🕷️',
+      target: `${domain} multi-page crawl (pricing · about · careers · blog · etc)`,
+      sections: ['Pricing', 'Company Snapshot', 'Hiring Signals', 'Products']
+    },
+    {
       tool: 'BD Scraping Browser',
       icon: '🖥',
       target: `linkedin.com/company/${companySlug} · crunchbase.com`,
@@ -701,6 +831,24 @@ function buildSources(domain, companySlug, mode) {
       icon: '📊',
       target: `https://${domain}`,
       sections: ['Company Snapshot', 'Strategic Direction']
+    },
+    {
+      tool: 'BD Datasets',
+      icon: '📊',
+      target: `LinkedIn Companies, Crunchbase (250+ pre-collected datasets)`,
+      sections: ['Company Snapshot', 'Financials', 'Hiring Signals']
+    },
+    {
+      tool: 'BD MCP Browser',
+      icon: '📸',
+      target: `${domain}/pricing (interactive capture + screenshot)`,
+      sections: ['Pricing Tiers']
+    },
+    {
+      tool: 'BD MCP Geo',
+      icon: '🤖',
+      target: `ChatGPT · Grok · Perplexity AI perception`,
+      sections: ['AI Perception']
     },
     ...(mode === 'deep' ? [{
       tool: 'BD Scraping Browser (Deep)',
@@ -726,6 +874,13 @@ async function synthesizeWithClaude(domain, facts, mode) {
   "reviews": {"g2Score": 4.5, "g2Reviews": 0, "trustpilot": null, "sentiment": "..."},
   "glassdoor": {"rating": 4.0, "reviews": 0, "ceoApproval": "80%", "recommend": "75%", "sentiment": "..."},
   "risks": [{"factor": "...", "severity": "HIGH|MED|LOW"}],` : '';
+
+  const hasGeo = facts.geoIntel && (facts.geoIntel.chatgpt || facts.geoIntel.grok || facts.geoIntel.perplexity);
+  const hasBrowser = facts.browserCapture && facts.browserCapture.status === 'success';
+
+  const newFields = `
+  "aiPerception": ${hasGeo ? '{"chatgpt": "brief summary", "grok": "brief summary", "perplexity": "brief summary", "consensus": "1-2 sentence synthesis"}' : 'null'},
+  "pricingCapture": ${hasBrowser ? '{"tiers": ["Tier name", "..."], "screenshot_available": true}' : 'null'},`;
 
   const safeDomain = domain.replace(/[^\w.-]/g, '').substring(0, 100);
   const safeCompanyName = companyName.replace(/[^\w\s]/g, '').substring(0, 50);
@@ -780,7 +935,7 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
     "Strategic direction 1",
     "Strategic direction 2",
     "Strategic direction 3"
-  ],${deepFields}
+  ],${newFields}${deepFields}
   "cost": {
     "webUnlocker": 0.30,
     "serpApi": 0.50,
@@ -790,22 +945,45 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
   }
 }`;
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 2048,
+    max_tokens: 8192,
     system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
     messages: [{ role: 'user', content: prompt }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '')
-    .replace(/^```\n?/, '')
-    .replace(/\n?```$/, '');
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[${mode}] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    // Still truncated after retry - log and attempt to parse anyway
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[${mode}] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+
+  // Extract the first balanced JSON object from the text (handles truncation better)
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch
+    ? jsonMatch[0]
+    : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
 
   let parsed;
   try {
     parsed = JSON.parse(text);
-  } catch {
+  } catch (parseErr) {
+    // Log first 500 chars of failed output for debugging
+    console.error(`[${mode}] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[${mode}] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[${mode}] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
 
@@ -896,6 +1074,11 @@ Return ONLY this JSON:
     }]
   });
 
+  // Detect truncation - this is a small helper so 450 should be enough, but check anyway
+  if (response.stop_reason === 'max_tokens') {
+    throw new Error(`Claude classify+extract truncated at max_tokens — increase budget`);
+  }
+
   const text = response.content[0].text.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
   const parsed = JSON.parse(text);
   const classification = { type: parsed.type || 'unknown', stage: parsed.stage || 'unknown', scout_focus: parsed.scout_focus || 'general', priority_signals: [] };
@@ -976,20 +1159,39 @@ Return ONLY valid JSON:
   "cost": {"webUnlocker":0.30,"serpApi":0.80,"scrapingBrowser":0.80,"webScraperApi":0.40,"claudeHaiku":0.02,"claudeSonnet":0.20,"total":2.52}
 }`;
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 1200,
+    max_tokens: 8192,
     system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings.',
     messages: [{ role: 'user', content: prompt }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[agentic] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 16384,
+      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings.',
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[agentic] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
 
   let parsed;
   try {
     parsed = JSON.parse(text);
-  } catch {
+  } catch (parseErr) {
+    console.error(`[agentic] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[agentic] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[agentic] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON in agentic synthesis');
   }
 
@@ -1038,9 +1240,9 @@ async function synthesizeMcpWithClaude(domain, facts) {
     factsContext += `\n\nMCP WEB UNLOCKER (/about page):\n${facts.unlocker.content || ''}`;
   }
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -1104,9 +1306,46 @@ Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came 
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[mcp] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      messages: [{
+        role: 'user',
+        content: `Analyze "${domain}" (${companyName}) using MCP protocol intelligence data.
+
+TODAY: ${today}
+
+MCP PROTOCOL DATA (4 tools used):
+${factsContext.substring(0, 8000)}
+
+Return ONLY valid JSON — see previous message for structure.`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[mcp] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (parseErr) {
+    console.error(`[mcp] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[mcp] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[mcp] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
+    throw new Error('Claude returned invalid JSON');
+  }
+
+  return parsed;
 }
 
 /**
@@ -1192,9 +1431,9 @@ function generateMockMcpReport(domain, facts) {
 async function synthesizePersonWithClaude(personName) {
   const today = new Date().toISOString().split('T')[0];
 
-  const response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 3000,
+  let response = await anthropic.messages.create({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 8192,
     system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation.',
     messages: [{
       role: 'user',
@@ -1235,12 +1474,35 @@ async function synthesizePersonWithClaude(personName) {
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[person] Claude truncated at 8192 tokens for ${personName}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-haiku-4-5-20251001',
+      max_tokens: 16384,
+      system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation.',
+      messages: [{
+        role: 'user',
+        content: `Produce an executive intelligence report on "${personName}" as valid JSON — see previous message for structure.`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[person] Claude STILL truncated at 16384 tokens for ${personName} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
   let parsed;
   try {
     parsed = JSON.parse(text);
-  } catch {
+  } catch (parseErr) {
+    console.error(`[person] JSON parse failed for ${personName}:`, parseErr.message);
+    console.error(`[person] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[person] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
 
@@ -1260,10 +1522,9 @@ async function synthesizeSeoWithClaude(domain, facts) {
   const today = new Date().toISOString().split('T')[0];
   const factsText = formatFacts(facts);
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4000,
-    timeout: 90000,
+    max_tokens: 8192,
     system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -1325,12 +1586,89 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[seo] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      messages: [{
+        role: 'user',
+        content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
+
+TODAY: ${today}
+${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+
+Return ONLY valid JSON — be specific and realistic for ${domain}:
+{
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "seo", "confidence": "medium-high" },
+  "signals": [
+    { "level": "high|medium|positive", "text": "specific SEO finding for ${domain}", "icon": "🔴|🟡|🟢" }
+  ],
+  "snapshot": {
+    "domainAuthority": 0,
+    "organicTraffic": "Xk/mo (est.)",
+    "rankingKeywords": 0,
+    "backlinks": "Xk from X domains"
+  },
+  "topKeywords": [
+    { "keyword": "actual keyword ${domain} ranks for", "position": 1, "volume": 0, "intent": "informational|commercial|transactional" }
+  ],
+  "contentStrategy": {
+    "postsPerMonth": 0,
+    "avgWordCount": 0,
+    "topTopics": ["topic 1", "topic 2"],
+    "contentGaps": ["gap 1", "gap 2"]
+  },
+  "technical": {
+    "coreWebVitals": { "lcp": "Xs", "fid": "Xms", "cls": "0.0X", "score": "Good|Needs Improvement|Poor" },
+    "mobileScore": 0,
+    "pageSpeed": 0,
+    "issues": ["specific issue 1", "specific issue 2"]
+  },
+  "backlinks": {
+    "total": 0,
+    "referringDomains": 0,
+    "topSources": ["Source 1", "Source 2"],
+    "linkVelocity": "growing|stable|declining"
+  },
+  "serp": {
+    "featuredSnippets": 0,
+    "knowledgePanel": true,
+    "localPack": false,
+    "peopleAlsoAsk": 0
+  },
+  "opportunities": [
+    { "keyword": "keyword opportunity", "volume": 0, "difficulty": 0, "opportunity": "why this is valuable" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Domain", "weakness": "their specific SEO weakness" }
+  ],
+  "hiring": [
+    { "role": "SEO/Content Role", "count": 0, "signal": "what this signals" }
+  ],
+  "strategic": ["strategic SEO observation 1", "strategic SEO observation 2"]
+}`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[seo] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
   let parsed;
   try {
     parsed = JSON.parse(text);
-  } catch {
+  } catch (parseErr) {
+    console.error(`[seo] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[seo] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[seo] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
 
@@ -1360,10 +1698,9 @@ async function synthesizeRedteamWithClaude(domain, facts) {
 
   const companySlug = domain.split('.')[0];
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4000,
-    timeout: 90000,
+    max_tokens: 8192,
     system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -1409,12 +1746,73 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[redteam] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      messages: [{
+        role: 'user',
+        content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
+
+TODAY: ${today}
+${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
+
+Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
+{
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high" },
+  "signals": [
+    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴" },
+    { "level": "medium", "text": "specific medium finding", "icon": "🟡" },
+    { "level": "positive", "text": "positive security signal", "icon": "🟢" }
+  ],
+  "snapshot": { "founded": "YYYY", "hq": "City, Country", "employees": "N (est.)", "stage": "Series X", "website": "${domain}", "linkedin": "linkedin.com/company/${companySlug}" },
+  "attackSurface": {
+    "exposedPorts": ["443 (HTTPS)", "other ports if known"],
+    "subdomains": ["api.${domain}", "dev.${domain}", "other known subdomains"],
+    "techStack": ["specific technologies ${domain} uses"],
+    "headers": { "csp": true, "hsts": true, "xframe": true, "referrerPolicy": false, "score": "B+" }
+  },
+  "exposures": [
+    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY" }
+  ],
+  "socialEngineering": [
+    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}" }
+  ],
+  "competitive": [
+    { "competitor": "Competitor Name", "weakness": "their security weakness" }
+  ],
+  "hiring": [
+    { "role": "Security Role", "count": 0, "signal": "what this means" }
+  ],
+  "strategic": ["strategic security observation 1", "strategic security observation 2"],
+  "recommendations": [
+    { "priority": "P0", "action": "most urgent fix for ${domain}" },
+    { "priority": "P1", "action": "high priority fix" },
+    { "priority": "P2", "action": "medium priority fix" }
+  ]
+}`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[redteam] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
   let parsed;
   try {
     parsed = JSON.parse(text);
-  } catch {
+  } catch (parseErr) {
+    console.error(`[redteam] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[redteam] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[redteam] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
 
@@ -1457,9 +1855,9 @@ async function synthesizeFootprintWithClaude(domain, facts) {
     factsContext += `\n\nSOCIAL MEDIA:\nTwitter: ${facts.social.twitter?.handle} (${facts.social.twitter?.followers} followers)\nSentiment: ${JSON.stringify(facts.social.twitter?.sentimentBreakdown)}\nReddit: ${facts.social.reddit?.subreddit} (${facts.social.reddit?.subscribers} subscribers)`;
   }
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -1532,9 +1930,46 @@ Return ONLY valid JSON with this exact structure:
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[footprint] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      messages: [{
+        role: 'user',
+        content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
+
+TODAY: ${today}
+
+COLLECTED DATA:
+${factsContext.substring(0, 6000)}
+
+Return ONLY valid JSON — see previous message for structure.`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[footprint] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (parseErr) {
+    console.error(`[footprint] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[footprint] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[footprint] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
+    throw new Error('Claude returned invalid JSON');
+  }
+
+  return parsed;
 }
 
 /**
@@ -1672,9 +2107,9 @@ async function synthesizeLookupWithClaude(domain, facts) {
     factsContext += `\n\nHOMEPAGE SNAPSHOT:\n${facts.homepage.text?.substring(0, 1500)}`;
   }
 
-  const response = await anthropic.messages.create({
+  let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
-    max_tokens: 4096,
+    max_tokens: 8192,
     system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
     messages: [{
       role: 'user',
@@ -1740,9 +2175,46 @@ Return ONLY valid JSON with this exact structure:
     }]
   });
 
-  const text = response.content[0].text.trim()
-    .replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  return JSON.parse(text);
+  // Retry once with doubled token budget if truncated
+  if (response.stop_reason === 'max_tokens') {
+    console.warn(`[lookup] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
+    response = await anthropic.messages.create({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 16384,
+      system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      messages: [{
+        role: 'user',
+        content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
+
+TODAY: ${today}
+
+COLLECTED INTELLIGENCE:
+${factsContext.substring(0, 8000)}
+
+Return ONLY valid JSON — see previous message for structure.`
+      }]
+    });
+
+    if (response.stop_reason === 'max_tokens') {
+      console.error(`[lookup] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
+    }
+  }
+
+  const rawText = response.content[0].text.trim();
+  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch (parseErr) {
+    console.error(`[lookup] JSON parse failed for ${domain}:`, parseErr.message);
+    console.error(`[lookup] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
+    console.error(`[lookup] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
+    throw new Error('Claude returned invalid JSON');
+  }
+
+  return parsed;
 }
 
 /**
@@ -2167,6 +2639,22 @@ function generateReport(domain, facts, mode) {
 const REPORTS_DIR = path.join(process.cwd(), 'reports');
 
 /**
+ * Serve screenshot files
+ * GET /screenshots/:filename
+ */
+app.get('/screenshots/:filename', (req, res) => {
+  const { filename } = req.params;
+  const safeName = filename.replace(/[^a-z0-9._-]/gi, '');
+  const filepath = path.join('/tmp/recon-screenshots', safeName);
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'screenshot not found' });
+  }
+
+  res.sendFile(filepath);
+});
+
+/**
  * Save report to disk
  * POST body: { domain, report, mode }
  */
@@ -2242,11 +2730,143 @@ app.get('/api/reports', reportLimiter, (req, res) => {
   }
 });
 
+/**
+ * Monitor API: Add domain to watch list
+ * POST /api/monitor
+ * Body: { domain: string, slackWebhook?: string, intervalHours?: number }
+ */
+app.post('/api/monitor', express.json(), (req, res) => {
+  try {
+    const { domain, slackWebhook, intervalHours } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Load current state
+    const state = getMonitorState();
+
+    // Check if already exists
+    if (state.domains.some(d => d.domain === validatedDomain)) {
+      return res.status(400).json({ error: 'Domain already monitored' });
+    }
+
+    // Add new domain
+    state.domains.push({
+      domain: validatedDomain,
+      addedAt: new Date().toISOString(),
+      slackWebhook: slackWebhook || null,
+      intervalHours: intervalHours || 24,
+      lastChecked: null,
+      lastDiff: null,
+    });
+
+    // Save state
+    updateMonitorState(state);
+
+    res.json({ success: true, domain: validatedDomain });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: Remove domain from watch list
+ * DELETE /api/monitor
+ * Body: { domain: string }
+ */
+app.delete('/api/monitor', express.json(), (req, res) => {
+  try {
+    const { domain } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Load current state
+    const state = getMonitorState();
+
+    // Remove domain
+    const originalLength = state.domains.length;
+    state.domains = state.domains.filter(d => d.domain !== validatedDomain);
+
+    if (state.domains.length === originalLength) {
+      return res.status(404).json({ error: 'Domain not found' });
+    }
+
+    // Save state
+    updateMonitorState(state);
+
+    res.json({ success: true, domain: validatedDomain });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: List all monitored domains
+ * GET /api/monitor
+ */
+app.get('/api/monitor', (req, res) => {
+  try {
+    const state = getMonitorState();
+    res.json({ domains: state.domains });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to load monitor state' });
+  }
+});
+
+/**
+ * Monitor API: Get diff history for a domain
+ * GET /api/monitor/diff?domain=stripe.com
+ */
+app.get('/api/monitor/diff', (req, res) => {
+  try {
+    const { domain } = req.query;
+
+    if (!domain) {
+      return res.status(400).json({ error: 'domain parameter required' });
+    }
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Get diff history
+    const history = getDiffHistory(validatedDomain);
+
+    res.json({ domain: validatedDomain, history });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+/**
+ * Monitor API: Trigger immediate check for a domain
+ * POST /api/monitor/check
+ * Body: { domain: string }
+ */
+app.post('/api/monitor/check', express.json(), async (req, res) => {
+  try {
+    const { domain } = req.body;
+
+    // Validate domain
+    const validatedDomain = validateDomain(domain);
+
+    // Trigger check
+    const result = await triggerDomainCheck(validatedDomain);
+
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 const server = app.listen(PORT, () => {
   console.log(`🚀 Recon SSE server listening on port ${PORT}`);
   console.log(`   Claude synthesis: ${anthropic ? 'ENABLED' : 'MOCK (set ANTHROPIC_API_KEY)'}`);
   console.log(`   Health: http://localhost:${PORT}/health`);
   console.log(`   Report: http://localhost:${PORT}/api/report?domain=stripe.com&mode=standard`);
+
+  // Start monitor scheduler
+  startMonitorScheduler();
 });
 
 // Global error handlers

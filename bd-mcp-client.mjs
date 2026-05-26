@@ -8,7 +8,8 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
 
-const BD_API_KEY = process.env.BD_API_KEY;
+// Lazy env read — dotenv.config() runs after ESM imports' top-level code
+const getKey = () => process.env.BD_API_KEY;
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // SECURITY: BD_API_KEY is sent as a URL query param (?token=...) because
@@ -211,12 +212,12 @@ function generateMock(domain, mode) {
 export async function mcpFetch(domain, mode = 'standard') {
   await sleep(300);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    return generateMock(domain, mode);
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   const MCP_TIMEOUT_MS = 30000;
-  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon', version: '1.0.0' }, { capabilities: {} });
 
@@ -305,25 +306,12 @@ export async function mcpScrape(url) {
 export async function mcpSearchEngine(query) {
   await sleep(200);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock: return realistic search results
-    await sleep(800);
-    return {
-      query,
-      results: [
-        { title: `${query} - Overview`, snippet: 'Comprehensive analysis and insights...', url: 'https://example.com/1' },
-        { title: `Latest news about ${query}`, snippet: 'Recent developments and announcements...', url: 'https://example.com/2' },
-        { title: `${query} funding and growth`, snippet: 'Investment rounds and expansion details...', url: 'https://example.com/3' },
-        { title: `${query} competitors analysis`, snippet: 'Market positioning and competitive landscape...', url: 'https://example.com/4' },
-        { title: `${query} technology stack`, snippet: 'Technical infrastructure and engineering...', url: 'https://example.com/5' }
-      ],
-      tool: 'search_engine',
-      via: 'mock'
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   const MCP_TIMEOUT_MS = 30000;
-  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
 
@@ -370,23 +358,12 @@ export async function mcpSearchEngine(query) {
 export async function mcpScrapeMarkdown(url) {
   await sleep(200);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock: return realistic markdown
-    await sleep(1400);
-    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-    const slug = domain.split('.')[0];
-    const companyName = slug.charAt(0).toUpperCase() + slug.slice(1);
-    return {
-      url,
-      markdown: `# ${companyName}\n\n## Enterprise Software Platform\n\nLeading provider of enterprise solutions serving 5,000+ customers globally.\n\n### Products\n- Core Platform\n- Analytics Suite\n- Integration Hub\n\n### Recent News\n- Series D funding announced\n- European expansion\n- New product launches\n\n### About Us\nFounded in 2018, ${companyName} has grown to 850+ employees and raised $425M from top-tier VCs including Sequoia Capital and Andreessen Horowitz.`,
-      chars: 450,
-      tool: 'scrape_as_markdown',
-      via: 'mock'
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   const MCP_TIMEOUT_MS = 30000;
-  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
 
@@ -430,23 +407,12 @@ export async function mcpScrapeMarkdown(url) {
 export async function mcpWebUnlocker(url) {
   await sleep(200);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock: return realistic unlocked content
-    await sleep(900);
-    const domain = url.replace(/^https?:\/\//, '').split('/')[0];
-    const slug = domain.split('.')[0];
-    const companyName = slug.charAt(0).toUpperCase() + slug.slice(1);
-    return {
-      url,
-      content: `About ${companyName}\n\nMission: Transforming enterprise workflows through innovative technology.\n\nTeam: 850+ employees across San Francisco, London, and Berlin.\n\nCustomers: Trusted by 5,000+ companies including Fortune 500 leaders.\n\nFunding: $425M raised from Sequoia Capital, Andreessen Horowitz, and Accel Partners.\n\nCulture: Fast-paced, innovative, and customer-focused.`,
-      chars: 380,
-      tool: 'web_unlocker',
-      via: 'mock'
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   const MCP_TIMEOUT_MS = 30000;
-  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${BD_API_KEY}`);
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
   const transport = new StreamableHTTPClientTransport(mcpUrl);
   const client = new Client({ name: 'recon-mcp', version: '1.0.0' }, { capabilities: {} });
 
@@ -483,6 +449,141 @@ export async function mcpWebUnlocker(url) {
 }
 
 /**
+ * Batch scrape multiple URLs as markdown via BD MCP scrape_batch tool
+ * @param {string[]} urls - Array of URLs to scrape (max 10)
+ * @returns {Promise<Object>}
+ */
+export async function mcpScrapeBatch(urls) {
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
+  }
+  if (!urls || urls.length === 0) throw new Error('mcpScrapeBatch requires at least 1 URL');
+  if (urls.length > 10) urls = urls.slice(0, 10);
+
+  await sleep(200);
+
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-crawl', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    const result = await Promise.race([
+      client.callTool({ name: 'scrape_batch', arguments: { urls } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    // result.content is an array of text blocks — usually one per URL
+    const pages = (result.content || []).map((block, i) => ({
+      url: urls[i] || 'unknown',
+      markdown: typeof block === 'object' ? (block.text || JSON.stringify(block)) : String(block)
+    }));
+
+    return { urls, pages, count: pages.length };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * BD MCP - Batched search engine queries (parallel SERP)
+ * @param {string[]} queries - 2-5 search query strings
+ * @returns {Promise<{queries: string[], results: Array}>}
+ */
+export async function mcpSearchEngineBatch(queries) {
+  if (!getKey()) throw new Error('BD_API_KEY not configured — set in .env');
+  if (!queries || queries.length === 0) throw new Error('mcpSearchEngineBatch requires at least 1 query');
+  if (queries.length > 5) queries = queries.slice(0, 5);
+
+  await sleep(200);
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-search-batch', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    // Transform string queries to objects with query field and engine
+    const queryObjects = queries.map(q => ({ query: q, engine: 'google' }));
+
+    const result = await Promise.race([
+      client.callTool({ name: 'search_engine_batch', arguments: { queries: queryObjects } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const blocks = (result.content || []).map((block, i) => ({
+      query: queries[i] || 'unknown',
+      data: typeof block === 'object' ? (block.text || JSON.stringify(block)) : String(block)
+    }));
+
+    return { queries, results: blocks, count: blocks.length };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * BD MCP - Ask Bright Data's support assistant (Sophie) about a topic
+ * Returns meta-intelligence: what BD's AI knows about the target
+ * @param {string} question - Natural language question
+ * @returns {Promise<{question: string, answer: string}>}
+ */
+export async function mcpAskAssistant(question) {
+  if (!getKey()) throw new Error('BD_API_KEY not configured — set in .env');
+  if (!question) throw new Error('mcpAskAssistant requires a question');
+
+  await sleep(200);
+  const MCP_TIMEOUT_MS = 75000; // Sophie chat AI is slow — generous budget
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-assistant', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    const result = await Promise.race([
+      client.callTool({ name: 'ask_brightdata_assistant', arguments: { question } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const answer = (result.content || [])
+      .map(b => typeof b === 'object' ? (b.text || '') : String(b))
+      .join('\n');
+
+    return { question, answer };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
  * Comprehensive MCP showcase - runs all 4 tools in parallel
  * @param {string} domain - Target domain
  * @returns {Promise<Object>}
@@ -507,5 +608,173 @@ export async function mcpComprehensive(domain) {
     about,
     toolsUsed: 4,
     elapsed
+  };
+}
+
+/**
+ * BD MCP Browser Group - Interactive web automation with screenshots
+ * @param {string} url - Target URL (e.g. https://stripe.com/pricing)
+ * @returns {Promise<Object>}
+ */
+export async function mcpBrowserCapture(url) {
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
+  }
+
+  const MCP_TIMEOUT_MS = 45000; // Longer timeout for browser ops
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
+  const transport = new StreamableHTTPClientTransport(mcpUrl);
+  const client = new Client({ name: 'recon-browser', version: '1.0.0' }, { capabilities: {} });
+
+  let timeoutHandle;
+  const makeTimeout = () => new Promise((_, reject) => {
+    timeoutHandle = setTimeout(() => reject(new Error('MCP browser timeout')), MCP_TIMEOUT_MS);
+  });
+
+  try {
+    await Promise.race([client.connect(transport), makeTimeout()]);
+    clearTimeout(timeoutHandle);
+
+    // Navigate to URL
+    const navResult = await Promise.race([
+      client.callTool({ name: 'scraping_browser_navigate', arguments: { url } }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    // Take screenshot
+    const screenshotResult = await Promise.race([
+      client.callTool({ name: 'scraping_browser_screenshot', arguments: {} }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    // Extract visible text
+    const textResult = await Promise.race([
+      client.callTool({ name: 'scraping_browser_get_text', arguments: {} }),
+      makeTimeout()
+    ]);
+    clearTimeout(timeoutHandle);
+
+    const screenshot_b64 = Array.isArray(screenshotResult.content)
+      ? screenshotResult.content.map(c => c.text || c.data || '').join('')
+      : String(screenshotResult.content || '');
+
+    const dom_text = Array.isArray(textResult.content)
+      ? textResult.content.map(c => c.text || '').join('\n')
+      : String(textResult.content || '');
+
+    return {
+      url,
+      screenshot_b64,
+      dom_text,
+      status: 'success',
+      tool: 'bd-mcp-browser',
+      via: 'bd-mcp'
+    };
+  } catch (error) {
+    // Check for entitlement errors
+    const errMsg = error.message || '';
+    if (errMsg.includes('not entitled') || errMsg.includes('tier') || errMsg.includes('upgrade')) {
+      return {
+        url,
+        status: 'unavailable',
+        error: errMsg,
+        reason: 'BD MCP browser group not entitled — trial tier limitation'
+      };
+    }
+    return {
+      url,
+      status: 'error',
+      error: errMsg
+    };
+  } finally {
+    clearTimeout(timeoutHandle);
+    await client.close().catch(() => {});
+  }
+}
+
+/**
+ * BD MCP Geo Group - AI perception intel from ChatGPT, Grok, Perplexity
+ * @param {string} domain - Target domain
+ * @param {string} query - Query to ask all 3 LLMs
+ * @returns {Promise<Object>}
+ */
+export async function mcpGeoIntel(domain, query) {
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
+  }
+
+  const MCP_TIMEOUT_MS = 30000;
+  const mcpUrl = new URL(`https://mcp.brightdata.com/mcp?token=${getKey()}`);
+
+  const failures = [];
+  const results = { chatgpt: null, grok: null, perplexity: null };
+
+  // Run all 3 LLM queries in parallel
+  const llmPromises = [
+    { name: 'chatgpt', tool: 'web_data_chatgpt_ai_insights' },
+    { name: 'grok', tool: 'web_data_grok_ai_insights' },
+    { name: 'perplexity', tool: 'web_data_perplexity_ai_insights' }
+  ].map(async ({ name, tool }) => {
+    const transport = new StreamableHTTPClientTransport(mcpUrl);
+    const client = new Client({ name: `recon-geo-${name}`, version: '1.0.0' }, { capabilities: {} });
+
+    let timeoutHandle;
+    const makeTimeout = () => new Promise((_, reject) => {
+      timeoutHandle = setTimeout(() => reject(new Error(`MCP ${name} timeout`)), MCP_TIMEOUT_MS);
+    });
+
+    try {
+      await Promise.race([client.connect(transport), makeTimeout()]);
+      clearTimeout(timeoutHandle);
+
+      const result = await Promise.race([
+        client.callTool({ name: tool, arguments: { query } }),
+        makeTimeout()
+      ]);
+      clearTimeout(timeoutHandle);
+
+      const text = Array.isArray(result.content)
+        ? result.content.map(c => c.text || '').join('\n')
+        : String(result.content || '');
+
+      results[name] = text;
+      return { name, status: 'ok' };
+    } catch (error) {
+      const errMsg = error.message || 'unknown error';
+      failures.push({ llm: name, error: errMsg.slice(0, 200) });
+      return { name, status: 'failed', error: errMsg };
+    } finally {
+      clearTimeout(timeoutHandle);
+      await client.close().catch(() => {});
+    }
+  });
+
+  await Promise.allSettled(llmPromises);
+
+  // If all failed with entitlement errors, mark as unavailable
+  const allEntitlementErrors = failures.length === 3 && failures.every(f =>
+    f.error.includes('not entitled') || f.error.includes('tier') || f.error.includes('upgrade')
+  );
+
+  if (allEntitlementErrors) {
+    return {
+      domain,
+      query,
+      status: 'unavailable',
+      reason: 'BD MCP geo group not entitled — trial tier limitation',
+      upstream_error: failures[0].error
+    };
+  }
+
+  return {
+    domain,
+    query,
+    chatgpt: results.chatgpt,
+    grok: results.grok,
+    perplexity: results.perplexity,
+    failures,
+    status: failures.length === 3 ? 'error' : 'success'
   };
 }

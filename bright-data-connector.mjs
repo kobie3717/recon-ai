@@ -1,10 +1,20 @@
 /**
  * Bright Data API Connector
- * Mock/stub mode until May 25 when BD_API_KEY is wired
+ * Env-driven zone names + honest error propagation
  */
 
-const BD_API_KEY = process.env.BD_API_KEY;
-const BD_CUSTOMER_ID = process.env.BD_CUSTOMER_ID;
+// Read env lazily — module-level const captured undefined because dotenv.config()
+// runs AFTER ESM imports resolve their top-level code.
+const getKey = () => process.env.BD_API_KEY;
+const getCustomerId = () => process.env.BD_CUSTOMER_ID;
+
+// Zone names from env with sensible BD defaults
+const getZoneUnlocker = () => process.env.BD_ZONE_UNLOCKER || 'web_unlocker1';
+const getZoneSerp = () => process.env.BD_ZONE_SERP || 'serp_api1';
+const getZoneBrowser = () => process.env.BD_ZONE_BROWSER || 'scraping_browser1';
+const getZoneScraper = () => process.env.BD_ZONE_SCRAPER || 'web_scraper1';
+// Scraping Browser uses zone-specific password (NOT API key) for WSS
+const getZoneBrowserPassword = () => process.env.BD_ZONE_BROWSER_PASSWORD || process.env.BD_API_KEY;
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -16,60 +26,28 @@ const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export async function webUnlocker(url) {
   await sleep(400); // Simulate network latency
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock mode
-    const mockText = `
-      Welcome to Example Company - Industry-Leading Solutions
-
-      Founded in 2015, Example Company has grown to become a trusted partner for over 5,000 enterprises worldwide.
-      Our mission is to deliver innovative technology solutions that drive business transformation.
-
-      Products & Services:
-      - Enterprise Software Platform
-      - Cloud Infrastructure Solutions
-      - Professional Services & Consulting
-      - 24/7 Customer Support
-
-      Recent Achievements:
-      - Named a Leader in Gartner Magic Quadrant 2025
-      - $250M Series D funding round completed
-      - Expanded to 15 countries across 4 continents
-      - 99.99% uptime SLA maintained for 18 consecutive months
-
-      Leadership Team:
-      Our executive team brings decades of experience from Fortune 500 companies and leading startups.
-
-      Customers include Fortune 500 companies across finance, healthcare, retail, and technology sectors.
-
-      Join Our Team:
-      We're hiring talented engineers, product managers, and sales professionals. Visit our careers page.
-
-      Contact: info@example.com | +1-555-0100 | San Francisco, CA
-    `.trim();
-
-    return {
-      url,
-      text: mockText,
-      status: 200,
-      chars: mockText.length
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   // Real BD Web Unlocker API
   const response = await fetch('https://api.brightdata.com/request', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      zone: 'unlocker',
+      zone: getZoneUnlocker(),
       url,
       format: 'raw'
     })
   });
 
-  if (!response.ok) throw new Error(`BD Web Unlocker ${response.status}`);
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`BD Web Unlocker zone="${getZoneUnlocker()}" status=${response.status} body="${errorBody.slice(0, 200)}"`);
+  }
   const text = await response.text();
   return {
     url,
@@ -87,65 +65,42 @@ export async function webUnlocker(url) {
 export async function serpApi(query) {
   await sleep(300); // Simulate network latency
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock mode
-    return {
-      query,
-      results: [
-        {
-          title: 'Example Company Announces Major Product Launch',
-          snippet: 'Industry leader Example Company today unveiled its next-generation platform, featuring AI-powered analytics and enhanced security...',
-          url: 'https://techcrunch.com/2026/05/example-company-launch',
-          date: '2026-05-14'
-        },
-        {
-          title: 'Example Company Raises $250M in Series D Funding',
-          snippet: 'The enterprise software company has secured $250 million in new funding led by Sequoia Capital and Andreessen Horowitz...',
-          url: 'https://venturebeat.com/2026/04/example-company-funding',
-          date: '2026-04-22'
-        },
-        {
-          title: 'CEO Interview: The Future of Enterprise Software',
-          snippet: 'We sat down with Example Company CEO to discuss their vision for transforming how businesses leverage technology...',
-          url: 'https://forbes.com/2026/03/example-company-ceo-interview',
-          date: '2026-03-15'
-        },
-        {
-          title: 'Example Company Expands to European Market',
-          snippet: 'With new offices in London, Berlin, and Paris, the company is accelerating its international growth strategy...',
-          url: 'https://bloomberg.com/2026/02/example-company-europe',
-          date: '2026-02-28'
-        },
-        {
-          title: 'Industry Report: Example Company Named Market Leader',
-          snippet: 'Gartner positions Example Company in the Leaders quadrant for the third consecutive year, citing innovation and customer satisfaction...',
-          url: 'https://gartner.com/reports/2026-magic-quadrant',
-          date: '2026-01-10'
-        }
-      ]
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
-  // Real BD SERP API
-  const response = await fetch('https://api.brightdata.com/serp', {
+  // Real BD SERP API — uses /request endpoint with google search URL
+  const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}&num=10&brd_json=1`;
+  const response = await fetch('https://api.brightdata.com/request', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
-      engine: 'google',
-      q: query,
-      num: 10
+      zone: getZoneSerp(),
+      url: searchUrl,
+      format: 'raw'
     })
   });
 
-  if (!response.ok) throw new Error(`BD SERP API ${response.status}`);
-  const data = await response.json();
-  return {
-    query,
-    results: data.organic_results || []
-  };
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`BD SERP API zone="${getZoneSerp()}" status=${response.status} body="${errorBody.slice(0, 200)}"`);
+  }
+  const body = await response.text();
+  // brd_json=1 returns Google's structured JSON in BD's wrapper; fallback to parsing HTML titles
+  let results = [];
+  try {
+    const parsed = JSON.parse(body);
+    results = parsed.organic || parsed.organic_results || parsed.results || [];
+  } catch {
+    // Parse HTML — extract <h3> titles + link hrefs
+    const titles = [...body.matchAll(/<h3[^>]*>([^<]+)<\/h3>/g)].map(m => m[1]).slice(0, 10);
+    const links = [...body.matchAll(/<a href="\/url\?q=([^&"]+)/g)].map(m => decodeURIComponent(m[1])).slice(0, 10);
+    results = titles.map((title, i) => ({ title, link: links[i] || '', position: i + 1 }));
+  }
+  return { query, results };
 }
 
 /**
@@ -156,78 +111,24 @@ export async function serpApi(query) {
 export async function scrapingBrowser(urls) {
   await sleep(600); // Simulate browser launch + navigation
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock mode
-    return urls.map(url => {
-      let text = '';
-
-      if (url.includes('linkedin.com')) {
-        text = `
-          Example Company | LinkedIn
-
-          About: Enterprise software and cloud solutions company
-          Website: example.com
-          Industry: Computer Software
-          Company size: 501-1,000 employees
-          Headquarters: San Francisco, California
-          Type: Privately Held
-          Founded: 2015
-          Specialties: Cloud Computing, Enterprise Software, SaaS, Data Analytics
-
-          Overview:
-          Example Company provides innovative enterprise solutions that help businesses transform digitally.
-          Our platform serves 5,000+ customers globally with best-in-class reliability and security.
-
-          Recent Posts:
-          - Excited to announce our Series D funding round!
-          - Join us at TechConf 2026 next month
-          - We're hiring across engineering, sales, and customer success
-
-          Employees: 850+ on LinkedIn
-        `.trim();
-      } else if (url.includes('crunchbase.com')) {
-        text = `
-          Example Company - Crunchbase Company Profile
-
-          Overview:
-          Example Company is an enterprise software provider specializing in cloud infrastructure and analytics.
-
-          Funding: $425M total raised
-          - Series D: $250M (Apr 2026)
-          - Series C: $100M (May 2024)
-          - Series B: $50M (Aug 2022)
-          - Series A: $25M (Jan 2021)
-
-          Investors: Sequoia Capital, Andreessen Horowitz, Accel, Kleiner Perkins
-
-          Founders:
-          - Jane Smith (CEO)
-          - John Doe (CTO)
-
-          Headquarters: San Francisco, CA
-          Employees: 800-1000
-
-          Categories: Enterprise Software, Cloud Computing, SaaS, B2B
-
-          Recent News:
-          - Acquired DataViz Corp for $30M (Mar 2026)
-          - Launched AI-powered analytics suite (Feb 2026)
-        `.trim();
-      } else {
-        text = 'Generic page content for ' + url;
-      }
-
-      return { url, text, status: 200 };
-    });
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   // Real BD Scraping Browser via Playwright CDP
-  if (!BD_CUSTOMER_ID) {
+  if (!getCustomerId()) {
     throw new Error('BD_CUSTOMER_ID env var required for Scraping Browser (set in Railway environment)');
   }
   const { chromium } = await import('playwright-core');
-  const wsEndpoint = `wss://brd-customer-${BD_CUSTOMER_ID}:${BD_API_KEY}@brd.superproxy.io:9222`;
-  const browser = await chromium.connectOverCDP(wsEndpoint, { timeout: 30000 });
+  const wsEndpoint = `wss://brd-customer-${getCustomerId()}-zone-${getZoneBrowser()}:${getZoneBrowserPassword()}@brd.superproxy.io:9222`;
+
+  let browser;
+  try {
+    browser = await chromium.connectOverCDP(wsEndpoint, { timeout: 30000 });
+  } catch (err) {
+    throw new Error(`BD Scraping Browser zone="${getZoneBrowser()}" connection failed: ${err.message.slice(0, 200)}`);
+  }
+
   const results = [];
   try {
     for (const url of urls) {
@@ -237,7 +138,7 @@ export async function scrapingBrowser(urls) {
         const text = await page.evaluate(() => document.body.innerText);
         results.push({ url, text, status: 200 });
       } catch (err) {
-        results.push({ url, text: '', status: 500 });
+        throw new Error(`BD Scraping Browser zone="${getZoneBrowser()}" failed to load ${url}: ${err.message.slice(0, 200)}`);
       } finally {
         await page.close();
       }
@@ -256,34 +157,8 @@ export async function scrapingBrowser(urls) {
 export async function webScraperApi(url) {
   await sleep(200); // Simulate API latency
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
-    // Mock mode
-    const domain = new URL(url).hostname.replace('www.', '');
-    const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
-
-    return {
-      url,
-      company: {
-        name: `${companyName} Inc.`,
-        founded: 2015,
-        employees: '500-1000',
-        headquarters: 'San Francisco, CA',
-        description: `${companyName} is a leading provider of enterprise software solutions, serving over 5,000 customers worldwide with innovative cloud-based platforms and professional services.`,
-        funding: {
-          total: '$425M',
-          lastRound: 'Series D',
-          lastRoundAmount: '$250M',
-          lastRoundDate: '2026-04-22',
-          investors: ['Sequoia Capital', 'Andreessen Horowitz', 'Accel']
-        },
-        industries: ['Enterprise Software', 'Cloud Computing', 'SaaS'],
-        website: url,
-        socialMedia: {
-          linkedin: `https://linkedin.com/company/${domain.split('.')[0]}`,
-          twitter: `https://twitter.com/${domain.split('.')[0]}`
-        }
-      }
-    };
+  if (!getKey()) {
+    throw new Error('BD_API_KEY not configured — set in .env');
   }
 
   // Real implementation: use Web Unlocker on company About page
@@ -291,17 +166,37 @@ export async function webScraperApi(url) {
   const [homeResp, aboutResp] = await Promise.allSettled([
     fetch('https://api.brightdata.com/request', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${BD_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zone: 'unlocker', url, format: 'raw' })
+      headers: { 'Authorization': `Bearer ${getKey()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone: getZoneScraper(), url, format: 'raw' })
     }),
     fetch('https://api.brightdata.com/request', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${BD_API_KEY}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zone: 'unlocker', url: aboutUrl, format: 'raw' })
+      headers: { 'Authorization': `Bearer ${getKey()}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zone: getZoneScraper(), url: aboutUrl, format: 'raw' })
     })
   ]);
-  const homeText = homeResp.status === 'fulfilled' && homeResp.value.ok ? await homeResp.value.text() : '';
-  const aboutText = aboutResp.status === 'fulfilled' && aboutResp.value.ok ? await aboutResp.value.text() : '';
+
+  let homeText = '';
+  let aboutText = '';
+
+  if (homeResp.status === 'fulfilled' && homeResp.value.ok) {
+    homeText = await homeResp.value.text();
+  } else if (homeResp.status === 'fulfilled') {
+    const errorBody = await homeResp.value.text();
+    throw new Error(`BD Web Scraper API zone="${getZoneScraper()}" homepage status=${homeResp.value.status} body="${errorBody.slice(0, 200)}"`);
+  } else {
+    throw new Error(`BD Web Scraper API zone="${getZoneScraper()}" homepage failed: ${homeResp.reason?.message || 'unknown error'}`);
+  }
+
+  if (aboutResp.status === 'fulfilled' && aboutResp.value.ok) {
+    aboutText = await aboutResp.value.text();
+  } else if (aboutResp.status === 'fulfilled') {
+    const errorBody = await aboutResp.value.text();
+    throw new Error(`BD Web Scraper API zone="${getZoneScraper()}" about page status=${aboutResp.value.status} body="${errorBody.slice(0, 200)}"`);
+  } else {
+    throw new Error(`BD Web Scraper API zone="${getZoneScraper()}" about page failed: ${aboutResp.reason?.message || 'unknown error'}`);
+  }
+
   return {
     url,
     company: {
@@ -320,7 +215,7 @@ export async function webScraperApi(url) {
 export async function crawlApi(domain) {
   await sleep(2800);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - return 5 plausible pages
     const mockPages = [
       {
@@ -364,7 +259,7 @@ export async function crawlApi(domain) {
   const response = await fetch('https://api.brightdata.com/crawler/v1/crawl', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -387,14 +282,141 @@ export async function crawlApi(domain) {
 }
 
 /**
- * Discover API - find subdomains, related domains, and web properties (FREE)
+ * Discover API (NEW for hackathon) - intent-ranked web discovery (FREE tier)
+ * Async, two-step: fire task, poll for results
+ * @param {string} query - Search query (e.g. "Stripe payments company news 2026")
+ * @param {string} intent - Intent description (e.g. "find recent news and official pages about Stripe")
+ * @param {number} numResults - Number of results (default 10)
+ * @returns {Promise<{query: string, intent: string, results: Array, duration_seconds: number}>}
+ */
+export async function discoverApi(query, intent, numResults = 10) {
+  if (!getKey() || getKey() === 'STUB') {
+    // Mock mode - realistic intent-ranked discovery results
+    await sleep(4000);
+    const domain = query.split(' ')[0];
+    const mockResults = [
+      {
+        link: `https://${domain}/newsroom`,
+        title: `${domain} Newsroom - Latest Updates`,
+        description: `Official press releases and company news from ${domain}. Recent expansion announcements and product launches.`,
+        relevance_score: 0.92
+      },
+      {
+        link: `https://techcrunch.com/2026/05/${domain}-funding`,
+        title: `${domain} raises Series D funding round`,
+        description: `TechCrunch exclusive: ${domain} closes $250M Series D led by Sequoia Capital, bringing total funding to $500M+`,
+        relevance_score: 0.87
+      },
+      {
+        link: `https://${domain}/about`,
+        title: `About ${domain} - Company Overview`,
+        description: `Learn about ${domain}'s mission, team, and products. Founded in 2018 with offices across the US and Europe.`,
+        relevance_score: 0.85
+      },
+      {
+        link: `https://www.forbes.com/companies/${domain}`,
+        title: `${domain} Profile - Forbes`,
+        description: `Financial metrics, leadership team, and competitive analysis of ${domain}. Company valuation estimates and market position.`,
+        relevance_score: 0.81
+      },
+      {
+        link: `https://${domain}/blog/2026-product-roadmap`,
+        title: `2026 Product Roadmap - ${domain} Blog`,
+        description: `Exciting new features coming to ${domain} in 2026. AI-powered analytics, enhanced integrations, and global expansion.`,
+        relevance_score: 0.78
+      },
+      {
+        link: `https://venturebeat.com/${domain}-competitor-analysis`,
+        title: `How ${domain} stacks up against competitors`,
+        description: `Comparative analysis of ${domain} vs major players in the space. Market share, pricing, and feature comparison.`,
+        relevance_score: 0.74
+      },
+      {
+        link: `https://linkedin.com/company/${domain}`,
+        title: `${domain} on LinkedIn`,
+        description: `Follow ${domain} for company updates, job postings, and industry insights. 850+ employees and growing.`,
+        relevance_score: 0.71
+      },
+      {
+        link: `https://g2.com/products/${domain}/reviews`,
+        title: `${domain} Reviews & Ratings - G2`,
+        description: `Read verified customer reviews of ${domain}. 4.7/5 stars based on 2,300+ reviews. See what users love and areas for improvement.`,
+        relevance_score: 0.68
+      },
+      {
+        link: `https://crunchbase.com/organization/${domain}`,
+        title: `${domain} - Crunchbase Company Profile`,
+        description: `Complete funding history, acquisition details, investors, and leadership team information for ${domain}.`,
+        relevance_score: 0.65
+      },
+      {
+        link: `https://github.com/${domain}`,
+        title: `${domain} on GitHub`,
+        description: `Open source projects and developer resources from ${domain}. 34 public repositories with 15K+ stars combined.`,
+        relevance_score: 0.61
+      }
+    ];
+    return {
+      query,
+      intent,
+      results: mockResults.slice(0, numResults),
+      duration_seconds: 3.8
+    };
+  }
+
+  // Real BD Discover API - Step 1: fire task
+  const fireResp = await fetch('https://api.brightdata.com/discover', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${getKey()}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ query, num_results: numResults, intent })
+  });
+
+  if (!fireResp.ok) {
+    const body = await fireResp.text();
+    throw new Error(`BD Discover API status=${fireResp.status} body="${body.slice(0, 200)}"`);
+  }
+
+  const { task_id } = await fireResp.json();
+  if (!task_id) throw new Error('BD Discover API no task_id in response');
+
+  // Step 2: poll up to 15s
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 15000) {
+    await sleep(1000);
+    const pollResp = await fetch(`https://api.brightdata.com/discover?task_id=${task_id}`, {
+      headers: { 'Authorization': `Bearer ${getKey()}` }
+    });
+    if (!pollResp.ok) continue;
+    const data = await pollResp.json();
+    if (data.status === 'done') {
+      const results = (data.results || []).sort((a, b) => (b.relevance_score || 0) - (a.relevance_score || 0));
+      return {
+        query,
+        intent,
+        results,
+        duration_seconds: data.duration_seconds
+      };
+    }
+    if (data.status === 'error' || data.status === 'failed') {
+      throw new Error(`BD Discover API task failed: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+  }
+  throw new Error(`BD Discover API timeout after 15s (task_id=${task_id})`);
+}
+
+/**
+ * Legacy Discover API - find subdomains, related domains, and web properties (FREE)
+ * NOTE: Renamed to domainDiscoveryApi to avoid conflict with new Discover API
  * @param {string} domain - Target domain (e.g. "stripe.com")
  * @returns {Promise<{domain: string, subdomains: string[], relatedDomains: string[], webProperties: Array, totalFound: number}>}
  */
-export async function discoverApi(domain) {
+export async function domainDiscoveryApi(domain) {
   await sleep(1200);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - realistic discovery data
     const baseSlug = domain.split('.')[0];
     const tld = domain.split('.').slice(1).join('.');
@@ -433,11 +455,11 @@ export async function discoverApi(domain) {
     };
   }
 
-  // Real BD Discover API
+  // Real BD Domain Discovery API
   const response = await fetch('https://api.brightdata.com/discover/v1/search', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -465,7 +487,7 @@ export async function discoverApi(domain) {
 export async function linkedinScraperApi(companySlug) {
   await sleep(1800);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - realistic LinkedIn company data
     const companyName = companySlug.charAt(0).toUpperCase() + companySlug.slice(1);
 
@@ -505,7 +527,7 @@ export async function linkedinScraperApi(companySlug) {
   const response = await fetch('https://api.brightdata.com/datasets/v3/snapshot', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -542,7 +564,7 @@ export async function linkedinScraperApi(companySlug) {
 export async function socialMediaScraper(companySlug, domain) {
   await sleep(1500);
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - realistic social media data
     return {
       companySlug,
@@ -576,7 +598,7 @@ export async function socialMediaScraper(companySlug, domain) {
   const response = await fetch('https://api.brightdata.com/datasets/v3/snapshot', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -616,7 +638,7 @@ export async function socialMediaScraper(companySlug, domain) {
  * @returns {function} stopFn - Call to cancel the stream
  */
 export function dataFirehose(domain, onEvent, durationMs = 30000) {
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - emit 8 simulated events over ~15 seconds
     const mockEvents = [
       { source: 'reddit', url: `https://reddit.com/r/technology/comments/abc123/${domain.replace(/\./g, '_')}_discussion`, title: `Discussion: ${domain} new features`, snippet: `Just tried the new dashboard from ${domain}. Really impressed with the speed improvements and UI refinements. Anyone else using it?`, sentiment: 'positive', timestamp: new Date().toISOString() },
@@ -664,7 +686,7 @@ export function dataFirehose(domain, onEvent, durationMs = 30000) {
       const response = await fetch('https://api.brightdata.com/firehose/v1/stream', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${BD_API_KEY}`,
+          'Authorization': `Bearer ${getKey()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -722,6 +744,32 @@ export function dataFirehose(domain, onEvent, durationMs = 30000) {
 }
 
 /**
+ * Crawl Site - multi-page markdown scraping via BD MCP scrape_batch
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @returns {Promise<{domain: string, pages: Array, count: number}>}
+ */
+export async function crawlSite(domain) {
+  if (!getKey()) throw new Error('BD_API_KEY not configured — set in .env');
+
+  // Strategic URL paths — cap at 8 to stay under 10-URL limit + leave headroom
+  const CRAWL_PATHS = ['/', '/pricing', '/about', '/customers', '/careers', '/blog', '/contact', '/security'];
+
+  // Lazy import so connector module isn't tightly coupled to MCP client
+  const { mcpScrapeBatch } = await import('./bd-mcp-client.mjs');
+
+  const base = `https://${domain}`;
+  const urls = CRAWL_PATHS.map(p => base + p);
+
+  const result = await mcpScrapeBatch(urls);
+
+  return {
+    domain,
+    pages: result.pages,
+    count: result.count
+  };
+}
+
+/**
  * Deep Lookup API - web-scale indexed intelligence (BETA)
  * @param {string} domain - Target domain
  * @param {string[]} queries - Array of query strings
@@ -730,7 +778,7 @@ export function dataFirehose(domain, onEvent, durationMs = 30000) {
 export async function deepLookup(domain, queries = []) {
   await sleep(3500); // Simulate deep web analysis
 
-  if (!BD_API_KEY || BD_API_KEY === 'STUB') {
+  if (!getKey() || getKey() === 'STUB') {
     // Mock mode - realistic deep lookup intelligence
     const mockQueries = queries.length > 0 ? queries : [
       'What are their main revenue streams?',
@@ -801,7 +849,7 @@ export async function deepLookup(domain, queries = []) {
   const response = await fetch('https://api.brightdata.com/deep-lookup/v1/query', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${BD_API_KEY}`,
+      'Authorization': `Bearer ${getKey()}`,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({
@@ -820,4 +868,141 @@ export async function deepLookup(domain, queries = []) {
     totalSources: data.totalSources || 0,
     processingTime: data.processingTime || 0
   };
+}
+
+/**
+ * Custom error for dataset entitlement issues
+ */
+export class DatasetNotEntitledError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'DatasetNotEntitledError';
+    this.code = 'NOT_ENTITLED';
+  }
+}
+
+/**
+ * Datasets API - query pre-collected datasets (LinkedIn Companies, Crunchbase, etc.)
+ * Note: This is a paid BD product not included in trial accounts
+ * @param {string} dataset_id - Dataset ID (e.g. 'gd_l1viktl72bvl7bjuj0' for LinkedIn Companies)
+ * @param {string} filter_value - Value to filter by (e.g. domain like "stripe.com")
+ * @param {string} filter_name - Field to filter on (default: 'company_url')
+ * @param {number} recordsLimit - Max records to return (default: 1)
+ * @returns {Promise<Array>} - Dataset rows
+ */
+export async function queryDataset(dataset_id, filter_value, filter_name = 'company_url', recordsLimit = 1) {
+  if (!getKey() || getKey() === 'STUB') {
+    // Mock mode - return plausible LinkedIn Company data
+    await sleep(1500);
+    if (dataset_id === 'gd_l1viktl72bvl7bjuj0') {
+      return [{
+        company_name: filter_value.replace(/\.(com|io|net)$/, '').charAt(0).toUpperCase() + filter_value.slice(1, filter_value.indexOf('.')),
+        company_url: filter_value,
+        employees: '850',
+        employee_growth: '+12% YoY',
+        industry: 'Computer Software',
+        founded: '2018',
+        headquarters: 'San Francisco, CA',
+        funding_total: '$500M',
+        revenue_range: '$50M-$100M'
+      }];
+    } else if (dataset_id === 'gd_l1vijqt9jfj7olije') {
+      // Crunchbase Companies mock
+      return [{
+        company_name: filter_value.replace(/\.(com|io|net)$/, '').charAt(0).toUpperCase() + filter_value.slice(1, filter_value.indexOf('.')),
+        domain: filter_value,
+        total_funding_usd: 500000000,
+        last_funding_type: 'Series D',
+        last_funding_date: '2026-04-15',
+        investors: 'Sequoia Capital, Andreessen Horowitz',
+        valuation_usd: 2000000000
+      }];
+    }
+    return [];
+  }
+
+  // Real BD Datasets API - try multiple endpoint patterns
+  // Pattern 1: /datasets/v3/filter (documented endpoint)
+  let response = await fetch('https://api.brightdata.com/datasets/v3/filter', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${getKey()}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      dataset_id,
+      filter: {
+        operator: '=',
+        name: filter_name,
+        value: filter_value
+      },
+      records_limit: recordsLimit
+    })
+  });
+
+  // If v3/filter doesn't work, try snapshot pattern (used in linkedinScraperApi)
+  if (!response.ok && response.status === 404) {
+    response = await fetch('https://api.brightdata.com/datasets/v3/snapshot', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${getKey()}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        dataset_id,
+        params: [{
+          [filter_name]: filter_value
+        }]
+      })
+    });
+  }
+
+  // Check if endpoint exists
+  if (!response.ok && (response.status === 404 || response.status === 405)) {
+    const body = await response.text();
+    if (body.includes('Cannot POST') || body.includes('Cannot GET') || body.includes('Not found')) {
+      throw new DatasetNotEntitledError('Datasets API not available on trial tier - requires paid subscription');
+    }
+  }
+
+  // Check for entitlement/subscription errors
+  if (!response.ok && (response.status === 402 || response.status === 403)) {
+    const body = await response.text();
+    throw new DatasetNotEntitledError(`Datasets API requires subscription (status ${response.status}): ${body.slice(0, 200)}`);
+  }
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(`BD Datasets API status=${response.status} body="${body.slice(0, 200)}"`);
+  }
+
+  const data = await response.json();
+
+  // Handle async snapshot pattern
+  if (data.snapshot_id) {
+    const snapshot_id = data.snapshot_id;
+    const startedAt = Date.now();
+
+    // Poll up to 15s
+    while (Date.now() - startedAt < 15000) {
+      await sleep(1000);
+      const pollResp = await fetch(`https://api.brightdata.com/datasets/v3/snapshot/${snapshot_id}?format=json`, {
+        headers: { 'Authorization': `Bearer ${getKey()}` }
+      });
+
+      if (!pollResp.ok) continue;
+
+      const pollData = await pollResp.json();
+      if (pollData.status === 'ready') {
+        return pollData.rows || pollData.records || [];
+      }
+      if (pollData.status === 'error' || pollData.status === 'failed') {
+        throw new Error(`BD Datasets snapshot failed: ${JSON.stringify(pollData).slice(0, 200)}`);
+      }
+    }
+    throw new Error(`BD Datasets timeout after 15s (snapshot_id=${snapshot_id})`);
+  }
+
+  // Direct response with rows
+  return data.rows || data.records || data.results || [];
 }
