@@ -101,20 +101,98 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   })();
 
   const scrapingBrowserPromise = (async () => {
+    let firstAttemptError = null;
+
+    // Attempt 1
     emitter.emit('event', {
       agent: 'bd-scraping-browser',
       status: 'launching',
       urls: [linkedinUrl, crunchbaseUrl],
       elapsed: parseFloat(elapsed())
     });
-    const result = await scrapingBrowser([linkedinUrl, crunchbaseUrl]);
-    emitter.emit('event', {
-      agent: 'bd-scraping-browser',
-      status: 'complete',
-      pages: result.length,
-      elapsed: parseFloat(elapsed())
-    });
-    return result;
+
+    try {
+      const result = await scrapingBrowser([linkedinUrl, crunchbaseUrl]);
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'complete',
+        pages: result.length,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      firstAttemptError = err;
+      // Attempt 2 - retry after cooldown
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'retrying',
+        attempt: 2,
+        reason: (err.message || String(err)).slice(0, 120),
+        elapsed: parseFloat(elapsed())
+      });
+
+      await sleep(1000);
+
+      try {
+        const result = await scrapingBrowser([linkedinUrl, crunchbaseUrl]);
+        emitter.emit('event', {
+          agent: 'bd-scraping-browser',
+          status: 'complete',
+          pages: result.length,
+          retried: true,
+          elapsed: parseFloat(elapsed())
+        });
+        return result;
+      } catch (err2) {
+        // Fallback to webScraperApi
+        emitter.emit('event', {
+          agent: 'bd-scraping-browser',
+          status: 'fallback',
+          target: 'bd-web-scraper',
+          elapsed: parseFloat(elapsed())
+        });
+
+        const fallbackResults = await Promise.allSettled([
+          webScraperApi(linkedinUrl).catch(e => null),
+          webScraperApi(crunchbaseUrl).catch(e => null)
+        ]);
+
+        const pages = [];
+        const [linkedinResult, crunchbaseResult] = fallbackResults;
+
+        if (linkedinResult.status === 'fulfilled' && linkedinResult.value) {
+          pages.push({
+            url: linkedinUrl,
+            title: linkedinResult.value.company?.name || '',
+            content: JSON.stringify(linkedinResult.value).slice(0, 5000),
+            source: 'fallback-web-scraper'
+          });
+        }
+
+        if (crunchbaseResult.status === 'fulfilled' && crunchbaseResult.value) {
+          pages.push({
+            url: crunchbaseUrl,
+            title: crunchbaseResult.value.company?.name || '',
+            content: JSON.stringify(crunchbaseResult.value).slice(0, 5000),
+            source: 'fallback-web-scraper'
+          });
+        }
+
+        if (pages.length > 0) {
+          emitter.emit('event', {
+            agent: 'bd-scraping-browser',
+            status: 'complete',
+            pages: pages.length,
+            fallback: true,
+            elapsed: parseFloat(elapsed())
+          });
+          return pages;
+        }
+
+        // All paths exhausted - throw original error
+        throw firstAttemptError;
+      }
+    }
   })();
 
   const webScraperPromise = (async () => {

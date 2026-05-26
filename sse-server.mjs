@@ -164,6 +164,68 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     return;
   }
 
+  // PRE-RECORDED FLAGSHIP REPLAY — check if we have cached events
+  const nocache = req.query.nocache === '1';
+  if (!nocache) {
+    const flagshipPath = path.join(process.cwd(), 'cache', 'flagship', `${domain}-${mode}.json`);
+    if (fs.existsSync(flagshipPath)) {
+      try {
+        const recording = JSON.parse(fs.readFileSync(flagshipPath, 'utf-8'));
+        console.log(`[replay] ${domain}/${mode}: serving from flagship cache (${recording.eventCount} events)`);
+
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+
+        const SPEEDUP = 5;
+        const replayStart = Date.now();
+        const timeouts = [];
+
+        // Emit replay header
+        res.write(`data: ${JSON.stringify({
+          type: 'cached-replay',
+          speed: SPEEDUP,
+          recorded: recording.recordedAt,
+          domain,
+          mode
+        })}\n\n`);
+
+        // Schedule all events
+        recording.events.forEach((evt, idx) => {
+          const delay = evt.ts / SPEEDUP;
+          const tid = setTimeout(() => {
+            if (!res.writableEnded) {
+              res.write(`data: ${JSON.stringify(evt.data)}\n\n`);
+
+              // Close after last event
+              if (idx === recording.events.length - 1) {
+                setTimeout(() => res.end(), 50);
+              }
+            }
+          }, delay);
+          timeouts.push(tid);
+        });
+
+        // Keep ping alive during replay
+        const ping = setInterval(() => {
+          if (!res.writableEnded) res.write(': ping\n\n');
+        }, 15000);
+        timeouts.push(ping);
+
+        // Clean up on client disconnect
+        req.on('close', () => {
+          timeouts.forEach(t => clearTimeout(t));
+          clearInterval(ping);
+        });
+
+        return;
+      } catch (replayErr) {
+        console.error(`[replay] ${domain}/${mode}: failed to load cache:`, replayErr.message);
+        // Fall through to live path
+      }
+    }
+  }
+
   // Set SSE headers for fresh run
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
@@ -175,7 +237,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   });
 
-  const timeoutMs = mode === 'bundle' ? 300000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 300000 : mode === 'agentic' ? 150000 : 120000);
+  const timeoutMs = mode === 'bundle' ? 300000 : (mode === 'deep' ? 120000 : mode === 'seo' || mode === 'redteam' ? 300000 : mode === 'agentic' ? 150000 : 240000);
   const timeoutSecs = timeoutMs / 1000;
   const timeout = setTimeout(() => {
     res.write(`data: ${JSON.stringify({

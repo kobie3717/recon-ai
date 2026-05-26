@@ -5,6 +5,12 @@ import ReactMarkdown from 'react-markdown';
 import { downloadPdf } from '@/lib/downloadPdf';
 import GraphView from './GraphView';
 
+function getSectionPills(sectionName: string, sources?: any[]) {
+  if (!sources?.length) return [];
+  const target = sectionName.toLowerCase();
+  return sources.filter(s => Array.isArray(s.sections) && s.sections.some((sec: string) => sec.toLowerCase() === target));
+}
+
 interface ReportPanelProps {
   content?: string;
   reportData?: any;
@@ -232,7 +238,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             <div className="grid grid-cols-2 gap-4">
               {reportData.snapshot && (
                 <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                  <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Company Snapshot</h3>
+                  <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                    <h3 className="text-recon-cyan font-bold text-sm uppercase">Company Snapshot</h3>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {getSectionPills('Company Snapshot', reportData.sources).map((source, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                          <span>{source.icon}</span>
+                          <span>{source.tool.replace(/^BD /, '')}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Founded</span>
@@ -264,7 +280,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
               {reportData.financials && (
                 <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                  <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Financials</h3>
+                  <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                    <h3 className="text-recon-cyan font-bold text-sm uppercase">Financials</h3>
+                    <div className="flex items-center gap-1 flex-wrap">
+                      {getSectionPills('Financials', reportData.sources).map((source, idx) => (
+                        <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                          <span>{source.icon}</span>
+                          <span>{source.tool.replace(/^BD /, '')}</span>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Total Raised</span>
@@ -300,7 +326,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Recent Signals */}
             {reportData.news && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Recent Signals</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Recent Signals</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Recent Signals', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -335,7 +371,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Products */}
             {reportData.products && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Products</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Products</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Products', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-2">
                   {reportData.products.map((product: any, idx: number) => (
                     <div key={idx} className="text-sm">
@@ -350,7 +396,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Competitive Position */}
             {reportData.competitive && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Competitive Position</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Competitive Position</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Competitive Position', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
@@ -389,7 +445,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Hiring Signals */}
             {reportData.hiring && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Hiring Signals</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Hiring Signals</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Hiring Signals', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-3">
                   {reportData.hiring.map((hire: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-3">
@@ -406,7 +472,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Strategic Direction */}
             {reportData.strategic && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Strategic Direction</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Strategic Direction</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Strategic Direction', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-3">
                   {reportData.strategic.map((strategy: string, idx: number) => (
                     <div key={idx} className="flex gap-3 text-sm">
@@ -462,7 +538,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             {/* Deep Search Extras */}
             {reportData.techStack && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Tech Stack</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Tech Stack</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Tech Stack', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-3">
                   {reportData.techStack.map((stack: any, idx: number) => (
                     <div key={idx}>
@@ -482,7 +568,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
             {reportData.github && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">GitHub Intelligence</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">GitHub Intelligence</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('GitHub Intelligence', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="text-recon-grey">Repos:</span>
@@ -510,7 +606,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
             {reportData.reviews && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Customer Reviews</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Customer Reviews</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Customer Reviews', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-recon-grey">G2 Score</span>
@@ -523,7 +629,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
             {reportData.glassdoor && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Glassdoor</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Glassdoor</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Glassdoor', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div className="flex justify-between">
                     <span className="text-recon-grey">Rating</span>
@@ -548,7 +664,17 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
             {reportData.risks && (
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Risk Factors</h3>
+                <div className="flex items-center justify-between gap-2 mb-3 flex-wrap">
+                  <h3 className="text-recon-cyan font-bold text-sm uppercase">Risk Factors</h3>
+                  <div className="flex items-center gap-1 flex-wrap">
+                    {getSectionPills('Risk Factors', reportData.sources).map((source, idx) => (
+                      <span key={idx} className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-recon-blue/10 border border-recon-blue/30 text-[10px] text-recon-cyan font-mono" title={source.target}>
+                        <span>{source.icon}</span>
+                        <span>{source.tool.replace(/^BD /, '')}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>

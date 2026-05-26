@@ -16,17 +16,19 @@ interface UrlInputProps {
 }
 
 const reportModes = [
-  { mode: 'standard' as Mode, label: 'Business Intelligence', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors' },
-  { mode: 'agentic' as Mode, label: 'AI Auto-Recon', cost: 2.5, color: 'purple-glow', icon: '🧠', description: '2-round self-directing intelligence: AI agent decides follow-up queries' },
-  { mode: 'person' as Mode, label: 'Executive Profile', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes' },
-  { mode: 'footprint' as Mode, label: 'Brand Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties' },
-  { mode: 'mcp' as Mode, label: 'Quick Scan', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost' },
-  { mode: 'watch' as Mode, label: 'Live Monitor', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear' },
-  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals' },
-  { mode: 'lookup' as Mode, label: 'Market Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights' },
-  { mode: 'redteam' as Mode, label: 'Security Audit', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks' },
-  { mode: 'deep' as Mode, label: 'Deep Investigation', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more' },
-  { mode: 'bundle' as Mode, label: 'Executive Summary', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report' },
+  // Verified modes (ship visible)
+  { mode: 'standard' as Mode, label: 'Business Intelligence', cost: 2.0, color: 'blue', icon: '', description: 'Company snapshot: funding, hiring, products, competitors', verified: true },
+  { mode: 'agentic' as Mode, label: 'AI Auto-Recon', cost: 2.5, color: 'purple-glow', icon: '🧠', description: '2-round self-directing intelligence: AI agent decides follow-up queries', verified: true },
+  { mode: 'footprint' as Mode, label: 'Brand Footprint', cost: 3.0, color: 'teal', icon: '🔭', description: 'Digital footprint: subdomains, social accounts, web properties', verified: true },
+  // Unverified modes (coming soon)
+  { mode: 'person' as Mode, label: 'Executive Profile', cost: 1.5, color: 'purple', icon: '👤', description: 'Executive profile: career history, network, public quotes', verified: false },
+  { mode: 'mcp' as Mode, label: 'Quick Scan', cost: 2.0, color: 'orange', icon: '🔗', description: 'BD MCP tools: search + scrape in parallel, $0 data cost', verified: false },
+  { mode: 'watch' as Mode, label: 'Live Monitor', cost: 0.0, color: 'green', icon: '●', description: 'Live stream: real-time web mentions as they appear', verified: false },
+  { mode: 'seo' as Mode, label: 'SEO Analysis', cost: 5.0, color: 'yellow', icon: '📈', description: 'SEO analysis: keywords, backlinks, Core Web Vitals', verified: false },
+  { mode: 'lookup' as Mode, label: 'Market Lookup', cost: 8.0, color: 'violet', icon: '🔬', description: 'Deep Lookup: 47+ web-scale sources, revenue & tech insights', verified: false },
+  { mode: 'redteam' as Mode, label: 'Security Audit', cost: 12.0, color: 'red', icon: '⚔', description: 'Security audit: attack surface, CVEs, social engineering risks', verified: false },
+  { mode: 'deep' as Mode, label: 'Deep Investigation', cost: 15.0, color: 'indigo', icon: '✦', description: '10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase and more', verified: false },
+  { mode: 'bundle' as Mode, label: 'Executive Summary', cost: 25.0, color: 'black', icon: '★', description: 'All three: Standard + SEO + Red Team in one report', verified: false },
 ];
 
 function looksLikePerson(input: string): boolean {
@@ -127,19 +129,20 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
       <div className="relative">
         <div className="bg-recon-navy/50 border-b border-recon-blue/20 px-2 py-2 md:px-4 grid grid-cols-2 gap-1.5 md:flex md:items-center md:gap-3 md:overflow-x-auto" style={{ touchAction: 'manipulation' }}>
           {!compareMode ? (
-            reportModes.map(({ mode, label, cost, color, icon, description }) => {
+            reportModes.map(({ mode, label, cost, color, icon, description, verified }) => {
               const isPersonMode = mode === 'person';
               const disabledByContext = hasInput && (isPersonMode ? hasDot : !hasDot);
+              const isDisabled = isRunning || !hasInput || disabledByContext || !verified;
               return (
                 <button
                   key={mode}
                   onClick={() => onGenerate(url, mode, cost)}
-                  disabled={isRunning || !hasInput || disabledByContext}
+                  disabled={isDisabled}
                   className={buttonClasses(color, isPersonMode && isPerson)}
                   title={description}
                 >
                   {icon && <span className="mr-1">{icon}</span>}
-                  {label} {cost > 0 ? `$${cost.toFixed(2)}` : 'FREE'}
+                  {label} {!verified ? 'Coming soon' : (cost > 0 ? `$${cost.toFixed(2)}` : 'FREE')}
                 </button>
               );
             })

@@ -13,3 +13,8 @@ gen_pdf.py
 gen_deep_pdf.py
 generate_pitch_deck.py
 pitch-deck.html
+
+# dev scratch
+test-synthesis.mjs
+screenshot-test.js
+recon-ui/tsconfig.tsbuildinfo
