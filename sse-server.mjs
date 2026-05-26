@@ -341,42 +341,31 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       await new Promise(r => setTimeout(r, 100));
 
       // Run all BD agents once — shared facts for all 3 synthesis calls
-      const bp1 = (async () => {
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6800, elapsed: bElapsed() });
-      })();
-      const bp2 = (async () => {
-        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} company news funding security seo`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 300));
-        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 12, elapsed: bElapsed() });
-      })();
-      const bp3 = (async () => {
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/company/${domain.split('.')[0]}`, `crunchbase.com/organization/${domain.split('.')[0]}`], elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 600));
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 4, elapsed: bElapsed() });
-      })();
-      const bp4 = (async () => {
-        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} intelligence security seo backlinks`, elapsed: bElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 10, elapsed: bElapsed() });
-      })();
+      // Get facts from standard worker with real event streaming
+      // Use a filter emitter to suppress 007-bot/circus events (we handle those at bundle level)
+      const { EventEmitter: EE } = await import('events');
+      const filterEmitter = new EE();
+      filterEmitter.on('event', (evt) => {
+        // Pass through all BD agent events, but suppress 007-bot/circus events
+        // (we emit those at bundle level with correct total cost)
+        if (evt.agent !== '007-bot' && evt.agent !== 'circus') {
+          emitter.emit('event', evt);
+        }
+      });
 
-      await Promise.all([bp1, bp2, bp3, bp4]);
-      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: bElapsed() });
-      await new Promise(r => setTimeout(r, 200));
-
-      // Synthesize all 3 in parallel
-      emitter.emit('event', { agent: 'claude', status: 'synthesizing', task: 'standard intelligence', elapsed: bElapsed() });
-
-      // Get facts from standard worker for proper synthesis
       let facts = {};
       try {
-        const workerResult = await runStandardWorker(domain, new (await import('events')).EventEmitter(), 'standard');
+        const workerResult = await runStandardWorker(domain, filterEmitter, 'standard');
         facts = workerResult.facts || {};
       } catch (e) {
         console.error('[bundle] facts collection failed:', e.message);
       }
+
+      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: Object.keys(facts).length, elapsed: bElapsed() });
+      await new Promise(r => setTimeout(r, 200));
+
+      // Synthesize all 3 in parallel
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', task: 'standard intelligence', elapsed: bElapsed() });
 
       if (!anthropic) {
         throw new Error('ANTHROPIC_API_KEY not configured — bundle mode requires synthesis');
@@ -407,6 +396,10 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       costBreakdown.total = parseFloat(totalCost.toFixed(2));
 
       const elapsed = (Date.now() - startTime) / 1000;
+
+      // Final completion event with total cost
+      emitter.emit('event', { agent: '007-bot', status: 'complete', elapsed: bElapsed(), cost: costBreakdown.total });
+
       report = {
         standard: standardResult.report,
         seo: seoResult.report,
