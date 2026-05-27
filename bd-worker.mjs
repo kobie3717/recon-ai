@@ -1319,3 +1319,417 @@ export async function runAgenticFollowups(signals, emitter) {
   }
   return followupData;
 }
+
+/**
+ * Red Team security worker - 6 parallel BD calls for security intelligence
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @param {string} mode - Recon mode (redteam)
+ * @returns {Promise<Object>} - Final report data
+ */
+export async function runRedteamWorker(domain, emitter, mode = 'redteam') {
+  const startTime = Date.now();
+  const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
+
+  const companySlug = domain.split('.')[0];
+  const companyName = companySlug.charAt(0).toUpperCase() + companySlug.slice(1);
+  const facts = {};
+
+  // 1. BD Web Unlocker - fetch homepage
+  const webUnlockerPromise = (async () => {
+    const homepage = `https://${domain}`;
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'fetching',
+      url: homepage,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await webUnlocker(homepage);
+    facts.homepage = result;
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'complete',
+      chars: result.chars,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 2. BD SERP - CVE search on NVD
+  const serpCvePromise = (async () => {
+    const query = `site:nvd.nist.gov "${companyName}"`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(query);
+    facts.cve = result;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      note: 'CVE database scan',
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 3. BD SERP - breach/leak search
+  const serpBreachPromise = (async () => {
+    const query = `"${domain}" breach OR leaked OR exposed 2024 2025 2026`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(query);
+    facts.breach = result;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      note: 'breach incidents',
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 4. BD SERP - GitHub leak search
+  const serpGithubPromise = (async () => {
+    const query = `site:github.com "${domain}" "api_key" OR "secret"`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(query);
+    facts.githubLeaks = result;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      note: 'GitHub credential leaks',
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 5. BD Scraping Browser - 3 security URLs
+  const scrapingBrowserPromise = (async () => {
+    const urls = [
+      `https://crt.sh/?q=%25.${domain}`,
+      `https://www.ssllabs.com/ssltest/analyze.html?d=${domain}&fromCache=on&maxAge=24`,
+      `https://hackerone.com/${companySlug}`
+    ];
+    emitter.emit('event', {
+      agent: 'bd-scraping-browser',
+      status: 'launching',
+      urls,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const result = await scrapingBrowser(urls);
+      facts.securityPages = result;
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'complete',
+        pages: result.length,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      // Graceful fallback - some URLs may 404
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'partial',
+        reason: err.message.slice(0, 120),
+        elapsed: parseFloat(elapsed())
+      });
+      return [];
+    }
+  })();
+
+  // 6. BD MCP Ask Assistant - security incidents
+  const mcpAskPromise = (async () => {
+    const question = `What are the top 5 documented security incidents at ${companyName} between 2023-2026? Include source URLs if available.`;
+    emitter.emit('event', {
+      agent: 'bd-mcp',
+      status: 'asking',
+      question: question.slice(0, 60) + '...',
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const { mcpAskAssistant } = await import('./bd-mcp-client.mjs');
+      const result = await mcpAskAssistant(question);
+      facts.assistant = result;
+      emitter.emit('event', {
+        agent: 'bd-mcp',
+        status: 'complete',
+        chars: result.answer?.length || 0,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      emitter.emit('event', {
+        agent: 'bd-mcp',
+        status: 'unavailable',
+        reason: err.message,
+        elapsed: parseFloat(elapsed())
+      });
+      return { question, answer: '' };
+    }
+  })();
+
+  // Wait for all to complete
+  const settled = await Promise.allSettled([
+    webUnlockerPromise,
+    serpCvePromise,
+    serpBreachPromise,
+    serpGithubPromise,
+    scrapingBrowserPromise,
+    mcpAskPromise
+  ]);
+
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
+  const names = ['bd-web-unlocker', 'bd-serp-cve', 'bd-serp-breach', 'bd-serp-github', 'bd-scraping-browser', 'bd-mcp'];
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      bdHealth.ok++;
+    } else {
+      bdHealth.failed++;
+      const errorMsg = r.reason?.message || 'unknown error';
+      bdHealth.errors.push(`${names[i]}: ${errorMsg.slice(0, 120)}`);
+      console.error(`[bd-worker] ${names[i]} failed:`, errorMsg);
+    }
+  });
+
+  // AI-IQ storage
+  emitter.emit('event', {
+    agent: 'ai-iq',
+    status: 'storing',
+    facts: Object.keys(facts).length,
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(100);
+
+  // Cost breakdown
+  const costBreakdown = {
+    webUnlocker: 0.30,
+    serpApi: 1.50,  // 3 SERP calls
+    scrapingBrowser: 0.80,
+    bdMcp: 0.20
+  };
+  const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+
+  const result = {
+    domain,
+    mode: 'redteam',
+    facts,
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost,
+    costBreakdown,
+    bdHealth
+  };
+
+  return result;
+}
+
+/**
+ * SEO intelligence worker - 4 parallel BD calls for SEO analysis
+ * @param {string} domain - Target domain (e.g. "stripe.com")
+ * @param {EventEmitter} emitter - Event stream for real-time updates
+ * @param {string} mode - Recon mode (seo)
+ * @returns {Promise<Object>} - Final report data
+ */
+export async function runSeoWorker(domain, emitter, mode = 'seo') {
+  const startTime = Date.now();
+  const elapsed = () => ((Date.now() - startTime) / 1000).toFixed(2);
+
+  const companySlug = domain.split('.')[0];
+  const facts = {};
+
+  // 1. BD Web Unlocker - fetch homepage
+  const webUnlockerPromise = (async () => {
+    const homepage = `https://${domain}`;
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'fetching',
+      url: homepage,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await webUnlocker(homepage);
+    facts.homepage = result;
+    emitter.emit('event', {
+      agent: 'bd-web-unlocker',
+      status: 'complete',
+      chars: result.chars,
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 2. BD Scraping Browser - sitemap + robots.txt
+  const scrapingBrowserPromise = (async () => {
+    const urls = [
+      `https://${domain}/sitemap.xml`,
+      `https://${domain}/robots.txt`
+    ];
+    emitter.emit('event', {
+      agent: 'bd-scraping-browser',
+      status: 'launching',
+      urls,
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const result = await scrapingBrowser(urls);
+      facts.seoFiles = result;
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'complete',
+        pages: result.length,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      // Graceful fallback - some sites may not have these files
+      emitter.emit('event', {
+        agent: 'bd-scraping-browser',
+        status: 'partial',
+        reason: err.message.slice(0, 120),
+        elapsed: parseFloat(elapsed())
+      });
+      return [];
+    }
+  })();
+
+  // 3. BD SERP - site indexing check
+  const serpRankingsPromise = (async () => {
+    const query = `site:${domain}`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(query);
+    facts.rankings = result;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      note: 'indexed pages',
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 4. BD SERP - competitors/keywords
+  const serpCompetitorsPromise = (async () => {
+    const query = `"${companySlug}" SEO ranking keywords competitors`;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'searching',
+      query,
+      elapsed: parseFloat(elapsed())
+    });
+    const result = await serpApi(query);
+    facts.competitors = result;
+    emitter.emit('event', {
+      agent: 'bd-serp',
+      status: 'complete',
+      results: result.results.length,
+      note: 'competitive analysis',
+      elapsed: parseFloat(elapsed())
+    });
+    return result;
+  })();
+
+  // 5. BD MCP Ask Assistant - SEO intel
+  const mcpAskPromise = (async () => {
+    const question = `What are ${domain}'s organic search rankings, estimated traffic, and top keywords?`;
+    emitter.emit('event', {
+      agent: 'bd-mcp',
+      status: 'asking',
+      question: question.slice(0, 60) + '...',
+      elapsed: parseFloat(elapsed())
+    });
+    try {
+      const { mcpAskAssistant } = await import('./bd-mcp-client.mjs');
+      const result = await mcpAskAssistant(question);
+      facts.assistant = result;
+      emitter.emit('event', {
+        agent: 'bd-mcp',
+        status: 'complete',
+        chars: result.answer?.length || 0,
+        elapsed: parseFloat(elapsed())
+      });
+      return result;
+    } catch (err) {
+      emitter.emit('event', {
+        agent: 'bd-mcp',
+        status: 'unavailable',
+        reason: err.message,
+        elapsed: parseFloat(elapsed())
+      });
+      return { question, answer: '' };
+    }
+  })();
+
+  // Wait for all to complete
+  const settled = await Promise.allSettled([
+    webUnlockerPromise,
+    scrapingBrowserPromise,
+    serpRankingsPromise,
+    serpCompetitorsPromise,
+    mcpAskPromise
+  ]);
+
+  const bdHealth = { ok: 0, failed: 0, errors: [] };
+  const names = ['bd-web-unlocker', 'bd-scraping-browser', 'bd-serp-rankings', 'bd-serp-competitors', 'bd-mcp'];
+  settled.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      bdHealth.ok++;
+    } else {
+      bdHealth.failed++;
+      const errorMsg = r.reason?.message || 'unknown error';
+      bdHealth.errors.push(`${names[i]}: ${errorMsg.slice(0, 120)}`);
+      console.error(`[bd-worker] ${names[i]} failed:`, errorMsg);
+    }
+  });
+
+  // AI-IQ storage
+  emitter.emit('event', {
+    agent: 'ai-iq',
+    status: 'storing',
+    facts: Object.keys(facts).length,
+    elapsed: parseFloat(elapsed())
+  });
+
+  await sleep(100);
+
+  // Cost breakdown
+  const costBreakdown = {
+    webUnlocker: 0.30,
+    serpApi: 1.00,  // 2 SERP calls
+    scrapingBrowser: 0.80,
+    bdMcp: 0.20
+  };
+  const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
+
+  const result = {
+    domain,
+    mode: 'seo',
+    facts,
+    elapsed: parseFloat(elapsed()),
+    cost: totalCost,
+    costBreakdown,
+    bdHealth
+  };
+
+  return result;
+}

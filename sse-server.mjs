@@ -7,8 +7,8 @@ import cors from 'cors';
 import rateLimit from 'express-rate-limit';
 import { EventEmitter } from 'events';
 import Anthropic from '@anthropic-ai/sdk';
-import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker, runAgenticFollowups } from './bd-worker.mjs';
-import { dataFirehose } from './bright-data-connector.mjs';
+import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker, runAgenticFollowups, runRedteamWorker, runSeoWorker } from './bd-worker.mjs';
+import { dataFirehose, serpApi, scrapingBrowser } from './bright-data-connector.mjs';
 import { startMonitorScheduler, getMonitorState, updateMonitorState, getDiffHistory, triggerDomainCheck } from './monitor-scheduler.mjs';
 import { createClaudeClient, calculateClaudeCost as adapterCalculateClaudeCost } from './claude-adapter.mjs';
 import dotenv from 'dotenv';
@@ -268,25 +268,53 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     let report;
 
     if (mode === 'person') {
-      // Person search mode - simulate pipeline and synthesize
+      // Person search mode - REAL BD scrape
       const personName = domain; // domain param contains person name for person mode
       const startTime = Date.now();
+      const personElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
 
       emitter.emit('event', { agent: '007-bot', status: 'received', domain: personName, elapsed: 0 });
-      await new Promise(r => setTimeout(r, 300));
-      emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `"${personName}" executive background`, elapsed: 0.3 });
-      await new Promise(r => setTimeout(r, 400));
-      emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 8, elapsed: 1.5 });
-      emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`linkedin.com/in/${personName.toLowerCase().replace(/\s+/g, '-')}`], elapsed: 1.5 });
-      await new Promise(r => setTimeout(r, 500));
-      emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 2, elapsed: 3.5 });
-      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: 3.5 });
+      await new Promise(r => setTimeout(r, 50));
+
+      const facts = {};
+
+      // REAL BD SERP search
+      const serpQuery = `"${personName}" CEO OR founder OR executive`;
+      emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: serpQuery, elapsed: personElapsed() });
+      let serpResults;
+      try {
+        serpResults = await serpApi(serpQuery);
+        facts.search = serpResults;
+        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: serpResults.results.length, elapsed: personElapsed() });
+      } catch (err) {
+        emitter.emit('event', { agent: 'bd-serp', status: 'error', reason: err.message.slice(0, 120), elapsed: personElapsed() });
+        serpResults = { results: [] };
+      }
+
+      // REAL BD Scraping Browser - scrape top 3 SERP results (NOT LinkedIn - gated on trial)
+      const topUrls = serpResults.results.slice(0, 3).map(r => r.url).filter(Boolean);
+      if (topUrls.length > 0) {
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: topUrls, elapsed: personElapsed() });
+        try {
+          const scrapedPages = await scrapingBrowser(topUrls);
+          facts.scraped = scrapedPages;
+          emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: scrapedPages.length, elapsed: personElapsed() });
+        } catch (err) {
+          emitter.emit('event', { agent: 'bd-scraping-browser', status: 'partial', reason: err.message.slice(0, 120), elapsed: personElapsed() });
+          facts.scraped = [];
+        }
+      } else {
+        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'skipped', reason: 'no SERP results to scrape', elapsed: personElapsed() });
+        facts.scraped = [];
+      }
+
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: personElapsed() });
 
       if (anthropic) {
-        const synthResult = await synthesizePersonWithClaude(personName);
+        const synthResult = await synthesizePersonWithClaude(personName, facts);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
-        report.cost = { serpApi: 0.50, webScraperApi: 0.40, claude: claudeCost, total: parseFloat((0.90 + claudeCost).toFixed(2)) };
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
+        report.cost = { serpApi: 0.50, scrapingBrowser: 0.80, claude: claudeCost, total: parseFloat((1.30 + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
@@ -296,51 +324,18 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = { elapsed, domain: personName, mode: 'person' };
     } else if (mode === 'redteam') {
       const startTime = Date.now();
-
       emitter.emit('event', { agent: '007-bot', status: 'received', domain, elapsed: 0 });
-      await new Promise(r => setTimeout(r, 200));
+      await new Promise(r => setTimeout(r, 50));
+      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.05 });
 
-      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.2 });
-      await new Promise(r => setTimeout(r, 100));
-
-      // Fire security scouts in parallel
-      const secElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
-
-      const p1 = (async () => {
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 4821, elapsed: secElapsed() });
-      })();
-
-      const p2 = (async () => {
-        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `${domain} security breach CVE vulnerability`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 300));
-        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: secElapsed() });
-      })();
-
-      const p3 = (async () => {
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`shodan.io/search?query=${domain}`, `securityheaders.com/?q=${domain}`], elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 600));
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: secElapsed() });
-      })();
-
-      const p4 = (async () => {
-        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} bug bounty exposed API data breach`, elapsed: secElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 6, elapsed: secElapsed() });
-      })();
-
-      await Promise.all([p1, p2, p3, p4]);
-
-      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: secElapsed() });
-      await new Promise(r => setTimeout(r, 300));
-      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: secElapsed() });
+      const workerResult = await runRedteamWorker(domain, emitter, 'redteam');
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: workerResult.elapsed });
 
       if (anthropic) {
-        const synthResult = await synthesizeRedteamWithClaude(domain, {});
+        const synthResult = await synthesizeRedteamWithClaude(domain, workerResult.facts);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
-        const costBreakdown = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: claudeCost };
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
+        const costBreakdown = { ...workerResult.costBreakdown, claude: claudeCost };
         const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
         costBreakdown.total = parseFloat(totalCost.toFixed(2));
         report.cost = costBreakdown;
@@ -348,56 +343,50 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
       }
+
+      emitter.emit('event', { agent: '007-bot', status: 'complete', elapsed: (Date.now() - startTime) / 1000, cost: result.cost });
+
+      // Check BD health
+      if (workerResult.bdHealth && workerResult.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = workerResult.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = workerResult.bdHealth.ok;
+        report.meta.bdFailed = workerResult.bdHealth.failed;
+        report.meta.bdErrors = workerResult.bdHealth.errors.slice(0, 5);
+      }
     } else if (mode === 'seo') {
       const startTime = Date.now();
-      const seoElapsed = () => parseFloat(((Date.now() - startTime) / 1000).toFixed(2));
-
       emitter.emit('event', { agent: '007-bot', status: 'received', domain, elapsed: 0 });
-      await new Promise(r => setTimeout(r, 200));
-      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.2 });
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => setTimeout(r, 50));
+      emitter.emit('event', { agent: 'circus', status: 'routing', elapsed: 0.05 });
 
-      const sp1 = (async () => {
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'fetching', url: `https://${domain}`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-web-unlocker', status: 'complete', chars: 6200, elapsed: seoElapsed() });
-      })();
-
-      const sp2 = (async () => {
-        emitter.emit('event', { agent: 'bd-serp', status: 'searching', query: `site:${domain} OR "${domain}" keywords ranking traffic`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 300));
-        emitter.emit('event', { agent: 'bd-serp', status: 'complete', results: 10, elapsed: seoElapsed() });
-      })();
-
-      const sp3 = (async () => {
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: [`https://${domain}`, `https://${domain}/sitemap.xml`], elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 600));
-        emitter.emit('event', { agent: 'bd-scraping-browser', status: 'complete', pages: 3, elapsed: seoElapsed() });
-      })();
-
-      const sp4 = (async () => {
-        emitter.emit('event', { agent: 'bd-mcp', status: 'searching', query: `${domain} backlinks domain authority organic traffic ahrefs`, elapsed: seoElapsed() });
-        await new Promise(r => setTimeout(r, 400));
-        emitter.emit('event', { agent: 'bd-mcp', status: 'complete', results: 8, elapsed: seoElapsed() });
-      })();
-
-      await Promise.all([sp1, sp2, sp3, sp4]);
-
-      emitter.emit('event', { agent: 'ai-iq', status: 'storing', facts: 4, elapsed: seoElapsed() });
-      await new Promise(r => setTimeout(r, 300));
-      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: seoElapsed() });
+      const workerResult = await runSeoWorker(domain, emitter, 'seo');
+      emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: workerResult.elapsed });
 
       if (anthropic) {
-        const synthResult = await synthesizeSeoWithClaude(domain, {});
+        const synthResult = await synthesizeSeoWithClaude(domain, workerResult.facts);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
-        const costBreakdown = { webUnlocker: 0.30, serpApi: 0.50, scrapingBrowser: 0.80, bdMcp: 0.20, claude: claudeCost };
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
+        const costBreakdown = { ...workerResult.costBreakdown, claude: claudeCost };
         const totalCost = Object.values(costBreakdown).reduce((a, b) => a + b, 0);
         costBreakdown.total = parseFloat(totalCost.toFixed(2));
         report.cost = costBreakdown;
         result = { elapsed: (Date.now() - startTime) / 1000, domain, mode: 'seo', cost: costBreakdown.total, costBreakdown };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
+      }
+
+      emitter.emit('event', { agent: '007-bot', status: 'complete', elapsed: (Date.now() - startTime) / 1000, cost: result.cost });
+
+      // Check BD health
+      if (workerResult.bdHealth && workerResult.bdHealth.failed > 0) {
+        report.meta = report.meta || {};
+        report.meta.degraded = true;
+        report.meta.bdStatus = workerResult.bdHealth.ok === 0 ? 'unavailable' : 'partial';
+        report.meta.bdOk = workerResult.bdHealth.ok;
+        report.meta.bdFailed = workerResult.bdHealth.failed;
+        report.meta.bdErrors = workerResult.bdHealth.errors.slice(0, 5);
       }
     } else if (mode === 'bundle') {
       const startTime = Date.now();
@@ -481,7 +470,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const synthResult = await synthesizeFootprintWithClaude(domain, factsData);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
@@ -501,7 +490,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const synthResult = await synthesizeLookupWithClaude(domain, factsData);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
@@ -521,7 +510,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const synthResult = await synthesizeMcpWithClaude(domain, factsData);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { bdMcp: 0.20, claude: claudeCost, total: parseFloat((0.20 + claudeCost).toFixed(2)) };
       } else {
         throw new Error('ANTHROPIC_API_KEY not configured — synthesis unavailable');
@@ -620,7 +609,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Final synthesis: R1 + R2 intelligence...', elapsed: result.elapsed });
         const synthResult = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         // Agentic mode uses Haiku for signal extraction (~$0.02) + Sonnet for synthesis
         const haikusCost = 0.02;
         report.cost = { ...result.costBreakdown, claudeHaiku: haikusCost, claudeSonnet: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + haikusCost + claudeCost).toFixed(2)) };
@@ -647,7 +636,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: result.elapsed });
         const synthResult = await synthesizeWithClaude(domain, factsData, mode);
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
         emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2)) });
       } else {
@@ -702,7 +691,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
 
         synthResult = await synthPromise;
         report = synthResult.report;
-        const claudeCost = calculateClaudeCost(synthResult.usage);
+        const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
         const totalElapsed = parseFloat((result.elapsed + (Date.now() - claudeStart) / 1000).toFixed(2));
         emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: totalElapsed });
@@ -1662,7 +1651,7 @@ Return ONLY valid JSON:
   const groundedHaystack = r1Text + '\n' + (r2Parts.join('\n') || '');
   parsed = groundReport(parsed, groundedHaystack, today, domain, 'agentic');
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -1796,7 +1785,7 @@ Return ONLY valid JSON — see previous message for structure.`
   // Grounding validator — strip news/financials not in MCP facts
   parsed = groundReport(parsed, factsContext, today, domain, 'mcp');
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -1879,16 +1868,22 @@ function generateMockMcpReport(domain, facts) {
 /**
  * Synthesize person intelligence report with Claude
  */
-async function synthesizePersonWithClaude(personName) {
+async function synthesizePersonWithClaude(personName, facts = {}) {
   const today = new Date().toISOString().split('T')[0];
+  const factsText = formatFacts(facts);
 
   let response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8192,
-    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation.',
+    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data.',
     messages: [{
       role: 'user',
-      content: `Produce an executive intelligence report on "${personName}" as valid JSON with this exact structure:
+      content: `Produce an executive intelligence report on "${personName}".
+
+TODAY: ${today}
+${factsText ? `SCRAPED DATA:\n${factsText}\n\nUse ONLY facts from the scraped data above. Do not invent career history, companies, or dates.` : `Use your knowledge to produce a report.`}
+
+Return valid JSON with this exact structure:
 {
   "meta": {
     "name": "${personName}",
@@ -1931,10 +1926,14 @@ async function synthesizePersonWithClaude(personName) {
     response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
-      system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation.',
+      system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data.',
       messages: [{
         role: 'user',
-        content: `Produce an executive intelligence report on "${personName}" as valid JSON — see previous message for structure.`
+        content: `Produce an executive intelligence report on "${personName}".
+
+${factsText ? `SCRAPED DATA:\n${factsText}\n\nUse ONLY facts from the scraped data above. Do not invent career history, companies, or dates.` : `Use your knowledge to produce a report.`}
+
+Return valid JSON — see previous message for structure.`
       }]
     });
 
@@ -1961,7 +1960,7 @@ async function synthesizePersonWithClaude(personName) {
     throw new Error('Claude returned malformed JSON structure');
   }
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -2135,7 +2134,7 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     { tool: 'BD MCP Server', icon: '🔗', target: `${domain} backlinks authority`, sections: ['Backlink Profile', 'Opportunities'] }
   ];
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -2151,13 +2150,15 @@ async function synthesizeRedteamWithClaude(domain, facts) {
   let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
-    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
     messages: [{
       role: 'user',
       content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
 ${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
+
+EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided scraped data. If no source supports a claim, OMIT IT rather than fabricate.
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
@@ -2202,13 +2203,15 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
       messages: [{
         role: 'user',
         content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
 ${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
+
+EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided scraped data. If no source supports a claim, OMIT IT rather than fabricate.
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
@@ -2278,7 +2281,7 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     { tool: 'BD MCP Server', icon: '🔗', target: `${domain} bug bounty credentials`, sections: ['Social Engineering'] }
   ];
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -2418,7 +2421,7 @@ Return ONLY valid JSON — see previous message for structure.`
     throw new Error('Claude returned invalid JSON');
   }
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
@@ -2663,7 +2666,7 @@ Return ONLY valid JSON — see previous message for structure.`
     throw new Error('Claude returned invalid JSON');
   }
 
-  return { report: parsed, usage: response.usage };
+  return { report: parsed, usage: response.usage, backend: response._backend || 'unknown' };
 }
 
 /**
