@@ -962,6 +962,35 @@ function formatFacts(facts) {
   if (facts.sitemapPages && Array.isArray(facts.sitemapPages)) {
     facts.sitemapPages.forEach(p => { if (p.url) sourceUrls.push(p.url); });
   }
+  // SEO worker actual key shape (runSeoWorker in bd-worker.mjs)
+  if (facts.rankings) {
+    const results = facts.rankings.results || [];
+    const formatted = results.slice(0, 10).map((r, i) => {
+      if (r.link) sourceUrls.push(r.link);
+      return `  ${i + 1}. ${r.title || ''}\n     ${r.link || 'N/A'}\n     ${(r.snippet || '').substring(0, 200)}`;
+    }).join('\n\n');
+    if (formatted) parts.push(`INDEXED PAGES (BD SERP site: query):\n${formatted}`);
+  }
+  if (facts.competitors) {
+    const results = facts.competitors.results || [];
+    const formatted = results.slice(0, 10).map((r, i) => {
+      if (r.link) sourceUrls.push(r.link);
+      return `  ${i + 1}. ${r.title || ''}\n     ${r.link || 'N/A'}\n     ${(r.snippet || '').substring(0, 200)}`;
+    }).join('\n\n');
+    if (formatted) parts.push(`SEO COMPETITORS (BD SERP keywords query):\n${formatted}`);
+  }
+  if (facts.seoFiles && Array.isArray(facts.seoFiles)) {
+    facts.seoFiles.forEach(p => {
+      if (p.url) {
+        sourceUrls.push(p.url);
+        const preview = (p.text || p.markdown || p.content || '').substring(0, 400);
+        parts.push(`SEO FILE (${p.url}):\n${preview}`);
+      }
+    });
+  }
+  if (facts.assistant && facts.assistant.answer) {
+    parts.push(`BD ASSISTANT (SEO intel):\n${facts.assistant.answer.substring(0, 1500)}`);
+  }
 
   // Person mode facts
   if (facts.search) {
