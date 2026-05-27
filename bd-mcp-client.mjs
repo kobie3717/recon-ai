@@ -591,13 +591,29 @@ export async function mcpAskAssistant(question) {
 export async function mcpComprehensive(domain) {
   const startTime = Date.now();
 
-  const [search1, search2, homepage, about] = await Promise.all([
+  // Use allSettled so one timeout doesn't kill the whole batch.
+  // Each tool gets a chance; partial results still flow through to synthesis.
+  const settled = await Promise.allSettled([
     mcpSearchEngine(`${domain} company overview funding news 2026`),
     mcpSearchEngine(`${domain} competitors market position`),
     mcpScrapeMarkdown(`https://${domain}`),
     mcpScrapeMarkdown(`https://${domain}/about`)
   ]);
 
+  const pick = (i, label) => {
+    if (settled[i].status === 'fulfilled') return settled[i].value;
+    console.warn(`[mcp-comprehensive] ${label} failed: ${settled[i].reason?.message || 'unknown'}`);
+    return null;
+  };
+
+  const [search1, search2, homepage, about] = [
+    pick(0, 'search1'),
+    pick(1, 'search2'),
+    pick(2, 'homepage'),
+    pick(3, 'about')
+  ];
+
+  const okCount = settled.filter(s => s.status === 'fulfilled').length;
   const elapsed = (Date.now() - startTime) / 1000;
 
   return {
@@ -606,7 +622,9 @@ export async function mcpComprehensive(domain) {
     search2,
     homepage,
     about,
-    toolsUsed: 4,
+    toolsUsed: okCount,
+    toolsAttempted: 4,
+    partial: okCount < 4,
     elapsed
   };
 }
