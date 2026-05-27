@@ -135,10 +135,13 @@ app.get('/api/report', reportLimiter, async (req, res) => {
     return res.status(400).json({ error: e.message });
   }
 
+  // nocache=1 bypasses both in-memory and flagship caches (for testing grounding)
+  const nocacheParam = req.query.nocache === '1';
+
   // AI-IQ cache check — instant replay if seen before
   const cacheKey = `${domain}:${mode}`;
   const cached = reportCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+  if (!nocacheParam && cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -165,7 +168,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
   }
 
   // PRE-RECORDED FLAGSHIP REPLAY — check if we have cached events
-  const nocache = req.query.nocache === '1';
+  const nocache = nocacheParam;
   if (!nocache) {
     const flagshipPath = path.join(process.cwd(), 'cache', 'flagship', `${domain}-${mode}.json`);
     if (fs.existsSync(flagshipPath)) {
@@ -1303,15 +1306,114 @@ Schema:
       console.error(`[${mode}] Claude STILL truncated at 16384 tokens for ${domain} (${retryFinalMessage.usage?.output_tokens || 'unknown'} tokens used)`);
     }
 
-    return parseSynthesisResult(accumulatedText, domain, companySlug, mode, retryFinalMessage.usage);
+    const retryResult = parseSynthesisResult(accumulatedText, domain, companySlug, mode, retryFinalMessage.usage);
+    retryResult.report = groundReport(retryResult.report, factsText, today, domain, mode);
+    return retryResult;
   }
 
-  return parseSynthesisResult(accumulatedText, domain, companySlug, mode, usage);
+  const result = parseSynthesisResult(accumulatedText, domain, companySlug, mode, usage);
+  result.report = groundReport(result.report, factsText, today, domain, mode);
+  return result;
 }
 
 /**
  * Parse accumulated synthesis text into structured report
  */
+// Post-synthesis grounding validator — strips claims not supported by scraped data.
+// Belt-and-suspenders defense against LLM hallucination of dated news / fake financials.
+//
+// Strategy: loose substring matching against factsText (lowercased, normalized).
+//  - News: must have 2+ distinct 4+ char tokens overlapping with factsText, AND date <= today
+//  - Investors: name must appear in factsText
+//  - Financials: dollar/percent amounts must appear in factsText, else blank
+function groundReport(parsed, factsText, today, domain, mode) {
+  if (!parsed || typeof parsed !== 'object') return parsed;
+  if (!factsText || factsText.length < 200) {
+    // No scraped data → can't validate. Force empty news to avoid fabrication leaking.
+    if (Array.isArray(parsed.news)) parsed.news = [];
+    return parsed;
+  }
+  const haystack = factsText.toLowerCase();
+  const todayDate = new Date(today);
+  const stripped = { news: 0, investors: 0, financials: 0 };
+
+  // Token overlap check — at least N matching 4+ char tokens from claim appear in haystack
+  const tokenOverlap = (claim, minMatches = 2) => {
+    if (!claim || typeof claim !== 'string') return false;
+    const tokens = claim.toLowerCase().match(/[a-z0-9]{4,}/g) || [];
+    const unique = [...new Set(tokens)];
+    let hits = 0;
+    for (const t of unique) {
+      if (haystack.includes(t)) hits++;
+      if (hits >= minMatches) return true;
+    }
+    return false;
+  };
+
+  // News validator
+  if (Array.isArray(parsed.news)) {
+    const before = parsed.news.length;
+    parsed.news = parsed.news.filter(item => {
+      if (!item || typeof item !== 'object') return false;
+      const headline = item.headline || item.text || '';
+      // Future date check — strip anything dated past today
+      const dateStr = item.date || '';
+      const yearMatch = dateStr.match(/20\d{2}/);
+      if (yearMatch) {
+        const year = parseInt(yearMatch[0]);
+        if (year > todayDate.getFullYear()) return false;
+        if (year === todayDate.getFullYear()) {
+          // month check — Jan=0
+          const monthMatch = dateStr.match(/Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec/i);
+          if (monthMatch) {
+            const monthIdx = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec']
+              .indexOf(monthMatch[0].toLowerCase().slice(0,3));
+            if (monthIdx > todayDate.getMonth()) return false;
+          }
+        }
+      }
+      // Grounding check — headline must overlap with scraped data
+      return tokenOverlap(headline, 2);
+    });
+    stripped.news = before - parsed.news.length;
+  }
+
+  // Investors — name must appear in scraped data
+  if (parsed.financials && Array.isArray(parsed.financials.investors)) {
+    const before = parsed.financials.investors.length;
+    parsed.financials.investors = parsed.financials.investors.filter(name => {
+      if (!name || typeof name !== 'string') return false;
+      return haystack.includes(name.toLowerCase());
+    });
+    stripped.investors = before - parsed.financials.investors.length;
+  }
+
+  // Financials — strip dollar/percent values not present in scraped data
+  if (parsed.financials && typeof parsed.financials === 'object') {
+    for (const key of ['totalRaised', 'lastRound', 'valuation', 'revenue']) {
+      const val = parsed.financials[key];
+      if (!val || typeof val !== 'string') continue;
+      // If contains template placeholder OR currency value not in haystack → blank
+      if (/\$X|XM|XB|YYYY|Series X/i.test(val)) {
+        parsed.financials[key] = '';
+        stripped.financials++;
+        continue;
+      }
+      const amounts = val.match(/\$[\d,.]+[BMK]?/gi) || [];
+      const hasUngroundedAmount = amounts.some(a => !haystack.includes(a.toLowerCase()));
+      if (hasUngroundedAmount && amounts.length > 0) {
+        parsed.financials[key] = '';
+        stripped.financials++;
+      }
+    }
+  }
+
+  if (stripped.news || stripped.investors || stripped.financials) {
+    console.warn(`[grounding] ${domain} (${mode}): stripped ${stripped.news} news, ${stripped.investors} investors, ${stripped.financials} financials`);
+  }
+  return parsed;
+}
+
 function parseSynthesisResult(rawText, domain, companySlug, mode, usage) {
   let text = rawText;
 
@@ -1568,6 +1670,10 @@ Return ONLY valid JSON:
     { tool: 'BD SERP API (Round 2)', icon: '🔍', target: signals.map(s => s.followup_query).join(' · '), sections: ['Agentic Insights'] }
   ];
 
+  // Grounding validator — strip news/financials not supported by R1+R2 data
+  const groundedHaystack = r1Text + '\n' + (r2Parts.join('\n') || '');
+  parsed = groundReport(parsed, groundedHaystack, today, domain, 'agentic');
+
   return { report: parsed, usage: response.usage };
 }
 
@@ -1698,6 +1804,9 @@ Return ONLY valid JSON — see previous message for structure.`
     console.error(`[mcp] Raw output (first 500 chars): ${rawText.substring(0, 500)}`);
     throw new Error('Claude returned invalid JSON');
   }
+
+  // Grounding validator — strip news/financials not in MCP facts
+  parsed = groundReport(parsed, factsContext, today, domain, 'mcp');
 
   return { report: parsed, usage: response.usage };
 }
