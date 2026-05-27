@@ -457,11 +457,28 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       // Final completion event with total cost
       emitter.emit('event', { agent: '007-bot', status: 'complete', elapsed: bElapsed(), cost: costBreakdown.total });
 
+      // Aggregate sources_count and evidence_coverage across all 3 sub-reports
+      const standardMeta = standardResult.report?.meta || {};
+      const seoMeta = seoResult.report?.meta || {};
+      const redteamMeta = redteamResult.report?.meta || {};
+      const totalSourcesCount = (standardMeta.sources_count || 0) + (seoMeta.sources_count || 0) + (redteamMeta.sources_count || 0);
+      const coverageStr = [
+        standardMeta.evidence_coverage,
+        seoMeta.evidence_coverage,
+        redteamMeta.evidence_coverage
+      ].filter(Boolean).join(' | ');
+
       report = {
         standard: standardResult.report,
         seo: seoResult.report,
         redteam: redteamResult.report,
-        meta: { domain, mode: 'bundle', analysisDate: new Date().toISOString().split('T')[0] }
+        meta: {
+          domain,
+          mode: 'bundle',
+          analysisDate: new Date().toISOString().split('T')[0],
+          sources_count: totalSourcesCount,
+          evidence_coverage: coverageStr || 'N/A'
+        }
       };
       result = { elapsed, domain, mode: 'bundle', cost: costBreakdown.total, costBreakdown };
     } else if (mode === 'footprint') {
@@ -937,6 +954,39 @@ function formatFacts(facts) {
     }
   }
 
+  // Footprint mode facts
+  if (facts.domainDiscovery) {
+    const subdomains = facts.domainDiscovery.subdomains || [];
+    const relatedDomains = facts.domainDiscovery.relatedDomains || [];
+    const webProps = facts.domainDiscovery.webProperties || [];
+    webProps.forEach(p => { if (p.url) sourceUrls.push(p.url); });
+    parts.push(`DOMAIN DISCOVERY (BD Discovery API):\nSubdomains: ${subdomains.slice(0, 10).join(', ')}\nRelated Domains: ${relatedDomains.slice(0, 5).join(', ')}\nWeb Properties: ${JSON.stringify(webProps)}`);
+  }
+  if (facts.social) {
+    const twitter = facts.social.twitter || {};
+    const reddit = facts.social.reddit || {};
+    if (twitter.url) sourceUrls.push(twitter.url);
+    if (reddit.url) sourceUrls.push(reddit.url);
+    parts.push(`SOCIAL MEDIA INTEL (BD Social Scraper):\nTwitter: ${twitter.handle || 'N/A'} (${twitter.followers || 0} followers)\nSentiment: ${JSON.stringify(twitter.sentimentBreakdown || {})}\nReddit: ${reddit.subreddit || 'N/A'} (${reddit.subscribers || 0} subscribers)`);
+  }
+  if (facts.mentions) {
+    const results = facts.mentions.results || [];
+    parts.push(`SOCIAL MENTIONS (BD SERP API):\n${results.map(r => {
+      if (r.link) sourceUrls.push(r.link);
+      return `- ${r.title}: ${r.snippet}\n  URL: ${r.link || 'N/A'}`;
+    }).join('\n')}`);
+  }
+
+  // Lookup mode facts
+  if (facts.lookup) {
+    const results = facts.lookup.results || [];
+    const totalSources = facts.lookup.totalSources || 0;
+    parts.push(`DEEP LOOKUP (BD Deep Lookup API, ${totalSources} web sources):\n${results.map(r => {
+      if (r.sources) r.sources.forEach(s => { if (s.url) sourceUrls.push(s.url); });
+      return `QUERY: ${r.query}\nANSWER: ${r.answer}\nCONFIDENCE: ${(r.confidence * 100).toFixed(0)}%\nSOURCES: ${(r.sources || []).map(s => s.url || s.title).join(', ')}`;
+    }).join('\n\n')}`);
+  }
+
   // Redteam mode facts
   if (facts.cve) {
     const results = facts.cve.results || [];
@@ -1110,7 +1160,7 @@ async function synthesizeWithClaude(domain, facts, mode, emitter = null) {
   "github": {"repos": 0, "stars": 0, "recentActivity": "...", "topLanguage": "...", "contributors": 0},
   "reviews": {"g2Score": 4.5, "g2Reviews": 0, "trustpilot": null, "sentiment": "..."},
   "glassdoor": {"rating": 4.0, "reviews": 0, "ceoApproval": "80%", "recommend": "75%", "sentiment": "..."},
-  "risks": [{"factor": "...", "severity": "HIGH|MED|LOW"}],` : '';
+  "risks": [{"factor": "...", "severity": "HIGH|MED|LOW", "evidence_url": "https://...", "confidence": "high|medium|low"}],` : '';
 
   const hasGeo = facts.geoIntel && (facts.geoIntel.chatgpt || facts.geoIntel.grok || facts.geoIntel.perplexity);
   const hasBrowser = facts.browserCapture && facts.browserCapture.status === 'success';
@@ -1122,6 +1172,8 @@ async function synthesizeWithClaude(domain, facts, mode, emitter = null) {
   const safeDomain = domain.replace(/[^\w.-]/g, '').substring(0, 100);
   const safeCompanyName = companyName.replace(/[^\w\s]/g, '').substring(0, 50);
 
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
+
   // Standard mode uses markdown-first format; all other modes use pure JSON
   const prompt = mode === 'standard' ? `Analyze the company at domain [${safeDomain}] (company name: ${safeCompanyName}) and produce a competitive intelligence report.
 
@@ -1129,7 +1181,7 @@ TODAY: ${today}
 MODE: ${mode}
 
 SCRAPED WEB DATA:
-${factsText}
+${factsText}${sourceUrlsList}
 
 GROUNDING RULES (CRITICAL — judges will fact-check):
 - Use ONLY facts present in the SCRAPED WEB DATA above. Do NOT draw on training knowledge for dated events, product launches, headlines, funding rounds, or news.
@@ -1217,7 +1269,7 @@ TODAY: ${today}
 MODE: ${mode}
 
 SCRAPED WEB DATA:
-${factsText}
+${factsText}${sourceUrlsList}
 
 Return ONLY a valid JSON object with this exact structure.
 
@@ -1228,6 +1280,13 @@ GROUNDING RULES (CRITICAL — judges will fact-check):
 - Better to return an empty array or "" than to fabricate.
 - Today is ${today}. Any "news" with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
 
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in signals[], competitive[], strategic[] arrays, and deep mode risks[] MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+
 Schema:
 {
   "meta": {
@@ -1235,10 +1294,12 @@ Schema:
     "companyName": "${companyName}",
     "analysisDate": "${today}",
     "mode": "${mode}",
-    "confidence": "${mode === 'deep' ? 'high' : 'medium-high'}"
+    "confidence": "${mode === 'deep' ? 'high' : 'medium-high'}",
+    "sources_count": 0,
+    "evidence_coverage": "X of Y"
   },
   "signals": [
-    {"level": "high|medium|positive", "text": "specific actionable insight about ${domain}", "icon": "🔴|🟡|🟢"}
+    {"level": "high|medium|positive", "text": "specific actionable insight about ${domain}", "icon": "🔴|🟡|🟢", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "snapshot": {
     "founded": "YYYY",
@@ -1281,8 +1342,8 @@ Schema:
 
   // Use streaming API
   const systemPrompt = mode === 'standard'
-    ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate.'
-    : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate.';
+    ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate. EVIDENCE RULE: Every finding in signals, competitive, strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.'
+    : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate. EVIDENCE RULE: Every finding in signals, competitive, strategic, and risks arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.';
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
@@ -1630,17 +1691,26 @@ async function synthesizeAgenticWithClaude(domain, facts, signals) {
   delete r1Facts.followupData;
   const r1Data = formatFacts(r1Facts);
   const r1Text = r1Data.text.substring(0, 3000);
+  const r1Urls = r1Data.sourceUrls || [];
 
-  // Build R2 followup text
+  // Build R2 followup text and URLs
   const r2Parts = [];
+  const r2Urls = [];
   if (facts.followupData) {
     for (const [key, val] of Object.entries(facts.followupData)) {
       if (val.results?.length) {
-        r2Parts.push(`FOLLOW-UP (${val.signal?.finding || key}):\nQuery: "${val.signal?.followup_query}"\nResults: ${val.results.slice(0, 4).map(r => r.title + ': ' + r.snippet).join(' | ')}`);
+        r2Parts.push(`FOLLOW-UP (${val.signal?.finding || key}):\nQuery: "${val.signal?.followup_query}"\nResults: ${val.results.slice(0, 4).map(r => {
+          if (r.link) r2Urls.push(r.link);
+          return r.title + ': ' + r.snippet;
+        }).join(' | ')}`);
       }
     }
   }
   const r2Text = r2Parts.join('\n\n').substring(0, 2000);
+
+  // Combine all source URLs from R1 and R2
+  const sourceUrls = [...new Set([...r1Urls, ...r2Urls])];
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   const signalsSummary = signals.map((s, i) => `${i+1}. Found: "${s.finding}"\n   Reasoning: ${s.reasoning || s.hypothesis || 'signal detected'}\n   Queried: "${s.followup_query}" (confidence: ${s.confidence || 'medium'})`).join('\n');
 
@@ -1655,7 +1725,7 @@ AGENT DECISION — signals detected and follow-up queries dispatched:
 ${signalsSummary}
 
 ROUND 2 DATA (targeted follow-ups):
-${r2Text || 'No additional data retrieved'}
+${r2Text || 'No additional data retrieved'}${sourceUrlsList}
 
 GROUNDING RULES (CRITICAL — judges will fact-check):
 - Use ONLY facts present in ROUND 1 and ROUND 2 data above. Do NOT draw on training knowledge for dated events, headlines, funding rounds, or product launches.
@@ -1664,21 +1734,28 @@ GROUNDING RULES (CRITICAL — judges will fact-check):
 - Today is ${today}. Any future-dated news is a hallucination — omit it.
 - Better to return empty than fabricate.
 
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in signals[], news[], competitive[], hiring[], strategic[], agenticInsights.agentReasoning[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+
 Return ONLY valid JSON:
 {
-  "meta": {"domain":"${safeDomain}","companyName":"${safeCompanyName}","analysisDate":"${today}","mode":"agentic","confidence":"high","rounds":2},
-  "signals": [{"level":"high|medium|positive","text":"specific insight","icon":"🔴|🟡|🟢"}],
+  "meta": {"domain":"${safeDomain}","companyName":"${safeCompanyName}","analysisDate":"${today}","mode":"agentic","confidence":"high","rounds":2,"sources_count":0,"evidence_coverage":"X of Y"},
+  "signals": [{"level":"high|medium|positive","text":"specific insight","icon":"🔴|🟡|🟢","evidence_url":"https://...","confidence":"high|medium|low"}],
   "snapshot": {"founded":"YYYY","hq":"City, Country","employees":"N","stage":"Stage/Series","website":"${safeDomain}","linkedin":"linkedin.com/company/${companySlug}"},
   "financials": {"totalRaised":"$XM","lastRound":"Series X — $XM (Mon YYYY)","valuation":"~$XB","revenue":"~$XM ARR","investors":["..."]},
-  "news": [{"date":"Mon DD","headline":"headline","signal":"HIGH|MED|LOW","url":"#"}],
+  "news": [{"date":"Mon DD","headline":"headline","signal":"HIGH|MED|LOW","url":"#","evidence_url":"https://...","confidence":"high|medium|low"}],
   "products": [{"name":"Product","description":"What it does"}],
-  "competitive": [{"competitor":"Name","weakness":"vs ${safeCompanyName}"}],
-  "hiring": [{"role":"Role","count":0,"signal":"what this signals"}],
-  "strategic": ["direction 1","direction 2","direction 3"],
+  "competitive": [{"competitor":"Name","weakness":"vs ${safeCompanyName}","evidence_url":"https://...","confidence":"high|medium|low"}],
+  "hiring": [{"role":"Role","count":0,"signal":"what this signals","evidence_url":"https://...","confidence":"high|medium|low"}],
+  "strategic": [{"text":"direction 1","evidence_url":"https://...","confidence":"high|medium|low"}],
   "agenticInsights": {
     "roundsRun": 2,
     "signalsDetected": ${signals.length},
-    "agentReasoning": [${signals.map(s => `{"signal":"${(s.finding||'').replace(/"/g,'\\"')}","reasoning":"${(s.reasoning||s.hypothesis||'').replace(/"/g,'\\"').replace(/\n/g,' ')}","followupQuery":"${(s.followup_query||'').replace(/"/g,'\\"')}","confidence":"${s.confidence||'medium'}","discovered":"what Round 2 revealed about this signal"}`).join(',')}],
+    "agentReasoning": [${signals.map(s => `{"signal":"${(s.finding||'').replace(/"/g,'\\"')}","reasoning":"${(s.reasoning||s.hypothesis||'').replace(/"/g,'\\"').replace(/\n/g,' ')}","followupQuery":"${(s.followup_query||'').replace(/"/g,'\\"')}","confidence":"${s.confidence||'medium'}","discovered":"what Round 2 revealed about this signal","evidence_url":"https://..."}`).join(',')}],
     "intelligenceUpgrade": "What Round 2 revealed that Round 1 missed"
   },
   "cost": {"webUnlocker":0.30,"serpApi":0.80,"scrapingBrowser":0.80,"webScraperApi":0.40,"claudeHaiku":0.02,"claudeSonnet":0.20,"total":2.52}
@@ -1687,7 +1764,7 @@ Return ONLY valid JSON:
   let response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8192,
-    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication.',
+    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.',
     messages: [{ role: 'user', content: prompt }]
   });
 
@@ -1697,7 +1774,7 @@ Return ONLY valid JSON:
     response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
-      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication.',
+      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.',
       messages: [{ role: 'user', content: prompt }]
     });
 
@@ -2426,26 +2503,16 @@ async function synthesizeFootprintWithClaude(domain, facts) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
+  const factsData = formatFacts(facts);
+  const factsContext = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
 
-  // Format facts for Claude
-  let factsContext = '';
-  if (facts.discover) {
-    factsContext += `\nDISCOVERY DATA:\nSubdomains: ${facts.discover.subdomains?.join(', ')}\nRelated Domains: ${facts.discover.relatedDomains?.join(', ')}\nWeb Properties: ${JSON.stringify(facts.discover.webProperties)}`;
-  }
-  if (facts.crawl) {
-    factsContext += `\n\nCRAWL DATA (${facts.crawl.pageCount} pages):\n${facts.crawl.pages?.map(p => `${p.title}: ${p.text}`).join('\n')}`;
-  }
-  if (facts.linkedin) {
-    factsContext += `\n\nLINKEDIN DATA:\nName: ${facts.linkedin.name}\nEmployees: ${facts.linkedin.employees}\nFollowers: ${facts.linkedin.followers}\nSpecialties: ${facts.linkedin.specialties?.join(', ')}\nRecent Posts: ${JSON.stringify(facts.linkedin.recentPosts)}`;
-  }
-  if (facts.social) {
-    factsContext += `\n\nSOCIAL MEDIA:\nTwitter: ${facts.social.twitter?.handle} (${facts.social.twitter?.followers} followers)\nSentiment: ${JSON.stringify(facts.social.twitter?.sentimentBreakdown)}\nReddit: ${facts.social.reddit?.subreddit} (${facts.social.reddit?.subscribers} subscribers)`;
-  }
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
-    system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, socialPresence, competitive, and strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
     messages: [{
       role: 'user',
       content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
@@ -2453,13 +2520,20 @@ async function synthesizeFootprintWithClaude(domain, facts) {
 TODAY: ${today}
 
 COLLECTED DATA:
-${factsContext.substring(0, 6000)}
+${factsContext.substring(0, 6000)}${sourceUrlsList}
+
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in signals[], socialPresence[], competitive[], strategic[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 Return ONLY valid JSON with this exact structure:
 {
-  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "footprint", "confidence": "high" },
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "footprint", "confidence": "high", "sources_count": 0, "evidence_coverage": "X of Y" },
   "signals": [
-    { "level": "high|medium|positive", "text": "specific finding from digital footprint analysis", "icon": "🔴|🟡|🟢" }
+    { "level": "high|medium|positive", "text": "specific finding from digital footprint analysis", "icon": "🔴|🟡|🟢", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "snapshot": {
     "founded": "YYYY",
@@ -2498,12 +2572,10 @@ Return ONLY valid JSON with this exact structure:
     "redditPresence": "Active community (3.2K subscribers)"
   },
   "competitive": [
-    { "competitor": "Competitor Name", "weakness": "specific weakness" }
+    { "competitor": "Competitor Name", "weakness": "specific weakness", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "strategic": [
-    "Strategic observation 1",
-    "Strategic observation 2",
-    "Strategic observation 3"
+    { "text": "Strategic observation 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "sources": [
     { "tool": "BD Discover API", "icon": "🔭", "target": "${domain}", "sections": ["Subdomains", "Web Properties"] },
@@ -2523,7 +2595,7 @@ Return ONLY valid JSON with this exact structure:
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, socialPresence, competitive, and strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
       messages: [{
         role: 'user',
         content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
@@ -2531,9 +2603,9 @@ Return ONLY valid JSON with this exact structure:
 TODAY: ${today}
 
 COLLECTED DATA:
-${factsContext.substring(0, 6000)}
+${factsContext.substring(0, 6000)}${sourceUrlsList}
 
-Return ONLY valid JSON — see previous message for structure.`
+Return ONLY valid JSON — see previous message for structure with evidence_url and confidence on all findings.`
       }]
     });
 
@@ -2678,26 +2750,16 @@ async function synthesizeLookupWithClaude(domain, facts) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
+  const factsData = formatFacts(facts);
+  const factsContext = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
 
-  // Format facts for Claude
-  let factsContext = '';
-  if (facts.lookup) {
-    factsContext += `\nDEEP LOOKUP DATA (${facts.lookup.totalSources} web sources analyzed):\n`;
-    facts.lookup.results?.forEach(r => {
-      factsContext += `\nQUERY: ${r.query}\nANSWER: ${r.answer}\nCONFIDENCE: ${(r.confidence * 100).toFixed(0)}%\n`;
-    });
-  }
-  if (facts.news) {
-    factsContext += `\n\nSERP NEWS:\n${facts.news.results?.map(r => `${r.title}: ${r.snippet}`).join('\n')}`;
-  }
-  if (facts.homepage) {
-    factsContext += `\n\nHOMEPAGE SNAPSHOT:\n${facts.homepage.text?.substring(0, 1500)}`;
-  }
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, deepInsights items, competitive, strategic, and hiring arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
     messages: [{
       role: 'user',
       content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
@@ -2705,7 +2767,14 @@ async function synthesizeLookupWithClaude(domain, facts) {
 TODAY: ${today}
 
 COLLECTED INTELLIGENCE:
-${factsContext.substring(0, 8000)}
+${factsContext.substring(0, 8000)}${sourceUrlsList}
+
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in signals[], deepInsights.revenueStreams[], deepInsights.competitiveWeaknesses[], strategicMoves[], competitive[], hiring[], strategic[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 Return ONLY valid JSON with this exact structure:
 {
@@ -2715,10 +2784,12 @@ Return ONLY valid JSON with this exact structure:
     "analysisDate": "${today}",
     "mode": "lookup",
     "confidence": "high",
-    "sourcesAnalyzed": 47
+    "sourcesAnalyzed": 47,
+    "sources_count": 0,
+    "evidence_coverage": "X of Y"
   },
   "signals": [
-    { "level": "high|medium|positive", "text": "specific insight from deep lookup data", "icon": "🔴|🟡|🟢" }
+    { "level": "high|medium|positive", "text": "specific insight from deep lookup data", "icon": "🔴|🟡|🟢", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "snapshot": {
     "founded": "YYYY",
@@ -2730,27 +2801,25 @@ Return ONLY valid JSON with this exact structure:
   },
   "deepInsights": {
     "revenueStreams": [
-      { "stream": "SaaS subscriptions", "estimate": "$80M ARR", "confidence": "high|medium|low" }
+      { "stream": "SaaS subscriptions", "estimate": "$80M ARR", "confidence": "high|medium|low", "evidence_url": "https://..." }
     ],
     "keyCustomers": ["Customer 1", "Customer 2", "Customer 3"],
     "techStack": ["React", "Node.js", "PostgreSQL", "AWS"],
     "competitiveWeaknesses": [
-      { "weakness": "Pricing complexity drives churn", "severity": "HIGH|MED|LOW" }
+      { "weakness": "Pricing complexity drives churn", "severity": "HIGH|MED|LOW", "evidence_url": "https://...", "confidence": "high|medium|low" }
     ]
   },
   "strategicMoves": [
-    { "date": "Apr 2026", "move": "Series D funding ($250M)", "signal": "HIGH|MED|LOW" }
+    { "date": "Apr 2026", "move": "Series D funding ($250M)", "signal": "HIGH|MED|LOW", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "competitive": [
-    { "competitor": "Competitor Name", "weakness": "specific weakness vs ${companyName}" }
+    { "competitor": "Competitor Name", "weakness": "specific weakness vs ${companyName}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "hiring": [
-    { "role": "AI/ML Engineers", "count": 12, "signal": "Next-gen product launch imminent" }
+    { "role": "AI/ML Engineers", "count": 12, "signal": "Next-gen product launch imminent", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "strategic": [
-    "Strategic insight 1",
-    "Strategic insight 2",
-    "Strategic insight 3"
+    { "text": "Strategic insight 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "sources": [
     { "tool": "BD Deep Lookup", "icon": "🔬", "target": "47 web sources", "sections": ["Revenue", "Customers", "Tech Stack"] },
@@ -2768,7 +2837,7 @@ Return ONLY valid JSON with this exact structure:
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, deepInsights items, competitive, strategic, and hiring arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
       messages: [{
         role: 'user',
         content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
@@ -2776,9 +2845,9 @@ Return ONLY valid JSON with this exact structure:
 TODAY: ${today}
 
 COLLECTED INTELLIGENCE:
-${factsContext.substring(0, 8000)}
+${factsContext.substring(0, 8000)}${sourceUrlsList}
 
-Return ONLY valid JSON — see previous message for structure.`
+Return ONLY valid JSON — see previous message for structure with evidence_url and confidence on all findings.`
       }]
     });
 
