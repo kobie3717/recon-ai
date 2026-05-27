@@ -400,13 +400,24 @@ function estimateOutput(opts) {
 }
 
 async function waitForBudget(estimate, label = '') {
+  const startWait = Date.now();
+  const FALLBACK_THRESHOLD_MS = 30000; // 30s wait triggers fallback
+
   while (true) {
     const used = windowTotal();
-    if (used + estimate <= CLI_OUTPUT_BUDGET) return;
+    if (used + estimate <= CLI_OUTPUT_BUDGET) return 'cli';
+
+    // Check if we've been waiting too long or queue depth > 1
+    const waitedMs = Date.now() - startWait;
+    if (waitedMs > FALLBACK_THRESHOLD_MS) {
+      console.warn(`[cli-queue] ${label} waited ${waitedMs}ms — falling back to Anthropic SDK API`);
+      return 'api-fallback';
+    }
+
     const oldest = cliWindow[0];
-    if (!oldest) return;
+    if (!oldest) return 'cli';
     const waitMs = Math.max(250, (oldest.ts + CLI_WINDOW_MS) - Date.now() + 100);
-    console.log(`[cli-queue] ${label} waiting ${waitMs}ms — used ${used}/${CLI_OUTPUT_BUDGET} + reserve ${estimate}`);
+    console.log(`[cli-queue] ${label} waiting ${waitMs}ms (${waitedMs}ms elapsed) — used ${used}/${CLI_OUTPUT_BUDGET} + reserve ${estimate}`);
     await new Promise(r => setTimeout(r, Math.min(waitMs, 5000)));
   }
 }
@@ -424,11 +435,27 @@ function reconcileSlot(slot, actualOutputTokens) {
 
 async function queuedCliCreate(opts) {
   const estimate = estimateOutput(opts);
-  await waitForBudget(estimate, 'create');
+  const backend = await waitForBudget(estimate, 'create');
+
+  if (backend === 'api-fallback') {
+    // Fall back to Anthropic SDK
+    if (!process.env.ANTHROPIC_API_KEY) {
+      throw new Error('CLI queue timeout but ANTHROPIC_API_KEY not set — cannot fallback to API');
+    }
+    console.log('[cli-queue] Using Anthropic SDK API fallback');
+    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const result = await anthropic.messages.create(opts);
+    // Mark this call as using API (for cost tracking)
+    if (result) result._backend = 'api';
+    return result;
+  }
+
+  // Use CLI
   const slot = reserveSlot(estimate);
   try {
     const result = await cliCreate(opts);
     reconcileSlot(slot, result?.usage?.output_tokens || 0);
+    if (result) result._backend = 'cli';
     return result;
   } catch (err) {
     reconcileSlot(slot, 100);
@@ -443,34 +470,65 @@ class QueuedCLIStream {
     this.inner = null;
     this.slot = null;
     this._ready = null;
+    this.backend = null;
+    this.apiStream = null;
   }
   async _prep() {
     if (this._ready) return this._ready;
     this._ready = (async () => {
-      await waitForBudget(this.estimate, 'stream');
-      this.slot = reserveSlot(this.estimate);
-      this.inner = new CLIStream(this.opts);
+      this.backend = await waitForBudget(this.estimate, 'stream');
+      if (this.backend === 'api-fallback') {
+        // Fall back to Anthropic SDK streaming
+        if (!process.env.ANTHROPIC_API_KEY) {
+          throw new Error('CLI queue timeout but ANTHROPIC_API_KEY not set — cannot fallback to API');
+        }
+        console.log('[cli-queue] Using Anthropic SDK API fallback (streaming)');
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        this.apiStream = await anthropic.messages.stream(this.opts);
+      } else {
+        this.slot = reserveSlot(this.estimate);
+        this.inner = new CLIStream(this.opts);
+      }
     })();
     return this._ready;
   }
   async finalMessage() {
     await this._prep();
+    if (this.backend === 'api-fallback') {
+      const msg = await this.apiStream.finalMessage();
+      if (msg) msg._backend = 'api';
+      return msg;
+    }
     await this.inner.start();
     reconcileSlot(this.slot, this.inner.usage?.output_tokens || 0);
-    return this.inner.finalMsg || {
+    const msg = this.inner.finalMsg || {
       content: [{ type: 'text', text: this.inner.accumulatedText }],
       usage: this.inner.usage,
       stop_reason: this.inner.stopReason,
       model: this.opts.model,
       role: 'assistant',
     };
+    if (msg) msg._backend = 'cli';
+    return msg;
   }
   on(event, handler) {
-    this._prep().then(() => this.inner.emitter.on(event, handler));
+    this._prep().then(() => {
+      if (this.backend === 'api-fallback') {
+        this.apiStream.on(event, handler);
+      } else {
+        this.inner.emitter.on(event, handler);
+      }
+    });
     return this;
   }
   async *[Symbol.asyncIterator]() {
     await this._prep();
+    if (this.backend === 'api-fallback') {
+      for await (const chunk of this.apiStream) {
+        yield chunk;
+      }
+      return;
+    }
     const startPromise = this.inner.start();
     const emitter = this.inner.emitter;
     const queue = [];
@@ -517,14 +575,40 @@ export function createClaudeClient() {
 }
 
 /**
- * Calculate cost - returns 0 when using CLI
+ * Calculate cost - returns 0 when using CLI, real cost when using API fallback
+ * @param {Object} usage - Usage object with input_tokens, output_tokens
+ * @param {string} model - Model name
+ * @param {Object} response - Full response object (may have _backend marker)
  */
-export function calculateClaudeCost(usage, model = 'claude-sonnet-4-6') {
-  // Zero cost when using CLI
+export function calculateClaudeCost(usage, model = 'claude-sonnet-4-6', response = null) {
+  // Check if this specific call used API fallback
+  if (response && (response._backend === 'api' || response.backend === 'api')) {
+    // Real cost for API fallback
+    if (!usage || !usage.input_tokens || !usage.output_tokens) return 0.50; // fallback estimate
+
+    const inputTokens = usage.input_tokens;
+    const outputTokens = usage.output_tokens;
+
+    let inputCostPerMTok = 3.0;
+    let outputCostPerMTok = 15.0;
+
+    if (model.includes('haiku')) {
+      inputCostPerMTok = 0.25;
+      outputCostPerMTok = 1.25;
+    }
+
+    const inputCost = (inputTokens / 1_000_000) * inputCostPerMTok;
+    const outputCost = (outputTokens / 1_000_000) * outputCostPerMTok;
+
+    return parseFloat((inputCost + outputCost).toFixed(4));
+  }
+
+  // Zero cost when using CLI (default in CLI mode)
   if (process.env.USE_CLAUDE_CLI === 'on') {
     return 0;
   }
 
+  // SDK mode - normal cost
   if (!usage || !usage.input_tokens || !usage.output_tokens) return 0.50; // fallback estimate
 
   const inputTokens = usage.input_tokens;
