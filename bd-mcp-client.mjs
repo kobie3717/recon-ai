@@ -595,7 +595,7 @@ export async function mcpComprehensive(domain) {
     mcpSearchEngine(`${domain} company overview funding news 2026`),
     mcpSearchEngine(`${domain} competitors market position`),
     mcpScrapeMarkdown(`https://${domain}`),
-    mcpWebUnlocker(`https://${domain}/about`)
+    mcpScrapeMarkdown(`https://${domain}/about`)
   ]);
 
   const elapsed = (Date.now() - startTime) / 1000;
