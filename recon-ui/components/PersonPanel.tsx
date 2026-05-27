@@ -9,6 +9,34 @@ interface PersonPanelProps {
   onDrillDown: (q: string) => void;
 }
 
+const confidenceColors: Record<string, string> = {
+  high: 'bg-green-500',
+  medium: 'bg-amber-500',
+  low: 'bg-gray-500',
+};
+
+function EvidencePill({ url, confidence }: { url?: string; confidence?: string }) {
+  if (!url && !confidence) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 ml-2">
+      {confidence && (
+        <span className={`w-2 h-2 rounded-full ${confidenceColors[confidence] || confidenceColors.low}`} title={`Confidence: ${confidence}`} />
+      )}
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-recon-cyan hover:text-recon-blue text-xs font-mono px-1.5 py-0.5 bg-recon-navy/60 rounded border border-recon-cyan/20 hover:border-recon-cyan/50 transition-colors"
+          title={`Evidence: ${url}`}
+        >
+          🔗 source
+        </a>
+      )}
+    </span>
+  );
+}
+
 export default function PersonPanel({ reportData, isRunning, onDrillDown }: PersonPanelProps) {
   const showPlaceholder = !isRunning && !reportData;
   const showLoading = isRunning && !reportData;
@@ -25,12 +53,19 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
   return (
     <div className="flex flex-col h-full bg-recon-dark">
       <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
-        <h2 className="text-recon-cyan uppercase font-bold tracking-wide">
-          👤 Executive Profile
-        </h2>
-        {reportData?.meta?.name && (
-          <span className="text-white text-sm font-semibold">{reportData.meta.name}</span>
-        )}
+        <div className="flex items-center gap-3">
+          <h2 className="text-recon-cyan uppercase font-bold tracking-wide">
+            👤 Executive Profile
+          </h2>
+          {reportData?.meta?.name && (
+            <span className="text-white text-sm font-semibold">{reportData.meta.name}</span>
+          )}
+          {reportData?.meta?.sources_count > 0 && (
+            <span className="text-recon-grey text-xs px-2 py-0.5 bg-recon-navy/60 border border-recon-blue/20 rounded">
+              Sources: {reportData.meta.sources_count} URLs · {reportData.meta.evidence_coverage || 'N/A'}
+            </span>
+          )}
+        </div>
         {reportData && (
           <button
             onClick={onPrint}
@@ -94,6 +129,9 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                   >
                     <span>{signal.icon}</span>
                     <span>{signal.text}</span>
+                    {signal.confidence && (
+                      <span className={`w-2 h-2 rounded-full ${confidenceColors[signal.confidence] || confidenceColors.low}`} title={`Confidence: ${signal.confidence}`} />
+                    )}
                   </div>
                 ))}
               </div>
@@ -159,7 +197,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                     const target = co.domain || `${co.name.toLowerCase().replace(/\s+/g, '')}.com`;
                     return (
                       <div key={idx} className="flex items-center justify-between text-sm">
-                        <div>
+                        <div className="flex-1">
                           <button
                             onClick={() => onDrillDown(target)}
                             className="text-recon-cyan font-semibold hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer"
@@ -167,6 +205,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                             {co.name}
                           </button>
                           <span className="text-recon-grey ml-2">— {co.role}</span>
+                          <EvidencePill url={co.evidence_url} confidence={co.confidence} />
                         </div>
                         {co.domain && (
                           <span className="text-recon-grey/60 text-xs">{co.domain}</span>
@@ -194,7 +233,10 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                     {reportData.publicActivity.map((item: any, idx: number) => (
                       <tr key={idx} className="border-b border-recon-blue/10">
                         <td className="py-2 text-recon-grey whitespace-nowrap">{item.date}</td>
-                        <td className="py-2 text-white">{item.event}</td>
+                        <td className="py-2 text-white">
+                          {item.event}
+                          <EvidencePill url={item.evidence_url} confidence={item.confidence} />
+                        </td>
                         <td className="py-2">
                           <span className={`px-2 py-1 rounded text-xs font-semibold ${
                             item.signal === 'HIGH' ? 'bg-red-500/20 text-red-400' :
@@ -219,7 +261,10 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                   {reportData.quotes.map((q: any, idx: number) => (
                     <div key={idx} className="border-l-2 border-purple-500/50 pl-3">
                       <p className="text-white text-sm italic">"{q.text}"</p>
-                      <p className="text-recon-grey text-xs mt-1">{q.source} · {q.date}</p>
+                      <p className="text-recon-grey text-xs mt-1">
+                        {q.source} · {q.date}
+                        <EvidencePill url={q.evidence_url} confidence={q.confidence} />
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -234,12 +279,15 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                   {reportData.network.map((n: any, idx: number) => (
                     <div key={idx} className="text-sm">
                       <div className="flex items-start justify-between gap-4">
-                        <button
-                          onClick={() => onDrillDown(n.name)}
-                          className="text-purple-400 font-semibold hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer text-left"
-                        >
-                          👤 {n.name}
-                        </button>
+                        <div className="flex-1">
+                          <button
+                            onClick={() => onDrillDown(n.name)}
+                            className="text-purple-400 font-semibold hover:text-white hover:underline underline-offset-2 transition-colors cursor-pointer text-left"
+                          >
+                            👤 {n.name}
+                          </button>
+                          <EvidencePill url={n.evidence_url} confidence={n.confidence} />
+                        </div>
                       </div>
                       {n.relationship && (
                         <div className="text-recon-grey text-xs mt-0.5 pl-5">{n.relationship}</div>
@@ -248,6 +296,18 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Methodology Footer */}
+            {reportData.meta?.sources_count > 0 && (
+              <details className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
+                <summary className="text-recon-cyan font-bold text-sm uppercase cursor-pointer hover:text-recon-blue transition-colors">
+                  Methodology · {reportData.meta.sources_count} URLs fetched
+                </summary>
+                <div className="mt-3 text-xs text-recon-grey">
+                  Evidence sources collected from public records and web searches.
+                </div>
+              </details>
             )}
 
             {/* Cost */}

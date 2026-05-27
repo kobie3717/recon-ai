@@ -11,6 +11,34 @@ function getSectionPills(sectionName: string, sources?: any[]) {
   return sources.filter(s => Array.isArray(s.sections) && s.sections.some((sec: string) => sec.toLowerCase() === target));
 }
 
+const confidenceColors: Record<string, string> = {
+  high: 'bg-green-500',
+  medium: 'bg-amber-500',
+  low: 'bg-gray-500',
+};
+
+function EvidencePill({ url, confidence }: { url?: string; confidence?: string }) {
+  if (!url && !confidence) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 ml-2">
+      {confidence && (
+        <span className={`w-2 h-2 rounded-full ${confidenceColors[confidence] || confidenceColors.low}`} title={`Confidence: ${confidence}`} />
+      )}
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-recon-cyan hover:text-recon-blue text-xs font-mono px-1.5 py-0.5 bg-recon-navy/60 rounded border border-recon-cyan/20 hover:border-recon-cyan/50 transition-colors"
+          title={`Evidence: ${url}`}
+        >
+          🔗 source
+        </a>
+      )}
+    </span>
+  );
+}
+
 interface ReportPanelProps {
   content?: string;
   reportData?: any;

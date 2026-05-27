@@ -16,6 +16,34 @@ const intentClasses: Record<string, string> = {
   navigational: 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
 };
 
+const confidenceColors: Record<string, string> = {
+  high: 'bg-green-500',
+  medium: 'bg-amber-500',
+  low: 'bg-gray-500',
+};
+
+function EvidencePill({ url, confidence }: { url?: string; confidence?: string }) {
+  if (!url && !confidence) return null;
+  return (
+    <span className="inline-flex items-center gap-1.5 ml-2">
+      {confidence && (
+        <span className={`w-2 h-2 rounded-full ${confidenceColors[confidence] || confidenceColors.low}`} title={`Confidence: ${confidence}`} />
+      )}
+      {url && (
+        <a
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-recon-cyan hover:text-recon-blue text-xs font-mono px-1.5 py-0.5 bg-recon-navy/60 rounded border border-recon-cyan/20 hover:border-recon-cyan/50 transition-colors"
+          title={`Evidence: ${url}`}
+        >
+          🔗 source
+        </a>
+      )}
+    </span>
+  );
+}
+
 export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPanelProps) {
   const showLoading = isRunning && !reportData;
   const [isPrinting, setIsPrinting] = useState(false);
@@ -77,10 +105,17 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
             {/* Domain header */}
             <div className="border-b border-recon-blue/20 pb-4">
               <h1 className="text-3xl font-bold text-white">{reportData.meta?.domain}</h1>
-              <p className="text-green-400 mt-1 text-sm">
-                {reportData.meta?.companyName && <span>{reportData.meta.companyName} · </span>}
-                SEO analysis · {reportData.meta?.analysisDate}
-              </p>
+              <div className="flex items-center gap-3 mt-1">
+                <p className="text-green-400 text-sm">
+                  {reportData.meta?.companyName && <span>{reportData.meta.companyName} · </span>}
+                  SEO analysis · {reportData.meta?.analysisDate}
+                </p>
+                {reportData.meta?.sources_count > 0 && (
+                  <span className="text-recon-grey text-xs px-2 py-0.5 bg-recon-navy/60 border border-recon-blue/20 rounded">
+                    Sources: {reportData.meta.sources_count} URLs · {reportData.meta.evidence_coverage || 'N/A'}
+                  </span>
+                )}
+              </div>
             </div>
 
             {/* Signals */}
@@ -92,7 +127,11 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                     s.level === 'medium' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' :
                     'bg-gray-500/20 text-gray-400 border border-gray-500/30'
                   }`}>
-                    <span>{s.icon}</span><span>{s.text}</span>
+                    <span>{s.icon}</span>
+                    <span>{s.text}</span>
+                    {s.confidence && (
+                      <span className={`w-2 h-2 rounded-full ${confidenceColors[s.confidence] || confidenceColors.low}`} title={`Confidence: ${s.confidence}`} />
+                    )}
                   </div>
                 ))}
               </div>
@@ -359,7 +398,10 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                   {reportData.opportunities.map((opp: any, i: number) => (
                     <div key={i} className="bg-recon-dark border border-green-500/20 rounded p-3">
                       <div className="flex items-start justify-between mb-2">
-                        <div className="text-white font-medium">{opp.keyword}</div>
+                        <div className="text-white font-medium flex-1">
+                          {opp.keyword}
+                          <EvidencePill url={opp.evidence_url} confidence={opp.confidence} />
+                        </div>
                         <div className="text-green-400 text-sm">{opp.volume?.toLocaleString()} vol</div>
                       </div>
                       {opp.difficulty !== undefined && (
@@ -398,31 +440,34 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                           onDrillDown?.(d.includes('.') ? d : `${d}.com`);
                         }}
                       >{c.competitor}</span>
-                      <span className="text-recon-grey">{c.weakness}</span>
+                      <span className="text-recon-grey flex-1">
+                        {c.weakness}
+                        <EvidencePill url={c.evidence_url} confidence={c.confidence} />
+                      </span>
                     </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Sources */}
-            {reportData.sources && reportData.sources.length > 0 && (
-              <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
-                <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Sources</h3>
-                <div className="space-y-2">
-                  {reportData.sources.map((s: any, i: number) => (
-                    <div key={i} className="flex items-start gap-2 text-xs text-recon-grey">
+            {/* Methodology Footer */}
+            {reportData.meta?.sources_count > 0 && (
+              <details className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
+                <summary className="text-recon-cyan font-bold text-sm uppercase cursor-pointer hover:text-recon-blue transition-colors">
+                  Methodology · {reportData.meta.sources_count} URLs fetched
+                </summary>
+                <div className="mt-3 space-y-2 max-h-64 overflow-y-auto">
+                  {reportData.sources && reportData.sources.map((s: any, i: number) => (
+                    <div key={i} className="flex items-start gap-2 text-xs text-recon-grey border-l-2 border-recon-blue/20 pl-3">
                       <span>{s.icon}</span>
-                      <span className="text-white font-medium">{s.tool}</span>
-                      <span>→</span>
-                      <span className="font-mono">{s.target}</span>
-                      {s.sections && s.sections.length > 0 && (
-                        <span className="text-recon-grey">({s.sections.join(', ')})</span>
-                      )}
+                      <div className="flex-1">
+                        <div className="text-white font-medium">{s.tool}</div>
+                        <div className="font-mono text-recon-grey">{s.target}</div>
+                      </div>
                     </div>
                   ))}
                 </div>
-              </div>
+              </details>
             )}
 
             {/* Cost */}
