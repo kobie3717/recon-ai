@@ -10,6 +10,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, runMcpWorker, runAgenticFollowups } from './bd-worker.mjs';
 import { dataFirehose } from './bright-data-connector.mjs';
 import { startMonitorScheduler, getMonitorState, updateMonitorState, getDiffHistory, triggerDomainCheck } from './monitor-scheduler.mjs';
+import { createClaudeClient, calculateClaudeCost as adapterCalculateClaudeCost } from './claude-adapter.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -17,12 +18,16 @@ import path from 'path';
 dotenv.config();
 
 // Warn on startup about missing optional env vars (fail fast on critical ones)
-if (!process.env.ANTHROPIC_API_KEY) {
+if (!process.env.ANTHROPIC_API_KEY && process.env.USE_CLAUDE_CLI !== 'on') {
   console.warn('[startup] ANTHROPIC_API_KEY not set — running in mock mode');
 }
 if (!process.env.BD_API_KEY) {
   console.warn('[startup] BD_API_KEY not set — Bright Data calls will fail');
 }
+
+// Log Claude backend mode at startup
+const claudeBackend = process.env.USE_CLAUDE_CLI === 'on' ? 'CLI (Max OAuth)' : 'API (SDK)';
+console.log(`[recon] Claude backend: ${claudeBackend}`);
 
 const app = express();
 app.disable('x-powered-by');
@@ -66,10 +71,8 @@ function validateDomain(input) {
   return input.toLowerCase();
 }
 
-// Claude client — real synthesis when key present, mock fallback otherwise
-const anthropic = process.env.ANTHROPIC_API_KEY
-  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
-  : null;
+// Claude client — adapter routes to CLI (USE_CLAUDE_CLI=on) or SDK (default)
+const anthropic = createClaudeClient();
 
 // AI-IQ in-memory cache: "domain:mode" -> { report, elapsed, timestamp }
 const reportCache = new Map();
@@ -1011,25 +1014,10 @@ function buildSources(domain, companySlug, mode) {
  * Calculate Claude API cost from usage object
  * Pricing as of 2024: Sonnet 4 input $3/MTok, output $15/MTok
  * Haiku input $0.25/MTok, output $1.25/MTok
+ * Returns 0 when USE_CLAUDE_CLI=on (CLI uses Max OAuth, no API cost)
  */
 function calculateClaudeCost(usage, model = 'claude-sonnet-4-6') {
-  if (!usage || !usage.input_tokens || !usage.output_tokens) return 0.50; // fallback estimate
-
-  const inputTokens = usage.input_tokens;
-  const outputTokens = usage.output_tokens;
-
-  let inputCostPerMTok = 3.0;
-  let outputCostPerMTok = 15.0;
-
-  if (model.includes('haiku')) {
-    inputCostPerMTok = 0.25;
-    outputCostPerMTok = 1.25;
-  }
-
-  const inputCost = (inputTokens / 1_000_000) * inputCostPerMTok;
-  const outputCost = (outputTokens / 1_000_000) * outputCostPerMTok;
-
-  return parseFloat((inputCost + outputCost).toFixed(4));
+  return adapterCalculateClaudeCost(usage, model);
 }
 
 /**
