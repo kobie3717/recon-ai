@@ -47,23 +47,14 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
   const hasInput = !!url.trim();
   const hasDot = url.includes('.');
 
-  const buttonClasses = (color: string, isPulse = false) => {
+  const buttonClasses = (color: string, isActive = false, isPulse = false) => {
     const base = "px-2 py-1.5 md:px-4 md:py-2 rounded-lg font-medium text-xs md:text-sm md:whitespace-nowrap transition-all disabled:opacity-50 disabled:cursor-not-allowed";
     const pulse = isPulse ? " ring-2 ring-purple-400 ring-offset-1 ring-offset-recon-dark" : "";
-    switch (color) {
-      case 'blue': return `${base} bg-recon-blue text-white hover:bg-recon-blue/80`;
-      case 'purple-glow': return `${base} bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 shadow-lg shadow-purple-500/50`;
-      case 'purple': return `${base} bg-purple-700 text-white hover:bg-purple-600${pulse}`;
-      case 'teal': return `${base} bg-recon-navy border border-teal-500/50 text-teal-400 hover:bg-teal-500/10`;
-      case 'orange': return `${base} bg-orange-900/40 border border-orange-500/50 text-orange-400 hover:bg-orange-500/10`;
-      case 'green': return `${base} bg-green-900/40 border border-green-500/50 text-green-400 hover:bg-green-500/10 ${isPulse ? 'animate-pulse' : ''}`;
-      case 'yellow': return `${base} bg-yellow-400 text-black hover:bg-yellow-300`;
-      case 'violet': return `${base} bg-violet-900/40 border border-violet-500/50 text-violet-400 hover:bg-violet-500/10`;
-      case 'red': return `${base} bg-red-600 text-white hover:bg-red-700`;
-      case 'indigo': return `${base} bg-indigo-600 text-white hover:bg-indigo-700`;
-      case 'black': return `${base} bg-gray-900 border border-gray-600 text-white hover:bg-black`;
-      default: return `${base} bg-recon-navy border border-recon-grey/50 text-white hover:bg-recon-grey/20`;
+    // Normalized color scheme: all dark bg, active gets cyan accent
+    if (isActive) {
+      return `${base} bg-recon-dark border-2 border-cyan-500 text-white shadow-lg shadow-cyan-500/30 hover:bg-recon-dark${pulse}`;
     }
+    return `${base} bg-recon-dark border border-recon-grey/40 text-recon-grey hover:bg-recon-grey/10 hover:text-white hover:border-recon-grey/60${pulse}`;
   };
 
   return (
@@ -134,12 +125,13 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               const isPersonMode = mode === 'person';
               const disabledByContext = hasInput && (isPersonMode ? hasDot : !hasDot);
               const isDisabled = isRunning || !hasInput || disabledByContext || !verified;
+              const isActive = false; // Can add current mode highlighting later if needed
               return (
                 <button
                   key={mode}
                   onClick={() => onGenerate(url, mode, cost)}
                   disabled={isDisabled}
-                  className={buttonClasses(color, isPersonMode && isPerson)}
+                  className={buttonClasses(color, isActive, isPersonMode && isPerson)}
                   title={description}
                 >
                   {icon && <span className="mr-1">{icon}</span>}
@@ -152,14 +144,14 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
               <button
                 onClick={() => onCompare(url, url2, 'standard')}
                 disabled={isRunning || !url.trim() || !url2.trim()}
-                className={buttonClasses('blue')}
+                className={buttonClasses('blue', false)}
               >
                 Compare Standard — $4.00
               </button>
               <button
                 onClick={() => onCompare(url, url2, 'deep')}
                 disabled={isRunning || !url.trim() || !url2.trim()}
-                className={buttonClasses('indigo')}
+                className={buttonClasses('indigo', false)}
               >
                 Compare Deep — $30.00
               </button>
@@ -168,6 +160,15 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
         </div>
         <div className="hidden md:block absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-recon-navy/80 to-transparent pointer-events-none" />
       </div>
+
+      {/* BD Product visibility strip */}
+      {!compareMode && (
+        <div className="bg-recon-dark/60 border-b border-recon-blue/10 px-4 py-1.5 text-center">
+          <div className="text-recon-grey/80 text-xs">
+            Powered by: <span className="text-cyan-400/70">Web Unlocker</span> · <span className="text-cyan-400/70">SERP API</span> · <span className="text-cyan-400/70">Scraping Browser</span> · <span className="text-cyan-400/70">Discover</span> · <span className="text-cyan-400/70">Crawl</span> · <span className="text-cyan-400/70">Web Scraper</span> · <span className="text-cyan-400/70">Datasets</span> · <span className="text-cyan-400/70">MCP</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

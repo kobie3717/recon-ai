@@ -169,6 +169,22 @@ const statusPrefix = {
   extracting: '⋯',
 };
 
+// Map agent names to BD product labels for live counter
+function getAgentBDProduct(name: string): string | null {
+  const cleanName = name.includes(': ') ? name.split(': ')[1] : name;
+
+  if (cleanName === 'bd-web-unlocker' || cleanName === 'bd-mcp-unlocker') return 'Web Unlocker';
+  if (cleanName === 'bd-serp' || cleanName === 'bd-serp-batch' || cleanName === 'bd-mcp-search' || cleanName.startsWith('scout-serp')) return 'SERP API';
+  if (cleanName === 'bd-scraping-browser') return 'Scraping Browser';
+  if (cleanName === 'bd-web-scraper' || cleanName === 'bd-mcp-scrape') return 'Web Scraper';
+  if (cleanName === 'bd-discover' || cleanName === 'bd-domain-discovery') return 'Discover';
+  if (cleanName === 'bd-crawl') return 'Crawl';
+  if (cleanName === 'bd-datasets' || cleanName === 'bd-linkedin-scraper' || cleanName === 'bd-social') return 'Datasets';
+  if (cleanName === 'bd-mcp' || cleanName === 'bd-assistant') return 'MCP';
+
+  return null;
+}
+
 // Confidence scoring logic per agent type
 function calculateConfidence(name: string, status: AgentStatus, extra?: Record<string, any>): number | undefined {
   if (status !== 'complete' || !extra) return undefined;
@@ -297,37 +313,61 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
     });
   }, [agents]);
 
+  // Calculate BD product states for live counter
+  const bdProductStates = useMemo(() => {
+    const products = ['Web Unlocker', 'SERP API', 'Scraping Browser', 'Web Scraper', 'Discover', 'Crawl', 'Datasets', 'MCP'];
+    const states: Record<string, 'complete' | 'in-flight' | 'hidden'> = {};
+
+    products.forEach(product => {
+      states[product] = 'hidden';
+    });
+
+    agents.forEach(agent => {
+      const product = getAgentBDProduct(agent.name);
+      if (product && states[product] !== 'complete') {
+        if (agent.status === 'complete') {
+          states[product] = 'complete';
+        } else if (agent.status === 'fetching' || agent.status === 'launching' || agent.status === 'searching' || agent.status === 'querying' || agent.status === 'extracting') {
+          states[product] = 'in-flight';
+        }
+      }
+    });
+
+    return states;
+  }, [agents]);
+
   return (
     <div className="flex flex-col h-full bg-recon-dark">
-      <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex items-center justify-between">
-        <div className="flex flex-col">
-          <div className="flex items-center gap-4">
-            <h2 className="text-recon-cyan uppercase font-bold tracking-widest">OPERATIVE FEED</h2>
+      <div className="bg-recon-navy/80 px-6 py-4 border-b border-recon-blue/30 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col">
+            <div className="flex items-center gap-4">
+              <h2 className="text-recon-cyan uppercase font-bold tracking-widest">OPERATIVE FEED</h2>
 
-            {/* Toggle button for cards/timeline view */}
-            <div className="flex items-center gap-1 bg-recon-dark/50 rounded-lg p-1 border border-recon-blue/20">
-              <button
-                onClick={() => setViewMode('cards')}
-                className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
-                  viewMode === 'cards'
-                    ? 'bg-recon-cyan text-recon-dark'
-                    : 'text-recon-grey hover:text-recon-cyan'
-                }`}
-              >
-                Cards
-              </button>
-              <button
-                onClick={() => setViewMode('timeline')}
-                className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
-                  viewMode === 'timeline'
-                    ? 'bg-recon-cyan text-recon-dark'
-                    : 'text-recon-grey hover:text-recon-cyan'
-                }`}
-              >
-                Timeline
-              </button>
+              {/* Toggle button for cards/timeline view */}
+              <div className="flex items-center gap-1 bg-recon-dark/50 rounded-lg p-1 border border-recon-blue/20">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
+                    viewMode === 'cards'
+                      ? 'bg-recon-cyan text-recon-dark'
+                      : 'text-recon-grey hover:text-recon-cyan'
+                  }`}
+                >
+                  Cards
+                </button>
+                <button
+                  onClick={() => setViewMode('timeline')}
+                  className={`px-3 py-1 rounded text-xs font-semibold tracking-wider uppercase transition-all ${
+                    viewMode === 'timeline'
+                      ? 'bg-recon-cyan text-recon-dark'
+                      : 'text-recon-grey hover:text-recon-cyan'
+                  }`}
+                >
+                  Timeline
+                </button>
+              </div>
             </div>
-          </div>
           {isDeepMode && (
             <div className="text-indigo-400 text-xs mt-1 font-semibold tracking-widest">
               DEEP RECON — 10 PARALLEL FIELD OPERATIVES
@@ -358,26 +398,53 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
               HUMINT — EXECUTIVE PROFILE
             </div>
           )}
+          </div>
+          <div className="flex flex-col items-end gap-2">
+            {isRunning && (
+              <>
+                <div className="text-recon-amber font-mono text-sm">
+                  {totalElapsed.toFixed(1)}s
+                </div>
+                {agents.length > 1 && (() => {
+                  const activeCount = agents.filter(a =>
+                    a.status === 'fetching' || a.status === 'searching' || a.status === 'launching'
+                  ).length;
+                  return activeCount > 0 ? (
+                    <div className="text-recon-cyan text-xs font-semibold tracking-wider">
+                      ⚡ {activeCount} AGENTS ACTIVE
+                    </div>
+                  ) : null;
+                })()}
+              </>
+            )}
+          </div>
         </div>
-        <div className="flex flex-col items-end gap-2">
-          {isRunning && (
-            <>
-              <div className="text-recon-amber font-mono text-sm">
-                {totalElapsed.toFixed(1)}s
-              </div>
-              {agents.length > 1 && (() => {
-                const activeCount = agents.filter(a =>
-                  a.status === 'fetching' || a.status === 'searching' || a.status === 'launching'
-                ).length;
-                return activeCount > 0 ? (
-                  <div className="text-recon-cyan text-xs font-semibold tracking-wider">
-                    ⚡ {activeCount} AGENTS ACTIVE
-                  </div>
-                ) : null;
-              })()}
-            </>
-          )}
-        </div>
+
+        {/* Live BD Product Counter */}
+        {agents.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 bg-recon-dark/60 rounded-lg px-4 py-2 border border-recon-blue/20">
+            {Object.entries(bdProductStates).map(([product, state]) => {
+              if (state === 'hidden') return null;
+              const isComplete = state === 'complete';
+              const isInFlight = state === 'in-flight';
+              return (
+                <div
+                  key={product}
+                  className={`flex items-center gap-1.5 px-2 py-1 rounded text-xs font-semibold transition-all ${
+                    isComplete
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/40'
+                      : 'bg-orange-500/20 text-orange-400 border border-orange-500/40'
+                  }`}
+                >
+                  <span>{product}</span>
+                  <span className={isInFlight ? 'animate-pulse' : ''}>
+                    {isComplete ? '✓' : '⟳'}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 overflow-y-auto">

@@ -14,6 +14,7 @@ import FootprintPanel from '@/components/FootprintPanel';
 import WatchPanel from '@/components/WatchPanel';
 import LookupPanel from '@/components/LookupPanel';
 import McpPanel from '@/components/McpPanel';
+import { flattenEvidence } from '@/lib/flatten-evidence';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
 
@@ -40,6 +41,9 @@ export default function Home() {
   const [synthesisTokens, setSynthesisTokens] = useState<number>(0);
   const [livePreview, setLivePreview] = useState<string>('');
   const isJsonPhaseRef = useRef<boolean>(false);
+
+  // Mobile tab state - default to 'feed' for better visual proof of parallelism
+  const [mobileTab, setMobileTab] = useState<'feed' | 'report'>('feed');
 
   const relativeTime = (iso: string) => {
     const diff = Date.now() - new Date(iso).getTime();
@@ -215,12 +219,13 @@ export default function Home() {
         } else if (event.type === 'report') {
           completedRef.current = true; // set first — onerror debounce checks this
           if (typeof event.report === 'object') {
-            setReportData(event.report);
-            saveToHistory(domain, mode, event.report);
+            const flattened = flattenEvidence(event.report);
+            setReportData(flattened);
+            saveToHistory(domain, mode, flattened);
             fetch('/api/save', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ domain, report: event.report, mode }),
+              body: JSON.stringify({ domain, report: flattened, mode }),
             }).catch(() => {});
           } else {
             setReportContent(event.report || event.content || '');
@@ -326,8 +331,9 @@ export default function Home() {
           });
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
-            setReportData(event.report);
-            saveToHistory(domain1, `compare-${mode}`, event.report);
+            const flattened = flattenEvidence(event.report);
+            setReportData(flattened);
+            saveToHistory(domain1, `compare-${mode}`, flattened);
           } else {
             setReportContent(event.report || event.content || '');
           }
@@ -396,8 +402,9 @@ export default function Home() {
           });
         } else if (event.type === 'report') {
           if (typeof event.report === 'object') {
-            setReportData2(event.report);
-            saveToHistory(domain2, `compare-${mode}`, event.report);
+            const flattened = flattenEvidence(event.report);
+            setReportData2(flattened);
+            saveToHistory(domain2, `compare-${mode}`, flattened);
           }
           setIsRunning2(false);
           completedRef2.current = true;
@@ -458,6 +465,18 @@ export default function Home() {
         />
       </div>
 
+      {/* Hero pitch - shown when no scan is running and no results */}
+      {!isRunning && !isRunning2 && !reportData && !isWatching && agents.length === 0 && (
+        <div className="bg-gradient-to-r from-recon-navy via-recon-dark to-recon-navy border-b border-recon-blue/20 py-6 px-6 text-center">
+          <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 animate-pulse">
+            🚀 10 Bright Data Products · 4-10 Agents in Parallel · Real-Time Intelligence
+          </div>
+          <div className="text-recon-grey text-sm mt-2">
+            Competitive intel powered by Web Unlocker · SERP API · Scraping Browser · Discover · Crawl · Web Scraper · Datasets · MCP
+          </div>
+        </div>
+      )}
+
       {history.length > 0 && (
         <div className="relative">
           <div className="bg-recon-navy/60 border-b border-recon-blue/20 px-6 py-2 flex items-center gap-3">
@@ -512,8 +531,32 @@ export default function Home() {
         </div>
       )}
 
+      {/* Mobile tab switcher */}
+      <div className="md:hidden bg-recon-navy border-b border-recon-blue/20 flex">
+        <button
+          onClick={() => setMobileTab('feed')}
+          className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
+            mobileTab === 'feed'
+              ? 'text-recon-cyan border-b-2 border-recon-cyan'
+              : 'text-recon-grey hover:text-white'
+          }`}
+        >
+          Operative Feed
+        </button>
+        <button
+          onClick={() => setMobileTab('report')}
+          className={`flex-1 py-3 text-sm font-semibold uppercase tracking-wider transition-colors ${
+            mobileTab === 'report'
+              ? 'text-recon-cyan border-b-2 border-recon-cyan'
+              : 'text-recon-grey hover:text-white'
+          }`}
+        >
+          Report
+        </button>
+      </div>
+
       <div className="flex flex-1 overflow-hidden">
-        <div className="hidden md:block md:w-1/2 h-full" id="waterfall-panel">
+        <div className={`${mobileTab === 'feed' ? 'block' : 'hidden'} md:block md:w-1/2 h-full w-full`} id="waterfall-panel">
           <Waterfall
             agents={agents}
             totalElapsed={totalElapsed}
@@ -524,7 +567,7 @@ export default function Home() {
             mode={currentMode}
           />
         </div>
-        <div className="w-full md:w-1/2 h-full">
+        <div className={`${mobileTab === 'report' ? 'block' : 'hidden'} md:block w-full md:w-1/2 h-full`}>
           {compareActive && (reportData || isRunning || reportData2 || isRunning2) ? (
             <ComparePanel
               report1={reportData}
