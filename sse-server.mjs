@@ -1067,11 +1067,19 @@ MODE: ${mode}
 SCRAPED WEB DATA:
 ${factsText}
 
+GROUNDING RULES (CRITICAL — judges will fact-check):
+- Use ONLY facts present in the SCRAPED WEB DATA above. Do NOT draw on training knowledge for dated events, product launches, headlines, funding rounds, or news.
+- For "news" array: each item MUST be quoted/paraphrased from the scraped data. If the data contains no datable news for ${safeCompanyName}, return an empty array []. Do NOT invent dates, headlines, or signals.
+- "financials" numbers: only include what the data states. Omit fields (set to "") if not present.
+- Better to return an empty array or "" than to fabricate.
+- Today is ${today}. Any "news" item with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
+- The Executive Summary must paraphrase the scraped data only — do NOT add facts that aren't supported.
+
 Output format: Start with human-readable markdown executive summary, then emit structured JSON.
 
 ## Executive Summary
 
-[Write 2-3 paragraphs for human readers. Include key findings, strategic positioning, and notable signals. Plain markdown, NO JSON in this section.]
+[Write 2-3 paragraphs for human readers. Include key findings, strategic positioning, and notable signals — ALL grounded in the scraped data above. Plain markdown, NO JSON in this section.]
 
 ## Key Signals
 
@@ -1140,7 +1148,16 @@ MODE: ${mode}
 SCRAPED WEB DATA:
 ${factsText}
 
-Return ONLY a valid JSON object with this exact structure. Use the scraped data AND your knowledge of ${domain}:
+Return ONLY a valid JSON object with this exact structure.
+
+GROUNDING RULES (CRITICAL — judges will fact-check):
+- Use ONLY facts present in the SCRAPED WEB DATA above. Do NOT draw on training knowledge for dated events, product launches, headlines, funding rounds, or news.
+- For "news" array: each item MUST be quoted/paraphrased from the scraped data. If the data contains no datable news for ${companyName}, return an empty array []. Do NOT invent dates, headlines, or signals.
+- "financials" numbers: only include what the data states. Omit fields (set to "") if not present.
+- Better to return an empty array or "" than to fabricate.
+- Today is ${today}. Any "news" with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
+
+Schema:
 {
   "meta": {
     "domain": "${domain}",
@@ -1195,8 +1212,8 @@ Return ONLY a valid JSON object with this exact structure. Use the scraped data 
 
   // Use streaming API
   const systemPrompt = mode === 'standard'
-    ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise.'
-    : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise.';
+    ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate.'
+    : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate.';
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
@@ -1394,7 +1411,7 @@ async function classifyAndExtract(domain, facts, qualityScore = 0.5) {
   const response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 450,
-    system: 'Competitive intelligence analyst. Output ONLY valid JSON.',
+    system: 'Competitive intelligence analyst. Output ONLY valid JSON. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication.',
     messages: [{
       role: 'user',
       content: `Domain: ${domain}
@@ -1471,6 +1488,13 @@ ${signalsSummary}
 ROUND 2 DATA (targeted follow-ups):
 ${r2Text || 'No additional data retrieved'}
 
+GROUNDING RULES (CRITICAL — judges will fact-check):
+- Use ONLY facts present in ROUND 1 and ROUND 2 data above. Do NOT draw on training knowledge for dated events, headlines, funding rounds, or product launches.
+- "news" array: paraphrase from the data only. Empty array if no dated news in data. Never invent dates.
+- "financials": only include what the data states; empty strings if missing.
+- Today is ${today}. Any future-dated news is a hallucination — omit it.
+- Better to return empty than fabricate.
+
 Return ONLY valid JSON:
 {
   "meta": {"domain":"${safeDomain}","companyName":"${safeCompanyName}","analysisDate":"${today}","mode":"agentic","confidence":"high","rounds":2},
@@ -1494,7 +1518,7 @@ Return ONLY valid JSON:
   let response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8192,
-    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings.',
+    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication.',
     messages: [{ role: 'user', content: prompt }]
   });
 
@@ -1504,7 +1528,7 @@ Return ONLY valid JSON:
     response = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
-      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings.',
+      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication.',
       messages: [{ role: 'user', content: prompt }]
     });
 
