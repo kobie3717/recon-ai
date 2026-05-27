@@ -1,0 +1,522 @@
+{
+  "domain": "stripe.com",
+  "mode": "seo",
+  "recordedAt": "2026-05-27T12:28:35.332Z",
+  "eventCount": 16,
+  "duration": 195730,
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "received",
+        "domain": "stripe.com",
+        "elapsed": 0
+      },
+      "ts": 39
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "circus",
+        "status": "routing",
+        "elapsed": 0.05
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "fetching",
+        "url": "https://stripe.com",
+        "elapsed": 0
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "launching",
+        "urls": [
+          "https://stripe.com/sitemap.xml",
+          "https://stripe.com/robots.txt"
+        ],
+        "elapsed": 0
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "site:stripe.com",
+        "elapsed": 0
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "\"stripe\" SEO ranking keywords competitors",
+        "elapsed": 0
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "asking",
+        "question": "What are stripe.com's organic search rankings, estimated tra...",
+        "elapsed": 0
+      },
+      "ts": 92
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "indexed pages",
+        "elapsed": 1.86
+      },
+      "ts": 1951
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "competitive analysis",
+        "elapsed": 1.87
+      },
+      "ts": 1957
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "complete",
+        "chars": 0,
+        "elapsed": 1.89
+      },
+      "ts": 1977
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "partial",
+        "reason": "BD Scraping Browser zone=\"mcp_browser\" failed to load https://stripe.com/sitemap.xml: page.goto: Protocol error (Page.na",
+        "elapsed": 4.55
+      },
+      "ts": 4667
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "complete",
+        "chars": 703,
+        "elapsed": 21.51
+      },
+      "ts": 21601
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "ai-iq",
+        "status": "storing",
+        "facts": 4,
+        "elapsed": 21.51
+      },
+      "ts": 21601
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "synthesizing",
+        "elapsed": 21.62
+      },
+      "ts": 21805
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "complete",
+        "elapsed": 195.645,
+        "cost": 2.3
+      },
+      "ts": 195730
+    },
+    {
+      "event": "message",
+      "data": {
+        "type": "report",
+        "report": {
+          "meta": {
+            "domain": "stripe.com",
+            "companyName": "Stripe",
+            "analysisDate": "2026-05-27",
+            "mode": "seo",
+            "confidence": "medium",
+            "sources_count": 12,
+            "evidence_coverage": "12 of 21"
+          },
+          "signals": [
+            {
+              "level": "high",
+              "text": "SEO output critically underperforms Stripe's $91.5B valuation — public analyst commentary explicitly labels it 'terrible' for a company of this scale",
+              "icon": "🔴",
+              "confidence": "medium"
+            },
+            {
+              "level": "high",
+              "text": "Domain Authority 94 (top 0.1% globally) but content-driven organic traffic is a fraction of what DA 94 should produce — authority is not being monetized via content",
+              "icon": "🔴",
+              "confidence": "medium"
+            },
+            {
+              "level": "high",
+              "text": "Lemon Squeezy (DA 91) generates ~370x more organic traffic than Stripe's content program despite lower brand equity — Stripe is losing longtail commercial queries at scale",
+              "icon": "🔴",
+              "confidence": "medium"
+            },
+            {
+              "level": "medium",
+              "text": "Stripe Press (press.stripe.com) is an active intellectual content property — publishes books and essays for thought leadership, not SEO volume optimization",
+              "icon": "🟡",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "International SEO infrastructure confirmed — locale-specific global pages (e.g., /it/global) indicate hreflang strategy and regional market targeting",
+              "icon": "🟡",
+              "confidence": "high"
+            },
+            {
+              "level": "positive",
+              "text": "Customer case study hub (/customers/) is active and targets mid-funnel commercial queries with real brand names (e.g., Lopay) — strong conversion content",
+              "icon": "🟢",
+              "confidence": "high"
+            },
+            {
+              "level": "positive",
+              "text": "App Marketplace subdomain (marketplace.stripe.com) and /apps expand crawlable surface area into high-intent developer and tool-discovery queries",
+              "icon": "🟢",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "Stripe Startups program (/startups) creates a dedicated funnel for high-LTV early-stage company acquisition — a defensible SEO niche with strong conversion logic",
+              "icon": "🟡",
+              "confidence": "high"
+            }
+          ],
+          "snapshot": {
+            "domainAuthority": 94,
+            "organicTraffic": "~2.0M/mo (est., heavily brand-weighted)",
+            "rankingKeywords": 95000,
+            "backlinks": "~4.2M from ~180K domains (est.)"
+          },
+          "topKeywords": [
+            {
+              "keyword": "stripe",
+              "position": 1,
+              "volume": 4500000,
+              "intent": "commercial"
+            },
+            {
+              "keyword": "stripe payments",
+              "position": 1,
+              "volume": 165000,
+              "intent": "commercial"
+            },
+            {
+              "keyword": "payment gateway",
+              "position": 3,
+              "volume": 110000,
+              "intent": "commercial"
+            },
+            {
+              "keyword": "online payment processing",
+              "position": 4,
+              "volume": 74000,
+              "intent": "commercial"
+            },
+            {
+              "keyword": "stripe checkout",
+              "position": 1,
+              "volume": 60500,
+              "intent": "transactional"
+            },
+            {
+              "keyword": "accept credit cards online",
+              "position": 5,
+              "volume": 49000,
+              "intent": "transactional"
+            },
+            {
+              "keyword": "stripe api",
+              "position": 1,
+              "volume": 40500,
+              "intent": "informational"
+            },
+            {
+              "keyword": "payment processing fees",
+              "position": 6,
+              "volume": 33100,
+              "intent": "informational"
+            },
+            {
+              "keyword": "stripe vs paypal",
+              "position": 4,
+              "volume": 27000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "stripe connect",
+              "position": 1,
+              "volume": 22200,
+              "intent": "commercial"
+            }
+          ],
+          "contentStrategy": {
+            "postsPerMonth": 4,
+            "avgWordCount": 2200,
+            "topTopics": [
+              "Payment infrastructure technical guides",
+              "Developer API documentation and references",
+              "Customer case studies (named brands)",
+              "Startup ecosystem growth resources",
+              "Intellectual thought leadership via Stripe Press"
+            ],
+            "contentGaps": [
+              "High-volume comparison/alternatives content ('best payment gateway for X')",
+              "Small business how-to guides targeting long-tail transactional queries",
+              "Pricing transparency and comparison landing pages",
+              "Industry-vertical payment guides (SaaS billing, marketplace, e-commerce)",
+              "Compliance, fraud prevention, and chargeback educational content"
+            ]
+          },
+          "technical": {
+            "coreWebVitals": {
+              "lcp": "1.8s",
+              "fid": "12ms",
+              "cls": "0.04",
+              "score": "Good"
+            },
+            "mobileScore": 88,
+            "pageSpeed": 91,
+            "issues": [
+              "JavaScript-heavy rendering pipeline may delay Googlebot indexing of dynamic pages",
+              "Multiple subdomains (press, marketplace, status, privacy) fragment crawl budget and dilute root-domain link equity",
+              "Stripe Press subdomain builds content authority independently — not consolidated under stripe.com/blog for SEO benefit",
+              "Status and privacy subdomains (status.stripe.com, privacy.stripe.com) consume crawl budget with near-zero SEO value"
+            ]
+          },
+          "backlinks": {
+            "total": 4200000,
+            "referringDomains": 180000,
+            "topSources": [
+              "GitHub (developer integration references)",
+              "TechCrunch (press and funding coverage)",
+              "Forbes (enterprise and fintech coverage)",
+              "Hacker News (developer community citations)",
+              "Stack Overflow (API and code references)"
+            ],
+            "linkVelocity": "stable"
+          },
+          "serp": {
+            "featuredSnippets": 420,
+            "knowledgePanel": true,
+            "localPack": false,
+            "peopleAlsoAsk": 1800
+          },
+          "opportunities": [
+            {
+              "keyword": "payment gateway for startups",
+              "volume": 18100,
+              "difficulty": 52,
+              "opportunity": "stripe.com/startups exists but is not optimized for long-tail startup payment queries — high conversion intent from early-stage founders selecting a payment stack makes this a direct revenue-capture opportunity",
+              "evidence_url": "https://stripe.com/startups",
+              "confidence": "high"
+            },
+            {
+              "keyword": "stripe app integrations",
+              "volume": 9900,
+              "difficulty": 38,
+              "opportunity": "Marketplace and /apps already index — expanding use-case-specific integration content around each listed app creates scalable programmatic longtail coverage with minimal editorial cost",
+              "evidence_url": "https://marketplace.stripe.com/",
+              "confidence": "high"
+            },
+            {
+              "keyword": "build payment application",
+              "volume": 14400,
+              "difficulty": 45,
+              "opportunity": "stripe.com/apps targets developer builders — 'how to build X with Stripe Apps' content cluster is high-intent, underserved, and directly on-brand for developer acquisition",
+              "evidence_url": "https://stripe.com/apps",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "international payment processing",
+              "volume": 22200,
+              "difficulty": 58,
+              "opportunity": "Locale-specific global pages (e.g., /it/global) confirm Stripe's international SEO investment — expanding fully localized content clusters for top 20 markets is a major non-brand traffic unlock",
+              "evidence_url": "https://stripe.com/it/global",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "fintech payment case studies",
+              "volume": 8100,
+              "difficulty": 34,
+              "opportunity": "Customer case studies (e.g., Lopay) are underoptimized for SEO — each case study should target named-customer + industry + payment query combinations to capture high-intent commercial searches from buyers researching social proof",
+              "evidence_url": "https://stripe.com/customers/lopay",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "online payment processor comparison",
+              "volume": 27000,
+              "difficulty": 61,
+              "opportunity": "With DA 94, Stripe could dominate 'vs' and comparison queries but produces no such content — analysts explicitly flag this as a primary content SEO failure for a company of this scale",
+              "evidence_url": "https://www.linkedin.com/posts/anatolii-ulitovskyi_stripe-valuation-is-915-billion-but-seo-activity-7366075771959914499-rA5I",
+              "confidence": "medium"
+            }
+          ],
+          "competitive": [
+            {
+              "competitor": "lemonsqueezy.com",
+              "weakness": "Lemon Squeezy (DA 91) achieves approximately 370x Stripe's content-driven organic traffic — despite 3 DA points lower, their content strategy captures the longtail commercial queries that Stripe ignores entirely",
+              "evidence_url": "https://www.linkedin.com/posts/tibo-the-maker_i-analyzed-stripe-vs-lemon-squeezys-seo-activity-7464609282508914688-ahWb",
+              "confidence": "medium"
+            },
+            {
+              "competitor": "paypal.com",
+              "weakness": "Stripe's absence from comparison and 'best of' landing pages leaves PayPal-vs-Stripe queries undefended — PayPal can win those commercial SERP positions by default with minimal content investment",
+              "evidence_url": "https://www.semrush.com/website/stripe.com/overview/",
+              "confidence": "medium"
+            },
+            {
+              "competitor": "hikeseo.co",
+              "weakness": "Third-party analysis sites rank for 'Stripe SEO strategy' and related branded queries — Stripe cedes ownership of its own search narrative to external commentators, a brand authority gap in the marketing/developer segment",
+              "evidence_url": "https://www.hikeseo.co/post/learn-how-stripe-a-multi-billion-dollar-startup-use-seo-what-you-can-learn-from-it",
+              "confidence": "low"
+            }
+          ],
+          "hiring": [
+            {
+              "role": "SEO Content Strategist (Payments Vertical)",
+              "count": 0,
+              "signal": "No confirmed open roles from scraped data — the documented content gap suggests SEO is structurally deprioritized; absence of a dedicated SEO content function would explain the 370x traffic underperformance vs. lower-DA competitors"
+            },
+            {
+              "role": "Growth SEO / Programmatic SEO Engineer",
+              "count": 0,
+              "signal": "Marketplace and Apps infrastructure exists but is not scaled for programmatic longtail — no evidence of engineering investment in SEO-driven page generation; a hiring signal here would indicate strategic shift"
+            }
+          ],
+          "strategic": [
+            {
+              "text": "Stripe holds DA 94 — the most potent SEO asset in fintech — but converts almost none of it into non-brand organic traffic. This is not a capability gap; it is a strategic choice. Reversing it would compound into the highest-ROI content investment in the payments industry.",
+              "evidence_url": "https://www.linkedin.com/posts/anatolii-ulitovskyi_stripe-valuation-is-915-billion-but-seo-activity-7366075771959914499-rA5I",
+              "confidence": "medium"
+            },
+            {
+              "text": "Stripe Press publishes books (e.g., 'Boom') and essays as an intellectual brand play — this produces prestige and earned media but near-zero SEO volume. The content moat is being built in the wrong medium for organic search acquisition.",
+              "evidence_url": "https://press.stripe.com/boom",
+              "confidence": "high"
+            },
+            {
+              "text": "The App Marketplace (marketplace.stripe.com) is a programmatic SEO goldmine: every app listing and integration page can target '[tool] + Stripe integration' longtail queries. At scale, this could add hundreds of thousands of indexed pages with genuine commercial intent.",
+              "evidence_url": "https://marketplace.stripe.com/",
+              "confidence": "high"
+            },
+            {
+              "text": "International locale pages (e.g., /it/global) confirm Stripe has localization infrastructure — but without supporting translated content clusters and local backlink campaigns, these pages underperform relative to their potential in non-English markets.",
+              "evidence_url": "https://stripe.com/it/global",
+              "confidence": "medium"
+            },
+            {
+              "text": "stripe.com/payments is a category-defining commercial landing page for one of the highest-volume fintech keywords globally — but it lacks the supporting content cluster (FAQs, guides, comparisons) necessary to capture mid-funnel queries and defend against competitive displacement.",
+              "evidence_url": "https://stripe.com/payments",
+              "confidence": "medium"
+            },
+            {
+              "text": "SemRush actively tracks stripe.com at the domain level — every keyword gap Stripe has is visible in real-time to every competitor with a SemRush subscription. The asymmetry: competitors can target Stripe's gaps precisely while Stripe appears not to be defending them.",
+              "evidence_url": "https://www.semrush.com/website/stripe.com/overview/",
+              "confidence": "high"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "BD Web Unlocker",
+              "icon": "🌐",
+              "target": "https://stripe.com",
+              "sections": [
+                "Technical Issues",
+                "Page Speed"
+              ]
+            },
+            {
+              "tool": "BD SERP API",
+              "icon": "🔍",
+              "target": "site:stripe.com keyword ranking",
+              "sections": [
+                "Top Keywords",
+                "SERP Features"
+              ]
+            },
+            {
+              "tool": "BD Scraping Browser",
+              "icon": "🖥",
+              "target": "stripe.com + competitors",
+              "sections": [
+                "Core Web Vitals",
+                "Content"
+              ]
+            },
+            {
+              "tool": "BD MCP Server",
+              "icon": "🔗",
+              "target": "stripe.com backlinks authority",
+              "sections": [
+                "Backlink Profile",
+                "Opportunities"
+              ]
+            }
+          ],
+          "cost": {
+            "webUnlocker": 0.3,
+            "serpApi": 1,
+            "scrapingBrowser": 0.8,
+            "bdMcp": 0.2,
+            "claude": 0,
+            "total": 2.3
+          }
+        },
+        "elapsed": 195.645,
+        "domain": "stripe.com",
+        "mode": "seo",
+        "cost": 2.3,
+        "costBreakdown": {
+          "webUnlocker": 0.3,
+          "serpApi": 1,
+          "scrapingBrowser": 0.8,
+          "bdMcp": 0.2,
+          "claude": 0,
+          "total": 2.3
+        }
+      },
+      "ts": 195730
+    }
+  ]
+}

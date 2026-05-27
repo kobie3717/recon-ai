@@ -24,6 +24,12 @@ const FLAGSHIP = [
   { domain: 'stripe.com', mode: 'standard' },
   { domain: 'openai.com', mode: 'standard' },
   { domain: 'anthropic.com', mode: 'standard' },
+  // P1: cache flagship runs for newly real-BD modes so demo is instant
+  { domain: 'stripe.com', mode: 'redteam' },
+  { domain: 'stripe.com', mode: 'seo' },
+  { domain: 'anthropic.com', mode: 'redteam' },
+  { domain: 'anthropic.com', mode: 'seo' },
+  { domain: 'Dario Amodei', mode: 'person' },
 ];
 
 /**
@@ -46,8 +52,8 @@ async function recordDomain(domain, mode) {
     let hasError = false;
     let recordedAt = new Date().toISOString();
 
-    // Force cache miss with timestamp
-    const url = `${BASE_URL}/api/report?domain=${domain}&mode=${mode}&t=${Date.now()}`;
+    // Bypass in-memory + flagship cache for fresh recording
+    const url = `${BASE_URL}/api/report?domain=${encodeURIComponent(domain)}&mode=${mode}&nocache=1&t=${Date.now()}`;
 
     console.log(`[record] ${domain}/${mode}: connecting...`);
 
@@ -112,7 +118,7 @@ async function recordDomain(domain, mode) {
         es.close();
         resolve({ status: 'error', domain, mode, error: 'timeout' });
       }
-    }, 180000);
+    }, 280000);
   });
 }
 

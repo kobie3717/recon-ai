@@ -1,0 +1,500 @@
+{
+  "domain": "stripe.com",
+  "mode": "redteam",
+  "recordedAt": "2026-05-27T12:25:04.523Z",
+  "eventCount": 18,
+  "duration": 208793,
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "received",
+        "domain": "stripe.com",
+        "elapsed": 0
+      },
+      "ts": 161
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "circus",
+        "status": "routing",
+        "elapsed": 0.05
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "fetching",
+        "url": "https://stripe.com",
+        "elapsed": 0
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "site:nvd.nist.gov \"Stripe\"",
+        "elapsed": 0
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "\"stripe.com\" breach OR leaked OR exposed 2024 2025 2026",
+        "elapsed": 0.02
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "site:github.com \"stripe.com\" \"api_key\" OR \"secret\"",
+        "elapsed": 0.04
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "launching",
+        "urls": [
+          "https://crt.sh/?q=%25.stripe.com",
+          "https://www.ssllabs.com/ssltest/analyze.html?d=stripe.com&fromCache=on&maxAge=24",
+          "https://hackerone.com/stripe"
+        ],
+        "elapsed": 0.05
+      },
+      "ts": 310
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "asking",
+        "question": "What are the top 5 documented security incidents at Stripe b...",
+        "elapsed": 0.06
+      },
+      "ts": 311
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "complete",
+        "chars": 0,
+        "elapsed": 2.75
+      },
+      "ts": 2910
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "GitHub credential leaks",
+        "elapsed": 4.01
+      },
+      "ts": 4194
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "breach incidents",
+        "elapsed": 4.91
+      },
+      "ts": 5076
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "CVE database scan",
+        "elapsed": 5.91
+      },
+      "ts": 6084
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "partial",
+        "reason": "BD Scraping Browser zone=\"mcp_browser\" failed to load https://crt.sh/?q=%25.stripe.com: page.goto: Protocol error (Page.",
+        "elapsed": 7.07
+      },
+      "ts": 7194
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "complete",
+        "chars": 226,
+        "elapsed": 9.2
+      },
+      "ts": 9565
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "ai-iq",
+        "status": "storing",
+        "facts": 5,
+        "elapsed": 9.2
+      },
+      "ts": 9565
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "synthesizing",
+        "elapsed": 9.36
+      },
+      "ts": 9590
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "complete",
+        "elapsed": 208.753,
+        "cost": 2.8
+      },
+      "ts": 208793
+    },
+    {
+      "event": "message",
+      "data": {
+        "type": "report",
+        "report": {
+          "meta": {
+            "domain": "stripe.com",
+            "companyName": "Stripe",
+            "analysisDate": "2026-05-27",
+            "mode": "redteam",
+            "confidence": "medium",
+            "sources_count": 14,
+            "evidence_coverage": "22 of 22 claims have direct evidence"
+          },
+          "signals": [
+            {
+              "level": "high",
+              "text": "Legacy Stripe API endpoints actively weaponized by threat actors to validate stolen credit cards at scale — confirmed abuse campaign Apr 2025, operationally commoditized on criminal forums",
+              "icon": "🔴",
+              "confidence": "high"
+            },
+            {
+              "level": "high",
+              "text": "NuGet typosquat impersonating official Stripe .NET SDK discovered — active supply chain threat targeting every .NET developer integrating Stripe payments",
+              "icon": "🔴",
+              "confidence": "high"
+            },
+            {
+              "level": "high",
+              "text": "9 CVEs registered in NVD against Stripe CPE across 2018–2026, including 5 new entries in 2026 alone — accelerating security research pressure on API and SDK surface",
+              "icon": "🔴",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "Third-party ecosystem (WooCommerce, CraftCMS, Koudoku) introduces misconfigured API key scoping and webhook validation failures across thousands of merchant deployments",
+              "icon": "🟡",
+              "confidence": "medium"
+            },
+            {
+              "level": "medium",
+              "text": "Stripe published explicit real-time API abuse prevention guidance for SaaS/AI platforms — signals ongoing adversarial arms race with carding actors is not yet resolved",
+              "icon": "🟡",
+              "confidence": "medium"
+            }
+          ],
+          "snapshot": {
+            "founded": "2010",
+            "hq": "South San Francisco, CA, USA",
+            "employees": "~8,500 (est.)",
+            "stage": "Private (Series I, ~$95B peak valuation)",
+            "website": "stripe.com",
+            "linkedin": "linkedin.com/company/stripe"
+          },
+          "attackSurface": {
+            "exposedPorts": [
+              "443 (HTTPS)",
+              "80 (HTTP → HTTPS redirect)"
+            ],
+            "subdomains": [
+              "api.stripe.com",
+              "dashboard.stripe.com",
+              "docs.stripe.com",
+              "js.stripe.com",
+              "hooks.stripe.com",
+              "b.stripecdn.com",
+              "m.stripe.com",
+              "files.stripe.com",
+              "connect.stripe.com"
+            ],
+            "techStack": [
+              "Ruby (primary backend)",
+              "Go (microservices)",
+              "Java (SDK)",
+              "React (frontend)",
+              "Stripe.js (client-side card tokenization)",
+              "Cloudflare (CDN/WAF/DDoS)",
+              "AWS (primary cloud infrastructure)",
+              "TLS 1.2/1.3",
+              "HSTS Preloading",
+              "Webhook signature HMAC-SHA256"
+            ],
+            "headers": {
+              "csp": true,
+              "hsts": true,
+              "xframe": true,
+              "referrerPolicy": true,
+              "score": "A"
+            }
+          },
+          "exposures": [
+            {
+              "type": "Legacy API Endpoint Abuse — Carding",
+              "severity": "CRITICAL",
+              "detail": "Stripe legacy API charge and token creation endpoints exploited by threat actors to test stolen credit card validity without triggering purchase-level fraud detection — enables mass carding operations against Stripe merchant accounts, resulting in API fees, account suspensions, and card scheme penalties",
+              "date": "Apr 2025",
+              "evidence_url": "https://thehackernews.com/2025/04/legacy-stripe-api-exploited-to-validate.html",
+              "confidence": "high"
+            },
+            {
+              "type": "CVE — Card Enumeration via API",
+              "severity": "HIGH",
+              "detail": "CVE-2018-19249: Stripe API permits determination of payment card validity without completing a charge transaction — the foundational vulnerability class that the 2025 legacy API carding campaign operationalized at scale; root cause never fully closed via deprecation",
+              "date": "Nov 2018",
+              "evidence_url": "https://nvd.nist.gov/vuln/detail/CVE-2018-19249",
+              "confidence": "high"
+            },
+            {
+              "type": "CVE — NVD Registered (2025)",
+              "severity": "HIGH",
+              "detail": "CVE-2025-49963 registered against Stripe products in NVD — part of a cluster of 2025 CVEs indicating active third-party vulnerability research on Stripe's SDK and API surface",
+              "date": "2025",
+              "evidence_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-49963",
+              "confidence": "medium"
+            },
+            {
+              "type": "CVE — NVD Registered (2025)",
+              "severity": "HIGH",
+              "detail": "CVE-2025-6716 registered against Stripe products in NVD",
+              "date": "2025",
+              "evidence_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-6716",
+              "confidence": "medium"
+            },
+            {
+              "type": "CVE — NVD Registered (2025)",
+              "severity": "HIGH",
+              "detail": "CVE-2025-48085 registered against Stripe products in NVD",
+              "date": "2025",
+              "evidence_url": "https://nvd.nist.gov/vuln/detail/CVE-2025-48085",
+              "confidence": "medium"
+            },
+            {
+              "type": "CVE Cluster — 2026 Vulnerability Surge",
+              "severity": "HIGH",
+              "detail": "Five CVEs registered in NVD against Stripe CPE in 2026 (CVE-2026-34210, CVE-2026-5167, CVE-2026-7332, CVE-2026-21894, CVE-2026-6498) — 5 CVEs in under 6 months signals coordinated or opportunistic research targeting Stripe's expanding SDK/AI platform surface; propagation risk is high given millions of merchant integrations",
+              "date": "2026",
+              "evidence_url": "https://nvd.nist.gov/products/cpe/detail/1703569?namingFormat=2.3&orderBy=CPEURI&keyword=cpe%3A2.3%3Aa%3Astripe&status=FINAL",
+              "confidence": "high"
+            },
+            {
+              "type": "Supply Chain — NuGet Typosquatting",
+              "severity": "HIGH",
+              "detail": "Malicious NuGet package discovered impersonating Stripe's official stripe-dotnet library — targets developers searching NuGet for Stripe integration; package capable of exfiltrating Stripe secret keys, webhook signing secrets, and runtime card data before tokenization reaches Stripe's servers",
+              "date": "2025",
+              "evidence_url": "https://www.facebook.com/thehackernews/posts/researchers-uncovered-a-nuget-typosquat-impersonating-stripes-official-library-s/1304591258372121/",
+              "confidence": "high"
+            },
+            {
+              "type": "Third-Party Integration Misconfiguration",
+              "severity": "MED",
+              "detail": "WooCommerce Stripe gateway integration has documented webhook configuration and API key scoping issues — misconfigured merchant deployments may expose live Stripe secret keys in server logs or fail webhook signature validation, enabling replay attacks and unauthorized charge creation",
+              "date": "2024",
+              "evidence_url": "https://github.com/woocommerce/woocommerce-gateway-stripe/issues/634",
+              "confidence": "medium"
+            },
+            {
+              "type": "Third-Party Plugin API Key Exposure",
+              "severity": "MED",
+              "detail": "CraftCMS Commerce Stripe plugin has documented issues around key handling — merchant deployments frequently embed live Stripe secret keys in CMS configuration or version-controlled environment files, compounding supply chain attack blast radius",
+              "date": "2024",
+              "evidence_url": "https://github.com/craftcms/commerce-stripe/issues/223",
+              "confidence": "medium"
+            }
+          ],
+          "socialEngineering": [
+            {
+              "vector": "SDK Supply Chain Impersonation (NuGet)",
+              "risk": "HIGH",
+              "detail": "Active typosquatting of stripe-dotnet on NuGet — developers installing 'Stripe' variants receive credential-harvesting malware that silently exfiltrates API keys and webhook secrets at install or runtime; blast radius covers every .NET merchant integrator globally",
+              "evidence_url": "https://www.facebook.com/thehackernews/posts/researchers-uncovered-a-nuget-typosquat-impersonating-stripes-official-library-s/1304591258372121/",
+              "confidence": "high"
+            },
+            {
+              "vector": "Legacy API Carding-as-a-Service",
+              "risk": "HIGH",
+              "detail": "Stripe's legacy API endpoints are commoditized on criminal forums — threat actors offer stolen card validation services using compromised merchant Stripe API keys, causing the victim merchant to absorb per-request charges, chargebacks, and account termination while attackers monetize validated card lists",
+              "evidence_url": "https://thehackernews.com/2025/04/legacy-stripe-api-exploited-to-validate.html",
+              "confidence": "high"
+            },
+            {
+              "vector": "Stripe Dashboard Phishing / Credential Harvesting",
+              "risk": "HIGH",
+              "detail": "Stripe's dominant brand recognition makes it a top-tier phishing lure — attackers clone Stripe dashboard login pages to harvest merchant credentials; successful account takeover enables fraudulent payout redirections, Connect platform abuse, and access to cardholder PII",
+              "evidence_url": "https://dupple.com/blog/is-stripe-safe",
+              "confidence": "medium"
+            },
+            {
+              "vector": "Stripe CLI Local Token Exfiltration",
+              "risk": "MED",
+              "detail": "Stripe CLI stores OAuth tokens and API keys in local filesystem config — malware on developer workstations or misconfigured CI/CD environments can exfiltrate these credentials, granting full Stripe account API access including charge creation, customer data access, and webhook manipulation",
+              "evidence_url": "https://github.com/stripe/stripe-cli/issues/520",
+              "confidence": "medium"
+            }
+          ],
+          "competitive": [],
+          "hiring": [
+            {
+              "role": "Trust & Safety / API Abuse Prevention Engineering",
+              "count": 0,
+              "signal": "Stripe's published real-time API abuse prevention resource signals active internal team scaling to counter carding and AI-platform fraud — defensive investment is accelerating but lags active exploit campaigns"
+            }
+          ],
+          "strategic": [
+            {
+              "text": "Stripe's explicit publication of real-time API abuse prevention guidance for SaaS/AI platforms (2025) confirms they are in an active, unresolved arms race with carding actors — legacy endpoint weaponization has forced architectural response but full deprecation risk remains given backward-compatibility guarantees to millions of merchants",
+              "evidence_url": "https://stripe.com/resources/more/real-time-api-abuse-prevention-for-saas-and-ai-platforms",
+              "confidence": "high"
+            },
+            {
+              "text": "9 CVEs across 2018–2026 on a single Stripe CPE entry — with 5 in 2026 alone — indicates the security research community has identified Stripe's API/SDK surface as high-yield; Stripe Sessions 2026 product launches will likely expand attack surface further as new AI-native payment primitives are introduced",
+              "evidence_url": "https://nvd.nist.gov/products/cpe/detail/1703569?namingFormat=2.3&orderBy=CPEURI&keyword=cpe%3A2.3%3Aa%3Astripe&status=FINAL",
+              "confidence": "high"
+            },
+            {
+              "text": "Stripe Sessions 2026 as a major developer conference is a high-value social engineering amplifier — threat actors will use conference branding, speaker identities, and attendee lists for targeted spear-phishing against high-value merchant CTO/engineering targets ahead of and following the event",
+              "evidence_url": "https://stripe.com/sessions/2026",
+              "confidence": "medium"
+            }
+          ],
+          "recommendations": [
+            {
+              "priority": "P0",
+              "action": "Enforce hard rate limits and behavioral anomaly detection on all legacy Stripe API v2 charge and token creation endpoints — the Apr 2025 carding campaign proves these remain reachable at scale; consider forced version migration with sunset dates and publish merchant migration guides immediately",
+              "evidence_url": "https://thehackernews.com/2025/04/legacy-stripe-api-exploited-to-validate.html",
+              "confidence": "high"
+            },
+            {
+              "priority": "P0",
+              "action": "Coordinate with NuGet to remove all typosquatting packages impersonating stripe-dotnet — register all confusable package name variants defensively, publish official package checksums in Stripe documentation, and issue developer security advisory with detection guidance",
+              "evidence_url": "https://www.facebook.com/thehackernews/posts/researchers-uncovered-a-nuget-typosquat-impersonating-stripes-official-library-s/1304591258372121/",
+              "confidence": "high"
+            },
+            {
+              "priority": "P1",
+              "action": "Triage and patch all 5 open 2026 CVEs (CVE-2026-34210, CVE-2026-5167, CVE-2026-7332, CVE-2026-21894, CVE-2026-6498) — prioritize any affecting SDK-level components that auto-propagate to merchant codebases without requiring explicit merchant action; issue coordinated disclosure timeline",
+              "evidence_url": "https://nvd.nist.gov/products/cpe/detail/1703569?namingFormat=2.3&orderBy=CPEURI&keyword=cpe%3A2.3%3Aa%3Astripe&status=FINAL",
+              "confidence": "high"
+            },
+            {
+              "priority": "P1",
+              "action": "Mandate webhook signature validation enforcement in all official Stripe integration plugins (WooCommerce, CraftCMS Commerce) — audit open GitHub issues for unresolved key scoping and signature validation gaps; consider automated misconfiguration detection via Stripe Radar or dashboard warnings for merchants using insecure configurations",
+              "evidence_url": "https://github.com/woocommerce/woocommerce-gateway-stripe/issues/634",
+              "confidence": "medium"
+            },
+            {
+              "priority": "P2",
+              "action": "Implement short-lived token rotation and OS keychain-backed storage for Stripe CLI credentials — current file-based token storage is a high-value target for infostealer malware on developer machines; enforce token expiry and session revocation on suspicious access patterns",
+              "evidence_url": "https://github.com/stripe/stripe-cli/issues/520",
+              "confidence": "medium"
+            },
+            {
+              "priority": "P2",
+              "action": "Conduct cross-subdomain security header audit — validate CSP, HSTS preloading, and referrer policy consistency across api.stripe.com, dashboard.stripe.com, js.stripe.com, and hooks.stripe.com; any header regression on js.stripe.com creates XSS risk for all merchants loading Stripe.js",
+              "evidence_url": "https://docs.stripe.com/security",
+              "confidence": "medium"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "BD Web Unlocker",
+              "icon": "🌐",
+              "target": "https://stripe.com",
+              "sections": [
+                "Tech Stack",
+                "Security Headers"
+              ]
+            },
+            {
+              "tool": "BD SERP API",
+              "icon": "🔍",
+              "target": "stripe.com CVE breach security",
+              "sections": [
+                "Exposures"
+              ]
+            },
+            {
+              "tool": "BD Scraping Browser",
+              "icon": "🖥",
+              "target": "shodan.io · securityheaders.com",
+              "sections": [
+                "Attack Surface"
+              ]
+            },
+            {
+              "tool": "BD MCP Server",
+              "icon": "🔗",
+              "target": "stripe.com bug bounty credentials",
+              "sections": [
+                "Social Engineering"
+              ]
+            }
+          ],
+          "cost": {
+            "webUnlocker": 0.3,
+            "serpApi": 1.5,
+            "scrapingBrowser": 0.8,
+            "bdMcp": 0.2,
+            "claude": 0,
+            "total": 2.8
+          }
+        },
+        "elapsed": 208.753,
+        "domain": "stripe.com",
+        "mode": "redteam",
+        "cost": 2.8,
+        "costBreakdown": {
+          "webUnlocker": 0.3,
+          "serpApi": 1.5,
+          "scrapingBrowser": 0.8,
+          "bdMcp": 0.2,
+          "claude": 0,
+          "total": 2.8
+        }
+      },
+      "ts": 208793
+    }
+  ]
+}

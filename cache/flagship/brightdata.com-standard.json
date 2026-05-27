@@ -1,9 +1,9 @@
 {
   "domain": "brightdata.com",
   "mode": "standard",
-  "recordedAt": "2026-05-26T19:11:29.044Z",
-  "eventCount": 157,
-  "duration": 90197,
+  "recordedAt": "2026-05-27T12:14:38.044Z",
+  "eventCount": 130,
+  "duration": 181148,
   "events": [
     {
       "event": "message",
@@ -13,16 +13,16 @@
         "domain": "brightdata.com",
         "elapsed": 0
       },
-      "ts": 207
+      "ts": 577
     },
     {
       "event": "message",
       "data": {
         "agent": "circus",
         "status": "routing",
-        "elapsed": 0.06
+        "elapsed": 0.05
       },
-      "ts": 269
+      "ts": 586
     },
     {
       "event": "message",
@@ -30,9 +30,9 @@
         "agent": "bd-web-unlocker",
         "status": "fetching",
         "url": "https://brightdata.com",
-        "elapsed": 0.13
+        "elapsed": 0.12
       },
-      "ts": 454
+      "ts": 1049
     },
     {
       "event": "message",
@@ -40,9 +40,9 @@
         "agent": "bd-serp",
         "status": "searching",
         "query": "brightdata company news",
-        "elapsed": 0.13
+        "elapsed": 0.12
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -53,9 +53,9 @@
           "https://linkedin.com/company/brightdata",
           "https://crunchbase.com/organization/brightdata"
         ],
-        "elapsed": 0.13
+        "elapsed": 0.12
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -63,9 +63,9 @@
         "agent": "bd-web-scraper",
         "status": "extracting",
         "url": "https://brightdata.com",
-        "elapsed": 0.13
+        "elapsed": 0.12
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -73,9 +73,9 @@
         "agent": "bd-mcp",
         "status": "searching",
         "query": "search_engine + scrape_as_markdown",
-        "elapsed": 0.15
+        "elapsed": 0.12
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -83,9 +83,9 @@
         "agent": "bd-discover",
         "status": "searching",
         "query": "brightdata.com company news products competitors",
-        "elapsed": 0.15
+        "elapsed": 0.12
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -94,9 +94,9 @@
         "status": "crawling",
         "pages": 8,
         "domain": "brightdata.com",
-        "elapsed": 0.15
+        "elapsed": 0.13
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -105,9 +105,9 @@
         "status": "querying",
         "dataset": "linkedin_companies",
         "domain": "brightdata.com",
-        "elapsed": 0.15
+        "elapsed": 0.13
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -115,9 +115,9 @@
         "agent": "bd-mcp-browser",
         "status": "capturing",
         "url": "https://brightdata.com/pricing",
-        "elapsed": 0.17
+        "elapsed": 0.13
       },
-      "ts": 455
+      "ts": 1049
     },
     {
       "event": "message",
@@ -125,9 +125,9 @@
         "agent": "bd-mcp-geo",
         "status": "querying",
         "llms": "ChatGPT · Grok · Perplexity",
-        "elapsed": 0.17
+        "elapsed": 0.18
       },
-      "ts": 455
+      "ts": 1050
     },
     {
       "event": "message",
@@ -135,9 +135,9 @@
         "agent": "bd-assistant",
         "status": "asking",
         "question": "What do you know about brightdata.com?",
-        "elapsed": 0.17
+        "elapsed": 0.24
       },
-      "ts": 455
+      "ts": 1050
     },
     {
       "event": "message",
@@ -145,9 +145,9 @@
         "agent": "bd-serp-batch",
         "status": "searching",
         "queries": 3,
-        "elapsed": 0.17
+        "elapsed": 0.24
       },
-      "ts": 456
+      "ts": 1050
     },
     {
       "event": "message",
@@ -155,9 +155,29 @@
         "agent": "bd-datasets",
         "status": "unavailable",
         "reason": "trial tier - paid datasets",
-        "elapsed": 3.06
+        "elapsed": 1.67
       },
-      "ts": 3241
+      "ts": 2126
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp-geo",
+        "status": "unavailable",
+        "reason": "BD MCP geo group not available - upgrade required",
+        "upstream": "MCP error -32601: MCP error -32601: Unknown tool: web_data_perplexity_ai_insight",
+        "elapsed": 2.77
+      },
+      "ts": 3235
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-scraper",
+        "status": "complete",
+        "elapsed": 2.79
+      },
+      "ts": 3248
     },
     {
       "event": "message",
@@ -166,18 +186,19 @@
         "status": "complete",
         "chars": 0,
         "note": "bot-protection: empty body",
-        "elapsed": 3.09
+        "elapsed": 3.06
       },
-      "ts": 3444
+      "ts": 3779
     },
     {
       "event": "message",
       "data": {
-        "agent": "bd-web-scraper",
+        "agent": "bd-serp",
         "status": "complete",
-        "elapsed": 3.17
+        "results": 10,
+        "elapsed": 3.24
       },
-      "ts": 3711
+      "ts": 3780
     },
     {
       "event": "message",
@@ -186,31 +207,19 @@
         "status": "unavailable",
         "reason": "BD MCP browser group not available - upgrade required",
         "upstream": "MCP error -32601: MCP error -32601: Unknown tool: scraping_browser_navigate",
-        "elapsed": 3.56
+        "elapsed": 5.21
       },
-      "ts": 3758
+      "ts": 5752
     },
     {
       "event": "message",
       "data": {
-        "agent": "bd-mcp-geo",
-        "status": "unavailable",
-        "reason": "BD MCP geo group not available - upgrade required",
-        "upstream": "MCP error -32601: MCP error -32601: Unknown tool: web_data_grok_ai_insights",
-        "elapsed": 3.67
-      },
-      "ts": 3863
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-serp-batch",
+        "agent": "bd-mcp",
         "status": "complete",
-        "queries": 3,
-        "results": 1,
-        "elapsed": 5.31
+        "tools": 2,
+        "elapsed": 5.57
       },
-      "ts": 5529
+      "ts": 6053
     },
     {
       "event": "message",
@@ -219,29 +228,31 @@
         "status": "complete",
         "pages": 8,
         "chars": 569,
-        "elapsed": 5.72
+        "elapsed": 5.84
       },
-      "ts": 5909
+      "ts": 6299
     },
     {
       "event": "message",
       "data": {
-        "agent": "bd-mcp",
+        "agent": "bd-serp-batch",
         "status": "complete",
-        "tools": 2,
-        "elapsed": 6.79
+        "queries": 3,
+        "results": 1,
+        "elapsed": 7.24
       },
-      "ts": 6977
+      "ts": 7774
     },
     {
       "event": "message",
       "data": {
-        "agent": "bd-serp",
+        "agent": "bd-discover",
         "status": "complete",
-        "results": 9,
-        "elapsed": 7.05
+        "results": 10,
+        "topScore": "0.68",
+        "elapsed": 7.25
       },
-      "ts": 7243
+      "ts": 7774
     },
     {
       "event": "message",
@@ -250,9 +261,9 @@
         "status": "facts-partial",
         "factCount": 6,
         "message": "Core facts collected — synthesis starting",
-        "elapsed": 16.88
+        "elapsed": 7.25
       },
-      "ts": 17105
+      "ts": 7774
     },
     {
       "event": "message",
@@ -260,9 +271,9 @@
         "agent": "claude",
         "status": "synthesizing",
         "message": "Early-start synthesis on partial facts",
-        "elapsed": 16.88
+        "elapsed": 7.25
       },
-      "ts": 17105
+      "ts": 7774
     },
     {
       "event": "message",
@@ -270,9 +281,9 @@
         "agent": "bd-scraping-browser",
         "status": "complete",
         "pages": 2,
-        "elapsed": 27.78
+        "elapsed": 15.71
       },
-      "ts": 27962
+      "ts": 16163
     },
     {
       "event": "message",
@@ -280,1421 +291,1114 @@
         "agent": "bd-assistant",
         "status": "complete",
         "chars": 163,
-        "elapsed": 34.77
+        "elapsed": 35.31
       },
-      "ts": 35060
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-discover",
-        "status": "error",
-        "reason": "BD Discover API timeout after 15s (task_id=ec91ce62-f70f-4f11-b413-8b89cc072577)",
-        "elapsed": 34.78
-      },
-      "ts": 35068
+      "ts": 35895
     },
     {
       "event": "message",
       "data": {
         "agent": "ai-iq",
         "status": "storing",
-        "facts": 9,
-        "elapsed": 34.78
+        "facts": 10,
+        "elapsed": 35.31
       },
-      "ts": 35072
+      "ts": 35895
     },
     {
       "event": "message",
       "data": {
         "agent": "007-bot",
         "status": "complete",
-        "elapsed": 35.02,
+        "elapsed": 35.58,
         "cost": 2.2
       },
-      "ts": 35211
+      "ts": 36070
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "##",
+        "delta": "## Executive Summary\n\n**Bright Data** (formerly Luminati Networks, rebranded March 2021) is a",
         "tokens": 1,
-        "elapsed": 2.07
+        "elapsed": 96.7
       },
-      "ts": 37276
+      "ts": 132770
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Executive Summary\n\nBright Data (brightdata.com) is a leading web data infrastructure company headqu",
+        "delta": " Netanya, Israel-based web data platform self-described as the \"world's #1 web data platform,\" serving 20,000+ organizations across virtually",
         "tokens": 2,
-        "elapsed": 2.38
+        "elapsed": 96.72
       },
-      "ts": 37587
+      "ts": 132794
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "artered in Tel Aviv, Israel, providing proxy networks, web scraping tools, and data collection platforms",
+        "delta": " every industry. The company is led by CEO Or Lenchner and has achieved approximately **$300M ARR**, with reported ambitions to",
         "tokens": 3,
-        "elapsed": 2.73
+        "elapsed": 96.8
       },
-      "ts": 37938
+      "ts": 132863
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ". Originally known as Luminati Networks, the company has grown into one of the most",
+        "delta": " reach $400M. Its core offering spans proxies, web scrapers, and data",
         "tokens": 4,
-        "elapsed": 3.12
+        "elapsed": 97.15
       },
-      "ts": 38327
+      "ts": 133218
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " comprehensive \"all-in-one\" platforms for proxies and web scraping, serving enterprises,",
+        "delta": " APIs — all increasingly repositioned around AI and LLM use",
         "tokens": 5,
-        "elapsed": 3.53
+        "elapsed": 97.52
       },
-      "ts": 38737
+      "ts": 133586
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " AI companies, and developers globally. The most significant recent signal",
+        "delta": " cases.\n\nThe company's most visible strategic pivot in the",
         "tokens": 6,
-        "elapsed": 3.93
+        "elapsed": 97.93
       },
-      "ts": 39137
+      "ts": 133991
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " is the company crossing **$300M ARR** with a stated goal of reaching **$400M ARR**",
+        "delta": " available data is toward **AI infrastructure**: a headline from",
         "tokens": 7,
-        "elapsed": 4.32
+        "elapsed": 98.97
       },
-      "ts": 39530
+      "ts": 135031
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " — a strong indicator of robust growth momentum in the data-as",
+        "delta": " Newswire Canada promotes \"Bright Data Powers LLMs and AI Agents with Real-Time Web Access to Overcome Bottlenecks,\" and",
         "tokens": 8,
-        "elapsed": 4.67
+        "elapsed": 98.97
       },
-      "ts": 39886
+      "ts": 135031
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-infrastructure category.\n\nBright Data is strategically pivoting toward AI/",
+        "delta": " SiliconAngle reported (August 2025) on a free tier launch for",
         "tokens": 9,
-        "elapsed": 5.12
+        "elapsed": 99.4
       },
-      "ts": 40341
+      "ts": 135466
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "LLM workloads, with notable launches including **The",
+        "delta": " \"The Web MCP\" product, designed to support real-time AI interaction with the web. Separately, Bright Data acquired",
         "tokens": 10,
-        "elapsed": 5.62
+        "elapsed": 99.87
       },
-      "ts": 40826
+      "ts": 135951
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Web MCP (Model Context Protocol)** — a free-tier product enabling real-time web access for AI agents and LLMs. This",
+        "delta": " eCommerce insights provider Market Beyond to launch \"Bright Insights,\" expanding from raw data infrastructure into",
         "tokens": 11,
-        "elapsed": 5.98
+        "elapsed": 100.32
       },
-      "ts": 41190
+      "ts": 136507
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " signals a deliberate repositioning from \"proxy/scraping vendor",
+        "delta": " analytics products. These moves signal a deliberate shift",
         "tokens": 12,
-        "elapsed": 7.29
+        "elapsed": 100.92
       },
-      "ts": 42498
+      "ts": 136984
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\" to \"AI data infrastructure layer,\" targeting the fast-growing AI agent ecosystem",
+        "delta": " from commodity proxy/scraping vendor toward AI data platform",
         "tokens": 13,
-        "elapsed": 7.3
+        "elapsed": 100.92
       },
-      "ts": 42506
+      "ts": 136989
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ". The company has raised at least $34M in disclosed funding but is likely well",
+        "delta": ".\n\nCompetitive pressure comes primarily from **Oxylabs** (described as Bright Data's \"closest competitor,\"",
         "tokens": 14,
-        "elapsed": 7.3
+        "elapsed": 101.7
       },
-      "ts": 42512
+      "ts": 137769
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " beyond that given $300M+ ARR, suggesting strong organic growth or",
+        "delta": " slightly more price-competitive on enterprise residential proxies), and secondarily from Apify, Firecrawl, My",
         "tokens": 15,
-        "elapsed": 7.43
+        "elapsed": 101.97
       },
-      "ts": 42634
+      "ts": 138053
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " additional private rounds. Key competitive threats come from players",
+        "delta": " IP Hide, and Every Proxy. Firecrawl was noted as having the most recent funding round among Bright Data's tracked competitors as of early 2026",
         "tokens": 16,
-        "elapsed": 7.95
+        "elapsed": 102.34
       },
-      "ts": 43158
+      "ts": 138414
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " like Coresignal, Oxylabs, and Smartproxy, though Bright Data's scale, product",
+        "delta": ". Bright Data's scale (~$300M ARR), brand recognition, and AI-native product investments",
         "tokens": 17,
-        "elapsed": 8.33
+        "elapsed": 102.71
       },
-      "ts": 43551
+      "ts": 138774
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " breadth, and AI-era pivots give it a structural mo",
+        "delta": " appear to maintain a meaningful moat, but the market is actively",
         "tokens": 18,
-        "elapsed": 8.74
+        "elapsed": 103.24
       },
-      "ts": 43952
+      "ts": 139342
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "at.\n\nThe competitive landscape is intensifying — comparisons such as \"Coresignal vs Bright",
+        "delta": " contested.\n\n---\n\n## Key Signals\n\n- 🟢 **$300M ARR confirmed, targeting",
         "tokens": 19,
-        "elapsed": 9.32
+        "elapsed": 103.93
       },
-      "ts": 44622
+      "ts": 140189
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Data\" appearing in 2026 suggest challengers are actively courting Bright Data's customer base. However",
+        "delta": " $400M** — strong revenue growth trajectory in a maturing web data market\n- 🟢 **AI pivot acceler",
         "tokens": 20,
-        "elapsed": 9.96
+        "elapsed": 104.1
       },
-      "ts": 45185
+      "ts": 140189
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ", Bright Data's free-tier MCP launch and real-time AI data",
+        "delta": "ating** — Web MCP free tier + LLM/AI agent access positioning puts Bright Data at the center of AI real-time data",
         "tokens": 21,
-        "elapsed": 9.96
+        "elapsed": 104.41
       },
-      "ts": 45185
+      "ts": 140472
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " capabilities indicate an aggressive land-and-expand strategy designed to lock in the",
+        "delta": " infrastructure\n- 🟢 **Product expansion via acquisition** — Market Beyond acquisition enables \"Bright Insights\" analytics",
         "tokens": 22,
-        "elapsed": 10.3
+        "elapsed": 104.9
       },
-      "ts": 45555
+      "ts": 140970
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " next generation of AI-native customers before competitors can establish fo",
+        "delta": " layer, moving up the value chain\n- 🟡 **Oxylabs competitive threat",
         "tokens": 23,
-        "elapsed": 10.81
+        "elapsed": 105.21
       },
-      "ts": 46059
+      "ts": 141272
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "otholds in that segment.\n\n---\n\n## Key Signals\n\n- 🟢 **$300M ARR crossed",
+        "delta": "** — closest rival, slightly cheaper on enterprise residential; price-sensitive customers at",
         "tokens": 24,
-        "elapsed": 11.12
+        "elapsed": 105.72
       },
-      "ts": 46337
+      "ts": 141816
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ", targeting $400M** — exceptional revenue scale for a B",
+        "delta": " risk\n- 🟡 **Firecrawl VC momentum** — most recently funded among",
         "tokens": 25,
-        "elapsed": 11.68
+        "elapsed": 106.33
       },
-      "ts": 46894
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "2B data infrastructure company; suggests strong enterprise adoption and pricing power\n- 🟢 **Web MCP free tier",
-        "tokens": 26,
-        "elapsed": 12.88
-      },
-      "ts": 48125
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " launched** — strategic move to capture AI agent/LLM developer ecosystem early,",
-        "tokens": 27,
-        "elapsed": 13.01
-      },
-      "ts": 48230
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " creating a new growth vector beyond traditional scr",
-        "tokens": 28,
-        "elapsed": 13.08
-      },
-      "ts": 48333
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "aping/proxy use cases\n- 🟢 **\"Powers LLMs and AI Agents with Real-Time Data\"** — deliberate AI",
-        "tokens": 29,
-        "elapsed": 13.22
-      },
-      "ts": 48440
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " repositioning signals product-market fit expansion into a high-growth adjacent market",
-        "tokens": 30,
-        "elapsed": 13.77
-      },
-      "ts": 48984
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "\n- 🟡 **Competitive pressure from Coresignal and others in 2026** — market is ma",
-        "tokens": 31,
-        "elapsed": 14.14
-      },
-      "ts": 49355
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "turing with well-funded challengers actively benchmarking against Bright Data\n- 🟡 **Only",
-        "tokens": 32,
-        "elapsed": 14.57
-      },
-      "ts": 49791
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " $34M in disclosed funding vs. $300M+ ARR** — suggests the company is either",
-        "tokens": 33,
-        "elapsed": 15.19
-      },
-      "ts": 50438
+      "ts": 142410
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "json-start",
-        "elapsed": 15.61
+        "elapsed": 106.65
       },
-      "ts": 50814
+      "ts": 142714
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " highly capital-efficient or has undisclosed later-stage funding rounds\n\n```json\n{\n  \"meta\":",
+        "delta": " tracked competitors; could accelerate developer-segment capture\n\n```json\n{\n  \"meta\": {\n    \"domain\": \"bright",
+        "tokens": 26,
+        "elapsed": 106.65
+      },
+      "ts": 142714
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "data.com\",\n    \"companyName\": \"Bright Data\",\n    \"analysisDate\": \"2026-05-27\",\n    \"mode\": \"standard\",\n    \"confidence\": \"medium\",\n    \"sources_count\": 11,\n    \"evidence_",
+        "tokens": 27,
+        "elapsed": 108.04
+      },
+      "ts": 144104
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "coverage\": \"11 of 13 claims have direct evidence\"\n  },\n  \"signals\": [\n    {\n      \"level\": \"high\",\n      \"text\": \"Bright Data has",
+        "tokens": 28,
+        "elapsed": 108.19
+      },
+      "ts": 144251
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": " crossed $300M ARR and is publicly targeting $400M, signaling sustained hyp",
+        "tokens": 29,
+        "elapsed": 108.43
+      },
+      "ts": 144598
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "ergrowth in the web data market\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe\",\n      \"confidence\": \"high\"\n    },",
+        "tokens": 30,
+        "elapsed": 109.67
+      },
+      "ts": 145815
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "\n    {\n      \"level\": \"high\",\n      \"text\": \"Active AI infrastructure pivot: company launched 'The",
+        "tokens": 31,
+        "elapsed": 109.68
+      },
+      "ts": 145815
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": " Web MCP' with a free tier to support LLMs and AI agents accessing real-time web data",
+        "tokens": 32,
+        "elapsed": 110.25
+      },
+      "ts": 146314
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/",
+        "tokens": 33,
+        "elapsed": 110.25
+      },
+      "ts": 146314
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Explicit LLM/AI agent positioning: '",
         "tokens": 34,
-        "elapsed": 15.61
+        "elapsed": 110.67
       },
-      "ts": 50814
+      "ts": 146787
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " {\n    \"domain\": \"brightdata.com\",\n    \"companyName\": \"Bright Data\",\n    \"analysisDate\": \"2026-05-26\",\n    \"mode\": \"standard\",\n    \"confidence\": \"medium-high\",",
+        "delta": "Bright Data Powers LLMs and AI Agents with Real-Time Web Access to Overcome Bottlenecks' — direct play for AI",
         "tokens": 35,
-        "elapsed": 15.96
+        "elapsed": 111.4
       },
-      "ts": 51210
+      "ts": 147489
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n    \"dataQuality\": \"Partial — homepage/pricing/about pages",
+        "delta": " infrastructure spend\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://www.newswire.ca/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-",
         "tokens": 36,
-        "elapsed": 16.41
+        "elapsed": 111.61
       },
-      "ts": 51657
+      "ts": 147684
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " returned empty content; signals derived from news snippets and public",
+        "delta": "web-access-to-overcome-bottlenecks-831663276.html\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Acquired Market Beyond (eCommerce insights)",
         "tokens": 37,
-        "elapsed": 16.99
+        "elapsed": 112.13
       },
-      "ts": 52304
+      "ts": 148191
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " knowledge\"\n  },\n  \"signals\": [\n    {\n      \"level\": \"positive\",\n      \"text\": \"Crossed $300M ARR milestone and",
+        "delta": " to launch 'Bright Insights' — expanding beyond raw data into analytics product tier\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://www.h",
         "tokens": 38,
-        "elapsed": 17.36
+        "elapsed": 112.6
       },
-      "ts": 52569
+      "ts": 148663
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " targeting $400M — exceptional growth for a B2B data infrastructure company\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"positive\",\n      \"text\": \"Launched Web MCP (",
+        "delta": "pcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/\",\n      \"confidence\": \"medium\"\n    },\n    {",
         "tokens": 39,
-        "elapsed": 17.84
+        "elapsed": 113.16
       },
-      "ts": 53246
+      "ts": 149227
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "Model Context Protocol) with a free tier, directly targeting L",
+        "delta": "\n      \"level\": \"medium\",\n      \"text\": \"Oxylabs is Bright Data's closest competitor and is slightly more competitively priced on enterprise residential proxies —",
         "tokens": 40,
-        "elapsed": 18.42
+        "elapsed": 113.69
       },
-      "ts": 53626
+      "ts": 149748
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "LM/AI agent developers — strategic land-and-expand play in AI ecosystem\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"positive",
+        "delta": " pricing pressure risk in that segment\",\n      \"icon\": \"🟡\",\n      \"evidence_url\": \"https://traffic-",
         "tokens": 41,
-        "elapsed": 19.24
+        "elapsed": 114.18
       },
-      "ts": 54501
+      "ts": 150260
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"text\": \"Explicit positioning as real-time data infrastructure for AI agents and LLMs signals successful",
+        "delta": "creator.com/blog/bright-data-review-2026\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"Firecrawl secured the most recent funding round among",
         "tokens": 42,
-        "elapsed": 19.66
+        "elapsed": 114.71
       },
-      "ts": 55001
+      "ts": 150771
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " category expansion beyond legacy proxy/scraping market\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"",
+        "delta": " Bright Data's top competitors as of early 2026, signaling VC momentum in the developer-scraping segment\",\n      \"icon\": \"",
         "tokens": 43,
-        "elapsed": 20.06
+        "elapsed": 115.16
       },
-      "ts": 55344
+      "ts": 151222
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "Competitive comparisons (Coresignal vs Bright Data, 2026) indicate rising challenger",
+        "delta": "🟡\",\n      \"evidence_url\": \"https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJ",
         "tokens": 44,
-        "elapsed": 20.3
+        "elapsed": 115.82
       },
-      "ts": 55603
+      "ts": 151895
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " activity; market is maturing and price/feature competition intensifying",
+        "delta": "Kwg\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"Platform serves 20,000+ organizations across nearly every industry — broad",
         "tokens": 45,
-        "elapsed": 20.6
+        "elapsed": 116.48
       },
-      "ts": 55804
+      "ts": 152555
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"icon\": \"🟡\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"Only $34M in disclosed funding relative to $300M+ ARR suggests high",
+        "delta": " enterprise TAM capture at scale\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://bright",
         "tokens": 46,
-        "elapsed": 21.06
+        "elapsed": 116.71
       },
-      "ts": 56274
+      "ts": 152778
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " capital efficiency or undisclosed growth/private equity rounds\",\n      \"icon\": \"🟡\"\n    },\n    {\n      \"level\": \"medium",
+        "delta": "data.com/about\",\n      \"confidence\": \"high\"\n    }\n  ],\n  \"snapshot\": {\n    \"founded\": \"\",\n    \"hq\": \"Netanya, Israel\",\n    \"employees\": \"\",",
         "tokens": 47,
-        "elapsed": 21.5
+        "elapsed": 117.21
       },
-      "ts": 56744
+      "ts": 153275
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"text\": \"Free tier introduction for Web MCP may compress average revenue per user short",
+        "delta": "\n    \"stage\": \"\",\n    \"website\": \"brightdata.com\",\n    \"linkedin\": \"linkedin.com/company/brightdata\",\n    \"formerName\": \"Luminati Networks\",\n    \"c",
         "tokens": 48,
-        "elapsed": 21.92
+        "elapsed": 117.83
       },
-      "ts": 57169
+      "ts": 153898
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-term but signals confidence in conversion funnel and developer-led growth\",\n      \"icon\": \"",
+        "delta": "eo\": \"Or Lenchner\"\n  },\n  \"financials\": {\n    \"totalRaised\": \"\",\n    \"lastRound\": \"\",\n    \"valuation\": \"\",\n    \"revenue",
         "tokens": 49,
-        "elapsed": 22.41
+        "elapsed": 118.49
       },
-      "ts": 57727
+      "ts": 154629
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "🟡\"\n    }\n  ],\n  \"snapshot\": {\n    \"founded\": \"2014\",\n    \"hq\": \"Tel Aviv, Israel\",\n    \"employees\": \"500–",
+        "delta": "\": \"~$300M ARR (reported); targeting $400M\",\n    \"investors\": []\n  },\n  \"news\":",
         "tokens": 50,
-        "elapsed": 22.84
+        "elapsed": 119.45
       },
-      "ts": 58050
+      "ts": 155519
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "1,000 (estimated, unverified from scrape)\",\n    \"stage\": \"Late-stage private",
+        "delta": " [\n    {\n      \"date\": \"Aug 12 2025\",\n      \"headline\": \"Bright Data debuts free tier of The Web MCP to support real-time AI interaction with",
         "tokens": 51,
-        "elapsed": 23.5
+        "elapsed": 119.45
       },
-      "ts": 58811
+      "ts": 155535
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " / growth\",\n    \"website\": \"brightdata.com\",\n    \"linkedin\": \"linkedin.com/company/bright-data\",\n    \"for",
+        "delta": " the web\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support",
         "tokens": 52,
-        "elapsed": 23.95
+        "elapsed": 119.77
       },
-      "ts": 59331
+      "ts": 155839
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "merlyKnownAs\": \"Luminati Networks\"\n  },\n  \"financials\": {\n    \"totalRaised\": \"~$34M+",
+        "delta": "-real-time-ai-interaction-web/\"\n    },\n    {\n      \"date\": \"\",\n      \"headline\": \"Bright Data Powers LLMs and AI Agents with Real-Time Web Access to Overcome Bottlenecks\",",
         "tokens": 53,
-        "elapsed": 24.26
+        "elapsed": 120.24
       },
-      "ts": 59553
+      "ts": 156650
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " (disclosed; likely higher)\",\n    \"lastRound\": \"Undisclosed — $34M referenced",
+        "delta": "\n      \"signal\": \"HIGH\",\n      \"url\": \"https://www.newswire.ca/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-web-access-to-overcome-bottlenecks-831663",
         "tokens": 54,
-        "elapsed": 25.1
+        "elapsed": 120.86
       },
-      "ts": 60305
+      "ts": 157075
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " in news snippet (date unconfirmed)\",\n    \"valuation\": \"~$1B",
+        "delta": "276.html\"\n    },\n    {\n      \"date\": \"\",\n      \"headline\": \"Bright Data crosses $300 million ARR, eyes $400M\",\n      \"signal\": \"HIGH\",",
         "tokens": 55,
-        "elapsed": 25.15
+        "elapsed": 121.78
       },
-      "ts": 60376
+      "ts": 157846
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "+ (est. based on $300M ARR trajectory)\",\n    \"revenue\": \"~$300M ARR (confirmed",
+        "delta": "\n      \"url\": \"https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe\"\n    },\n    {\n      \"date\": \"\",\n      \"headline\": \"Bright Data to Launch Bright Insights with the",
         "tokens": 56,
-        "elapsed": 25.51
+        "elapsed": 121.95
       },
-      "ts": 60716
+      "ts": 158012
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " crossed; targeting $400M)\",\n    \"investors\": [\n      \"Undisclosed — further verification required\"\n    ],",
+        "delta": " Acquisition of Market Beyond\",\n      \"signal\": \"MED\",\n      \"url\": \"https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition",
         "tokens": 57,
-        "elapsed": 25.98
+        "elapsed": 122.78
       },
-      "ts": 61188
+      "ts": 158961
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n    \"notes\": \"High ARR relative to disclosed funding implies strong organic growth or bootstra",
+        "delta": "-of-market-beyond/\"\n    }\n  ],\n  \"products\": [\n    {\n      \"name\": \"Proxies (Residential & Datacenter)\",\n      \"description\":",
         "tokens": 58,
-        "elapsed": 26.5
+        "elapsed": 124.21
       },
-      "ts": 61717
+      "ts": 160270
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "pped expansion with selective institutional capital\"\n  },\n  \"news\": [\n    {\n      \"date\": \"2",
+        "delta": " \"Core proxy network product; original business line",
         "tokens": 59,
-        "elapsed": 27
+        "elapsed": 124.21
       },
-      "ts": 62207
+      "ts": 160270
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "026\",\n      \"headline\": \"Bright Data crosses $300 million ARR, eyes $400M by next milestone\",\n      \"signal\": \"HIGH",
+        "delta": ", still central to platform\"\n    },\n    {\n      \"name\": \"Web Scraper / News Scraper\",\n      ",
         "tokens": 60,
-        "elapsed": 27.28
+        "elapsed": 124.21
       },
-      "ts": 62489
+      "ts": 160270
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"url\": \"https://brightdata.com/media-center\"\n    },\n    {\n      \"date\": \"2026\",\n      \"headline\": \"Bright Data Powers",
+        "delta": "\"description\": \"Managed scraping product with free trial available; vertically targeted",
         "tokens": 61,
-        "elapsed": 28.05
+        "elapsed": 124.37
       },
-      "ts": 63272
+      "ts": 160435
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " LLMs and AI Agents with Real-Time Data\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://brightdata.com\"\n    },\n    {\n      \"date\": \"2026\",\n      \"headline\": \"Bright Data",
+        "delta": " scraping (news, eCommerce, etc.)\"\n    },\n    {\n      \"name\": \"The Web MCP\",\n      \"description",
         "tokens": 62,
-        "elapsed": 28.31
+        "elapsed": 125
       },
-      "ts": 63515
+      "ts": 161129
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " debuts free tier of The Web MCP to support real-time AI agent web access\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://brightdata.com\"\n    ",
+        "delta": "\": \"Real-time web access layer for LLMs and AI agents; free tier launched August 2025 to",
         "tokens": 63,
-        "elapsed": 28.86
+        "elapsed": 125.32
       },
-      "ts": 64090
+      "ts": 161420
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "},\n    {\n      \"date\": \"2026\",\n      \"headline\": \"Coresignal vs Bright Data: Which One Has the Edge in 2026\",\n      \"signal\": \"MED\",\n      \"url\": \"#",
+        "delta": " drive AI developer adoption\"\n    },\n    {\n      \"name\": \"Bright Insights\",\n      \"description\": \"Analytics product launched via acquisition",
         "tokens": 64,
-        "elapsed": 29.31
+        "elapsed": 125.74
       },
-      "ts": 64523
+      "ts": 161812
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"\n    }\n  ],\n  \"products\": [\n    {\n      \"name\": \"Proxy Networks\",\n      \"description\": \"Residential,",
+        "delta": " of Market Beyond; targets eCommerce insights use cases\"\n    },\n    {\n      \"name\": \"Web Unlocker /",
         "tokens": 65,
-        "elapsed": 29.81
+        "elapsed": 126.07
       },
-      "ts": 65021
+      "ts": 162132
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " datacenter, ISP, and mobile proxies — the company's core legacy product offering",
+        "delta": " Scraping Browser / SERP API\",\n      \"description\": \"Suite of unblocking and",
         "tokens": 66,
-        "elapsed": 30.11
+        "elapsed": 126.51
       },
-      "ts": 65318
+      "ts": 162599
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " with one of the largest IP pool networks globally",
+        "delta": " structured data extraction tools surfaced across platform documentation\"\n    }\n  ],",
         "tokens": 67,
-        "elapsed": 30.46
+        "elapsed": 127.09
       },
-      "ts": 65683
+      "ts": 163157
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"\n    },\n    {\n      \"name\": \"Web Unlocker\",\n      \"description\": \"AI-powered unlocking layer that byp",
+        "delta": "\n  \"competitive\": [\n    {\n      \"competitor\": \"Oxylabs\",\n      \"weakness\": \"Oxylabs is slightly more price-competitive on enterprise residential prox",
         "tokens": 68,
-        "elapsed": 30.94
+        "elapsed": 127.51
       },
-      "ts": 66151
+      "ts": 163580
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "asses bot detection, CAPTCHAs, and geo-restrictions at scale for automated data",
+        "delta": "ies, but lacks Bright Data's scale (20,000+ customers) and AI product",
         "tokens": 69,
-        "elapsed": 31.44
+        "elapsed": 127.86
       },
-      "ts": 66651
+      "ts": 163924
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " collection\"\n    },\n    {\n      \"name\": \"SERP API\",\n      \"description\": \"Structured search engine",
+        "delta": " portfolio breadth\",\n      \"evidence_url\": \"https://traffic-creator.com/blog/bright-data-review-2026\",\n      \"confidence\": \"medium\"",
         "tokens": 70,
-        "elapsed": 31.83
+        "elapsed": 128.34
       },
-      "ts": 67048
+      "ts": 164455
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " results page data extraction API for Google, Bing, and other search engines\"\n    },\n    {",
+        "delta": "\n    },\n    {\n      \"competitor\": \"Apify\",\n      \"weakness\": \"Listed as top competitor but no specific weakness data available in scra",
         "tokens": 71,
-        "elapsed": 32.28
+        "elapsed": 129.25
       },
-      "ts": 67495
+      "ts": 165313
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"name\": \"Scraping Browser\",\n      \"description\": \"Cloud-based browser for JavaScript-heavy site scr",
+        "delta": "ped sources\",\n      \"evidence_url\": \"https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz",
         "tokens": 72,
-        "elapsed": 33.12
+        "elapsed": 130.2
       },
-      "ts": 68349
+      "ts": 166269
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "aping, mimicking real-user behavior to avoid detection\"\n    },\n    {\n      \"name\": \"Web Scraper API\",\n      \"description\":",
+        "delta": "0fRUof3PJKwg\",\n      \"confidence\": \"low\"\n    },\n    {\n      \"competitor\": \"Firecrawl\",\n      \"weakness\": \"Smaller scale",
         "tokens": 73,
-        "elapsed": 33.17
+        "elapsed": 130.21
       },
-      "ts": 68386
+      "ts": 166270
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " \"Pre-built scrapers for popular websites (e-commerce, social, real",
+        "delta": ", developer-focused; recently funded (most recent round",
         "tokens": 74,
-        "elapsed": 36.79
+        "elapsed": 130.64
       },
-      "ts": 72002
+      "ts": 166702
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " estate, etc.) returning structured datasets\"\n    },\n    {\n      \"name\": \"The Web MCP (Model Context Protocol)\",\n      \"description\": \"Real-time web data",
+        "delta": " among BD's tracked competitors as of early 2026), suggesting still in growth",
         "tokens": 75,
-        "elapsed": 37
+        "elapsed": 130.88
       },
-      "ts": 72353
+      "ts": 166948
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " access layer for LLMs and AI agents; free tier launched in 2026 to capture",
+        "delta": " phase vs BD's $300M ARR\",\n      \"evidence_url\": \"https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3",
         "tokens": 76,
-        "elapsed": 37.13
+        "elapsed": 131.39
       },
-      "ts": 72353
+      "ts": 167498
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " AI developer ecosystem\"\n    },\n    {\n      \"name\": \"Datasets Marketplace\",\n      \"description\": \"Pre-collected,",
+        "delta": "gRRiaGD5kZPglUqAyiz0fRUof3PJKwg\",\n      \"confidence\": \"medium\"\n    }\n  ],\n  \"hiring\": [],\n  \"strategic\":",
         "tokens": 77,
-        "elapsed": 37.23
+        "elapsed": 131.66
       },
-      "ts": 72597
+      "ts": 167728
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " ready-to-use structured datasets available for purchase or subscription across industries",
+        "delta": " [\n    {\n      \"text\": \"AI-first repositioning: moving from 'proxy/scraping vendor' to '",
         "tokens": 78,
-        "elapsed": 37.32
+        "elapsed": 132.49
       },
-      "ts": 72631
+      "ts": 168551
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"\n    }\n  ],\n  \"competitive\": [\n    {\n      \"competitor\": \"Oxylabs\",\n      \"weakness\": \"Narrower AI/LLM integration",
+        "delta": "AI data infrastructure platform' by targeting LLMs, AI agents, and MCP integrations —",
         "tokens": 79,
-        "elapsed": 37.43
+        "elapsed": 132.53
       },
-      "ts": 72656
+      "ts": 168596
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " story vs Bright Data's MCP and real-time agent infrastructure",
+        "delta": " follows where enterprise AI spend is concentrating\",\n      \"evidence_url\": \"https://s",
         "tokens": 80,
-        "elapsed": 37.48
+        "elapsed": 133.51
       },
-      "ts": 72732
+      "ts": 169609
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " push\"\n    },\n    {\n      \"competitor\": \"Coresignal\",\n      \"weakness\": \"More focused on B2B/HR",
+        "delta": "iliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"",
         "tokens": 81,
-        "elapsed": 37.53
+        "elapsed": 133.51
       },
-      "ts": 72756
+      "ts": 169609
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " data verticals; lacks Bright Data's breadth of proxy types",
+        "delta": "text\": \"Free tier on Web MCP is a classic land-and-expand motion targeting",
         "tokens": 82,
-        "elapsed": 37.56
+        "elapsed": 134.39
       },
-      "ts": 72803
+      "ts": 170560
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " and global IP pool scale\"\n    },\n    {\n      \"competitor\": \"Smartproxy\",\n      \"weakness\": \"Primarily SM",
+        "delta": " AI developers — lowers barrier to adoption before converting to paid tiers\",\n      \"evidence_url",
         "tokens": 83,
-        "elapsed": 37.63
+        "elapsed": 134.39
       },
-      "ts": 72905
+      "ts": 170560
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "B-focused pricing and scale; enterprise feature depth and compliance",
+        "delta": "\": \"https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/\",\n      \"confidence\": \"medium",
         "tokens": 84,
-        "elapsed": 38.2
+        "elapsed": 134.99
       },
-      "ts": 73486
+      "ts": 171054
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " frameworks lag Bright Data\"\n    },\n    {\n      \"competitor\": \"Apify\",\n      \"weakness\": \"Developer-first",
+        "delta": "\"\n    },\n    {\n      \"text\": \"Inorganic growth via acquisition (Market Beyond → Bright Insights) signals",
         "tokens": 85,
-        "elapsed": 38.46
+        "elapsed": 135.33
       },
-      "ts": 73666
+      "ts": 171396
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " but lacks enterprise proxy infrastructure; complementary rather than direct",
+        "delta": " intent to move up the value chain from raw data to analytics/insights layer\",\n      \"evidence_url\":",
         "tokens": 86,
-        "elapsed": 39.05
+        "elapsed": 136.13
       },
-      "ts": 74291
+      "ts": 172351
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ", but competes on scraping workflows\"\n    },\n    {\n      \"competitor\": \"Z",
+        "delta": " \"https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/\",\n      \"confidence\": \"medium\"\n    },\n    {",
         "tokens": 87,
-        "elapsed": 39.4
+        "elapsed": 136.29
       },
-      "ts": 74705
+      "ts": 172351
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "yte (formerly Scrapinghub)\",\n      \"weakness\": \"Strong in",
+        "delta": "\n      \"text\": \"Revenue target of $400M ARR (from ~$300M) implies ~",
         "tokens": 88,
-        "elapsed": 39.87
+        "elapsed": 136.7
       },
-      "ts": 75077
+      "ts": 172798
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " managed scraping services but weaker in self-serve proxy",
+        "delta": "33% growth target — still in aggressive expansion mode despite",
         "tokens": 89,
-        "elapsed": 40.15
+        "elapsed": 137.06
       },
-      "ts": 75650
+      "ts": 173124
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " network scale and real-time AI data APIs\"\n    }\n  ],\n  \"hiring\": [\n    {",
+        "delta": " market maturity in core proxy segment\",\n      \"evidence_url\": \"https://www.calcalistech.com/ctechnews/article",
         "tokens": 90,
-        "elapsed": 40.59
+        "elapsed": 137.7
       },
-      "ts": 75801
+      "ts": 173763
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"role\": \"AI/ML Engineers\",\n      \"count\": null,\n      \"signal\": \"Investment in AI-native product",
+        "delta": "/sjeyg2ezwe\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"text\": \"Ethical/transparent positioning ('",
         "tokens": 91,
-        "elapsed": 40.96
+        "elapsed": 137.99
       },
-      "ts": 76173
+      "ts": 174060
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " development (MCP, LLM integrations, intelligent unbl",
+        "delta": "gather publicly available web data in an ethical manner') used to differentiate from grey-market proxy competitors and",
         "tokens": 92,
-        "elapsed": 41.49
+        "elapsed": 138.48
       },
-      "ts": 76815
+      "ts": 174712
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "ocking)\"\n    },\n    {\n      \"role\": \"Enterprise Sales / GTM\",\n      \"count\": null,\n      \"signal\": \"",
+        "delta": " satisfy enterprise compliance requirements\",\n      \"evidence_url\": \"https://www.crunchbase.com/organization/brightdata\",\n      \"confidence\": \"medium",
         "tokens": 93,
-        "elapsed": 41.84
+        "elapsed": 139.22
       },
-      "ts": 77106
+      "ts": 175283
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "Scaling enterprise revenue to close gap from $",
+        "delta": "\"\n    }\n  ],\n  \"aiPerception\": null,\n  \"pricingCap",
         "tokens": 94,
-        "elapsed": 42.35
+        "elapsed": 139.74
       },
-      "ts": 77561
+      "ts": 175862
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "300M to $400M ARR target\"\n    },\n    {\n      \"role\": \"Developer Relations\",\n      \"count\": null,\n      \"signal\": \"Free-tier M",
+        "delta": "ture\": null,\n  \"cost\": {\n    \"webUnlocker\": null,\n    \"serpApi\": null,\n    \"scrapingBrowser\": null,\n    \"web",
         "tokens": 95,
-        "elapsed": 42.69
+        "elapsed": 139.9
       },
-      "ts": 77910
+      "ts": 175961
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "CP launch signals developer-led growth strategy requiring DevRel investment\"\n    }\n  ],\n  \"strategic\": [\n    \"AI Infrastructure",
+        "delta": "ScraperApi\": null,\n    \"total\": null,\n    \"note\": \"Pricing not present in scraped data — fields",
         "tokens": 96,
-        "elapsed": 43.16
+        "elapsed": 140.23
       },
-      "ts": 78456
+      "ts": 176298
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Pivot: Repositioning from proxy/scraping vendor to real-time web data layer for AI",
+        "delta": " withheld to avoid fabrication\"\n  }\n}\n```",
         "tokens": 97,
-        "elapsed": 43.88
+        "elapsed": 140.57
       },
-      "ts": 79315
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " agents and LLMs via Web MCP — targeting the fastest-growing buyer segment",
-        "tokens": 98,
-        "elapsed": 44.57
-      },
-      "ts": 80048
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " in tech\",\n    \"Free-Tier Land-and-Expand: Launching free t",
-        "tokens": 99,
-        "elapsed": 44.74
-      },
-      "ts": 80048
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "iers (MCP) to capture AI-native developers early, then",
-        "tokens": 100,
-        "elapsed": 45.12
-      },
-      "ts": 80365
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " upselling to paid plans as workloads scale — mirrors successful",
-        "tokens": 101,
-        "elapsed": 45.53
-      },
-      "ts": 80832
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " PLG playbooks\",\n    \"Revenue Scaling to $400M ARR: With $300",
-        "tokens": 102,
-        "elapsed": 45.64
-      },
-      "ts": 81074
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "M crossed, the company is in late-growth-stage territory; likely",
-        "tokens": 103,
-        "elapsed": 45.96
-      },
-      "ts": 81166
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " evaluating IPO readiness or strategic acquisition interest from larger",
-        "tokens": 104,
-        "elapsed": 46.34
-      },
-      "ts": 81557
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " data/cloud players\",\n    \"Ecosystem Lock-in via MCP Standard",
-        "tokens": 105,
-        "elapsed": 46.9
-      },
-      "ts": 82113
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ": By building on the Model Context Protocol standard, Bright Data is positioning its infrastructure",
-        "tokens": 106,
-        "elapsed": 47.28
-      },
-      "ts": 82506
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " as the default real-time web layer for AI toolchains\",\n    \"Compliance and Trust",
-        "tokens": 107,
-        "elapsed": 47.76
-      },
-      "ts": 83179
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " Differentiation: In a market scrutinized for ethical data collection,",
-        "tokens": 108,
-        "elapsed": 48
-      },
-      "ts": 83204
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " Bright Data's enterprise focus includes compliance frameworks that SMB competitors",
-        "tokens": 109,
-        "elapsed": 48.63
-      },
-      "ts": 84029
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " cannot easily replicate\"\n  ],\n  \"aiPerception\": {\n    \"summary\": \"Bright Data is",
-        "tokens": 110,
-        "elapsed": 48.79
-      },
-      "ts": 84029
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " widely recognized in AI/ML communities as the leading proxy and web",
-        "tokens": 111,
-        "elapsed": 49.76
-      },
-      "ts": 84971
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " data infrastructure provider. The MCP launch reinforces this position and is likely to increase",
-        "tokens": 112,
-        "elapsed": 49.76
-      },
-      "ts": 84971
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " brand association with legitimate, scalable AI data sourcing.\",",
-        "tokens": 113,
-        "elapsed": 50.13
-      },
-      "ts": 85376
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "\n    \"risks\": \"Historical controversies around residential proxy network mis",
-        "tokens": 114,
-        "elapsed": 50.55
-      },
-      "ts": 85760
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "use (Luminati era) may surface in AI ethics discussions; pro",
-        "tokens": 115,
-        "elapsed": 50.78
-      },
-      "ts": 86000
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "active compliance messaging is critical.\"\n  },\n  \"pricingCapture\": {\n    \"note",
-        "tokens": 116,
-        "elapsed": 51.19
-      },
-      "ts": 86508
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "\": \"Pricing page returned empty content during scrape; estimates based on industry knowledge\",\n    \"web",
-        "tokens": 117,
-        "elapsed": 51.59
-      },
-      "ts": 86801
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "Unlocker\": \"$3.00/GB (approx)\",\n    \"residentialPro",
-        "tokens": 118,
-        "elapsed": 52.17
-      },
-      "ts": 87379
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "xies\": \"$8.40–$15/GB (approx, tiered by volume",
-        "tokens": 119,
-        "elapsed": 52.46
-      },
-      "ts": 87675
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ")\",\n    \"serpApi\": \"$0.001–$0.005 per request (approx)\",\n    \"datasets\": \"",
-        "tokens": 120,
-        "elapsed": 52.84
-      },
-      "ts": 88053
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "Variable — one-time or subscription\",\n    \"webMCP",
-        "tokens": 121,
-        "elapsed": 53.4
-      },
-      "ts": 88633
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "\": \"Free tier available (2026 launch)\"\n  },\n  \"cost\": {\n    \"webUnlocker\": 0.30,\n    \"serpApi\": 0.50",
-        "tokens": 122,
-        "elapsed": 53.9
-      },
-      "ts": 89111
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ",\n    \"scrapingBrowser\": 0.80,\n    \"webScraperApi\": 0.40,\n    \"total\": 2.00,\n    \"note\": \"Internal analysis cost",
-        "tokens": 123,
-        "elapsed": 54.29
-      },
-      "ts": 89501
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " estimate in USD for data collection used in this report\"\n  }\n}\n```",
-        "tokens": 124,
-        "elapsed": 54.77
-      },
-      "ts": 89987
+      "ts": 176642
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "complete",
-        "elapsed": 124.97
+        "elapsed": 216.27
       },
-      "ts": 90196
+      "ts": 181147
     },
     {
       "event": "message",
@@ -1704,183 +1408,178 @@
           "meta": {
             "domain": "brightdata.com",
             "companyName": "Bright Data",
-            "analysisDate": "2026-05-26",
+            "analysisDate": "2026-05-27",
             "mode": "standard",
-            "confidence": "medium-high",
-            "dataQuality": "Partial — homepage/pricing/about pages returned empty content; signals derived from news snippets and public knowledge",
-            "degraded": true,
-            "bdStatus": "partial",
-            "bdOk": 11,
-            "bdFailed": 1,
-            "bdErrors": [
-              "bd-discover: BD Discover API timeout after 15s (task_id=ec91ce62-f70f-4f11-b413-8b89cc072577)"
-            ]
+            "confidence": "medium",
+            "sources_count": 11,
+            "evidence_coverage": "11 of 13 claims have direct evidence"
           },
           "signals": [
             {
-              "level": "positive",
-              "text": "Crossed $300M ARR milestone and targeting $400M — exceptional growth for a B2B data infrastructure company",
-              "icon": "🟢"
+              "level": "high",
+              "text": "Bright Data has crossed $300M ARR and is publicly targeting $400M, signaling sustained hypergrowth in the web data market",
+              "icon": "🟢",
+              "evidence_url": "https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe",
+              "confidence": "high"
             },
             {
-              "level": "positive",
-              "text": "Launched Web MCP (Model Context Protocol) with a free tier, directly targeting LLM/AI agent developers — strategic land-and-expand play in AI ecosystem",
-              "icon": "🟢"
+              "level": "high",
+              "text": "Active AI infrastructure pivot: company launched 'The Web MCP' with a free tier to support LLMs and AI agents accessing real-time web data",
+              "icon": "🟢",
+              "evidence_url": "https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/",
+              "confidence": "high"
             },
             {
-              "level": "positive",
-              "text": "Explicit positioning as real-time data infrastructure for AI agents and LLMs signals successful category expansion beyond legacy proxy/scraping market",
-              "icon": "🟢"
+              "level": "high",
+              "text": "Explicit LLM/AI agent positioning: 'Bright Data Powers LLMs and AI Agents with Real-Time Web Access to Overcome Bottlenecks' — direct play for AI infrastructure spend",
+              "icon": "🟢",
+              "evidence_url": "https://www.newswire.ca/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-web-access-to-overcome-bottlenecks-831663276.html",
+              "confidence": "high"
+            },
+            {
+              "level": "high",
+              "text": "Acquired Market Beyond (eCommerce insights) to launch 'Bright Insights' — expanding beyond raw data into analytics product tier",
+              "icon": "🟢",
+              "evidence_url": "https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/",
+              "confidence": "medium"
             },
             {
               "level": "medium",
-              "text": "Competitive comparisons (Coresignal vs Bright Data, 2026) indicate rising challenger activity; market is maturing and price/feature competition intensifying",
-              "icon": "🟡"
+              "text": "Oxylabs is Bright Data's closest competitor and is slightly more competitively priced on enterprise residential proxies — pricing pressure risk in that segment",
+              "icon": "🟡",
+              "evidence_url": "https://traffic-creator.com/blog/bright-data-review-2026",
+              "confidence": "medium"
             },
             {
               "level": "medium",
-              "text": "Only $34M in disclosed funding relative to $300M+ ARR suggests high capital efficiency or undisclosed growth/private equity rounds",
-              "icon": "🟡"
+              "text": "Firecrawl secured the most recent funding round among Bright Data's top competitors as of early 2026, signaling VC momentum in the developer-scraping segment",
+              "icon": "🟡",
+              "evidence_url": "https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJKwg",
+              "confidence": "medium"
             },
             {
               "level": "medium",
-              "text": "Free tier introduction for Web MCP may compress average revenue per user short-term but signals confidence in conversion funnel and developer-led growth",
-              "icon": "🟡"
+              "text": "Platform serves 20,000+ organizations across nearly every industry — broad enterprise TAM capture at scale",
+              "icon": "🟢",
+              "evidence_url": "https://brightdata.com/about",
+              "confidence": "high"
             }
           ],
           "snapshot": {
-            "founded": "2014",
-            "hq": "Tel Aviv, Israel",
-            "employees": "500–1,000 (estimated, unverified from scrape)",
-            "stage": "Late-stage private / growth",
+            "founded": "",
+            "hq": "Netanya, Israel",
+            "employees": "",
+            "stage": "",
             "website": "brightdata.com",
-            "linkedin": "linkedin.com/company/bright-data",
-            "formerlyKnownAs": "Luminati Networks"
+            "linkedin": "linkedin.com/company/brightdata",
+            "formerName": "Luminati Networks",
+            "ceo": "Or Lenchner"
           },
           "financials": {
-            "totalRaised": "~$34M+ (disclosed; likely higher)",
-            "lastRound": "Undisclosed — $34M referenced in news snippet (date unconfirmed)",
-            "valuation": "~$1B+ (est. based on $300M ARR trajectory)",
-            "revenue": "~$300M ARR (confirmed crossed; targeting $400M)",
-            "investors": [
-              "Undisclosed — further verification required"
-            ],
-            "notes": "High ARR relative to disclosed funding implies strong organic growth or bootstrapped expansion with selective institutional capital"
+            "totalRaised": "",
+            "lastRound": "",
+            "valuation": "",
+            "revenue": "",
+            "investors": []
           },
           "news": [
             {
-              "date": "2026",
-              "headline": "Bright Data crosses $300 million ARR, eyes $400M by next milestone",
+              "date": "Aug 12 2025",
+              "headline": "Bright Data debuts free tier of The Web MCP to support real-time AI interaction with the web",
               "signal": "HIGH",
-              "url": "https://brightdata.com/media-center"
+              "url": "https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/"
             },
             {
-              "date": "2026",
-              "headline": "Bright Data Powers LLMs and AI Agents with Real-Time Data",
+              "date": "",
+              "headline": "Bright Data Powers LLMs and AI Agents with Real-Time Web Access to Overcome Bottlenecks",
               "signal": "HIGH",
-              "url": "https://brightdata.com"
+              "url": "https://www.newswire.ca/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-web-access-to-overcome-bottlenecks-831663276.html"
             },
             {
-              "date": "2026",
-              "headline": "Bright Data debuts free tier of The Web MCP to support real-time AI agent web access",
+              "date": "",
+              "headline": "Bright Data crosses $300 million ARR, eyes $400M",
               "signal": "HIGH",
-              "url": "https://brightdata.com"
+              "url": "https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe"
             },
             {
-              "date": "2026",
-              "headline": "Coresignal vs Bright Data: Which One Has the Edge in 2026",
+              "date": "",
+              "headline": "Bright Data to Launch Bright Insights with the Acquisition of Market Beyond",
               "signal": "MED",
-              "url": "#"
+              "url": "https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/"
             }
           ],
           "products": [
             {
-              "name": "Proxy Networks",
-              "description": "Residential, datacenter, ISP, and mobile proxies — the company's core legacy product offering with one of the largest IP pool networks globally"
+              "name": "Proxies (Residential & Datacenter)",
+              "description": "Core proxy network product; original business line, still central to platform"
             },
             {
-              "name": "Web Unlocker",
-              "description": "AI-powered unlocking layer that bypasses bot detection, CAPTCHAs, and geo-restrictions at scale for automated data collection"
+              "name": "Web Scraper / News Scraper",
+              "description": "Managed scraping product with free trial available; vertically targeted scraping (news, eCommerce, etc.)"
             },
             {
-              "name": "SERP API",
-              "description": "Structured search engine results page data extraction API for Google, Bing, and other search engines"
+              "name": "The Web MCP",
+              "description": "Real-time web access layer for LLMs and AI agents; free tier launched August 2025 to drive AI developer adoption"
             },
             {
-              "name": "Scraping Browser",
-              "description": "Cloud-based browser for JavaScript-heavy site scraping, mimicking real-user behavior to avoid detection"
+              "name": "Bright Insights",
+              "description": "Analytics product launched via acquisition of Market Beyond; targets eCommerce insights use cases"
             },
             {
-              "name": "Web Scraper API",
-              "description": "Pre-built scrapers for popular websites (e-commerce, social, real estate, etc.) returning structured datasets"
-            },
-            {
-              "name": "The Web MCP (Model Context Protocol)",
-              "description": "Real-time web data access layer for LLMs and AI agents; free tier launched in 2026 to capture AI developer ecosystem"
-            },
-            {
-              "name": "Datasets Marketplace",
-              "description": "Pre-collected, ready-to-use structured datasets available for purchase or subscription across industries"
+              "name": "Web Unlocker / Scraping Browser / SERP API",
+              "description": "Suite of unblocking and structured data extraction tools surfaced across platform documentation"
             }
           ],
           "competitive": [
             {
               "competitor": "Oxylabs",
-              "weakness": "Narrower AI/LLM integration story vs Bright Data's MCP and real-time agent infrastructure push"
-            },
-            {
-              "competitor": "Coresignal",
-              "weakness": "More focused on B2B/HR data verticals; lacks Bright Data's breadth of proxy types and global IP pool scale"
-            },
-            {
-              "competitor": "Smartproxy",
-              "weakness": "Primarily SMB-focused pricing and scale; enterprise feature depth and compliance frameworks lag Bright Data"
+              "weakness": "Oxylabs is slightly more price-competitive on enterprise residential proxies, but lacks Bright Data's scale (20,000+ customers) and AI product portfolio breadth",
+              "evidence_url": "https://traffic-creator.com/blog/bright-data-review-2026",
+              "confidence": "medium"
             },
             {
               "competitor": "Apify",
-              "weakness": "Developer-first but lacks enterprise proxy infrastructure; complementary rather than direct, but competes on scraping workflows"
+              "weakness": "Listed as top competitor but no specific weakness data available in scraped sources",
+              "evidence_url": "https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJKwg",
+              "confidence": "low"
             },
             {
-              "competitor": "Zyte (formerly Scrapinghub)",
-              "weakness": "Strong in managed scraping services but weaker in self-serve proxy network scale and real-time AI data APIs"
+              "competitor": "Firecrawl",
+              "weakness": "Smaller scale, developer-focused; recently funded (most recent round among BD's tracked competitors as of early 2026), suggesting still in growth phase vs BD's $300M ARR",
+              "evidence_url": "https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJKwg",
+              "confidence": "medium"
             }
           ],
-          "hiring": [
-            {
-              "role": "AI/ML Engineers",
-              "count": null,
-              "signal": "Investment in AI-native product development (MCP, LLM integrations, intelligent unblocking)"
-            },
-            {
-              "role": "Enterprise Sales / GTM",
-              "count": null,
-              "signal": "Scaling enterprise revenue to close gap from $300M to $400M ARR target"
-            },
-            {
-              "role": "Developer Relations",
-              "count": null,
-              "signal": "Free-tier MCP launch signals developer-led growth strategy requiring DevRel investment"
-            }
-          ],
+          "hiring": [],
           "strategic": [
-            "AI Infrastructure Pivot: Repositioning from proxy/scraping vendor to real-time web data layer for AI agents and LLMs via Web MCP — targeting the fastest-growing buyer segment in tech",
-            "Free-Tier Land-and-Expand: Launching free tiers (MCP) to capture AI-native developers early, then upselling to paid plans as workloads scale — mirrors successful PLG playbooks",
-            "Revenue Scaling to $400M ARR: With $300M crossed, the company is in late-growth-stage territory; likely evaluating IPO readiness or strategic acquisition interest from larger data/cloud players",
-            "Ecosystem Lock-in via MCP Standard: By building on the Model Context Protocol standard, Bright Data is positioning its infrastructure as the default real-time web layer for AI toolchains",
-            "Compliance and Trust Differentiation: In a market scrutinized for ethical data collection, Bright Data's enterprise focus includes compliance frameworks that SMB competitors cannot easily replicate"
+            {
+              "text": "AI-first repositioning: moving from 'proxy/scraping vendor' to 'AI data infrastructure platform' by targeting LLMs, AI agents, and MCP integrations — follows where enterprise AI spend is concentrating",
+              "evidence_url": "https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/",
+              "confidence": "high"
+            },
+            {
+              "text": "Free tier on Web MCP is a classic land-and-expand motion targeting AI developers — lowers barrier to adoption before converting to paid tiers",
+              "evidence_url": "https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/",
+              "confidence": "medium"
+            },
+            {
+              "text": "Inorganic growth via acquisition (Market Beyond → Bright Insights) signals intent to move up the value chain from raw data to analytics/insights layer",
+              "evidence_url": "https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/",
+              "confidence": "medium"
+            },
+            {
+              "text": "Revenue target of $400M ARR (from ~$300M) implies ~33% growth target — still in aggressive expansion mode despite market maturity in core proxy segment",
+              "evidence_url": "https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe",
+              "confidence": "medium"
+            },
+            {
+              "text": "Ethical/transparent positioning ('gather publicly available web data in an ethical manner') used to differentiate from grey-market proxy competitors and satisfy enterprise compliance requirements",
+              "evidence_url": "https://www.crunchbase.com/organization/brightdata",
+              "confidence": "medium"
+            }
           ],
-          "aiPerception": {
-            "summary": "Bright Data is widely recognized in AI/ML communities as the leading proxy and web data infrastructure provider. The MCP launch reinforces this position and is likely to increase brand association with legitimate, scalable AI data sourcing.",
-            "risks": "Historical controversies around residential proxy network misuse (Luminati era) may surface in AI ethics discussions; proactive compliance messaging is critical."
-          },
-          "pricingCapture": {
-            "note": "Pricing page returned empty content during scrape; estimates based on industry knowledge",
-            "webUnlocker": "$3.00/GB (approx)",
-            "residentialProxies": "$8.40–$15/GB (approx, tiered by volume)",
-            "serpApi": "$0.001–$0.005 per request (approx)",
-            "datasets": "Variable — one-time or subscription",
-            "webMCP": "Free tier available (2026 launch)"
-          },
+          "aiPerception": null,
+          "pricingCapture": null,
           "cost": {
             "webUnlocker": 0.3,
             "serpApi": 0.5,
@@ -1890,8 +1589,8 @@
             "discoverApi": 0,
             "bdCrawl": 0,
             "datasetsApi": 0,
-            "claude": 0.0487,
-            "total": 2.25
+            "claude": 0,
+            "total": 2.2
           },
           "techStack": null,
           "github": null,
@@ -1995,34 +1694,30 @@
               "scraped": true
             }
           },
-          "crawl": {
-            "domain": "brightdata.com",
-            "pages": [
-              {
-                "url": "https://brightdata.com/",
-                "markdown": "[\n  {\n    \"url\": \"https://brightdata.com/\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/pricing\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/about\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/customers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/careers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/blog\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/contact\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/security\",\n    \"content\": \"\"\n  }\n]"
-              }
-            ],
-            "count": 1
-          },
-          "mcp": {
-            "domain": "brightdata.com",
-            "mode": "standard",
-            "search": {
-              "query": "brightdata company funding competitors news hiring 2026",
-              "raw": "{\n  \"organic\": [\n    {\n      \"link\": \"https://brightdata.com/blog/web-data/best-firmographic-data-providers\",\n      \"title\": \"Best Firmographic Data Providers 2026: Top 8 Reviewed\",\n      \"description\": \"Discover the top 8 firmographic data providers for 2026. Compare features, formats, compliance, and prices to find the best solution for your needs.\"\n    },\n    {\n      \"link\": \"https://coresignal.com/coresignal-vs-brightdata/\",\n      \"title\": \"Coresignal vs Bright Data: Which One Has the Edge in 2026\",\n      \"description\": \"Compare Coresignal vs Bright Data to choose the right solution for your company. Evaluate real-time data access, coverage, structure, and quality.\"\n    },\n    {\n      \"link\": \"https://brightdata.com/blog/why-brightdata/web-data-collection-2025\",\n      \"title\": \"Web Data Collection in 2026 – Everything you need to know\",\n      \"description\": \"Find out how web data is being collected in 2026, which tools are used and why businesses prefer Bright Data's automated solutions.\"\n    },\n    {\n      \"link\": \"https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJKwg\",\n      \"title\": \"Bright Data - 2026 Company Profile, Team & Competitors\",\n      \"description\": \"17 Feb 2026 — Bright Data ranks 47th amongst 159 active competitors, of which 6 are funded. It stands 11th in terms of total funding among its competitors.Read more\"\n    },\n    {\n      \"link\": \"https://brightdata.com/blog/web-data/best-alternative-data-providers\",\n      \"title\": \"Best Alternative Data Providers 2026: Full Comparison Guide\",\n      \"description\": \"This guide reviews the best alternative data providers of 2026 with a summary table and tips for choosing the right one for your needs. 16 min read.Read more\"\n    },\n    {\n      \"link\": \"https://www.crunchbase.com/organization/brightdata\",\n      \"title\": \"Bright Data - Crunchbase Company Profile & Funding\",\n      \"description\": \"Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more\"\n    },\n    {\n      \"link\": \"https://www.forbes.com/sites/josipamajic/2025/11/20/inside-the-209-billion-battle-powering-ais-web-data-infrastructure-future/\",\n      \"title\": \"Inside The $209 Billion Battle Powering AI's Web Data ...\",\n      \"description\": \"20 Nov 2025 — Oxylabs represents Bright Data's closest premium competitor. The Lithuanian company operates a 175+ million IP proxy pool with an approximately ...Read more\"\n    },\n    {\n      \"link\": \"https://www.youtube.com/watch?v=Dqjx7Bs4pVY\",\n      \"title\": \"Linkedin Automation: Bright Data and N8N Automated My ...\",\n      \"description\": \"I want to build an automation that scrapes LinkedIn job post and tells me or returns only job post that might be relevant for me.\"\n    },\n    {\n      \"link\": \"https://en.wikipedia.org/wiki/Bright_Data\",\n      \"title\": \"Bright Data\",\n      \"description\": \"Bright Data (formerly Luminati Networks) is a global technology company that offers web data collection and proxy services.Read more\"\n    },\n    {\n      \"link\": \"https://www.g2.com/products/bright-data/competitors/alternatives\",\n      \"title\": \"Top 10 Bright Data Alternatives & Competitors in 2026\",\n      \"description\": \"The best Bright Data alternatives are Decodo (formerly Smartproxy), Oxylabs, and Apify. Find top-ranking free & paid apps similar to Bright Data for your ...\"\n    }\n  ],\n  \"current_page\": 1\n}",
-              "tool": "search_engine"
-            },
-            "scraped": {
-              "url": "https://brightdata.com",
-              "markdown": "",
-              "tool": "scrape_as_markdown"
-            },
-            "via": "bd-mcp"
-          },
           "news": {
             "query": "brightdata company news",
             "results": [
+              {
+                "link": "https://brightdata.com/products/web-scraper/news-scraper",
+                "source": "Bright Data",
+                "display_link": "https://brightdata.com › products › web-scraper › news-...",
+                "title": "News Scraper - Free Trial",
+                "description": "Scrape news sites and feeds and collect information on daily headlines, sports updates, interviews, and emergencies happening around the world.",
+                "snippet_highlighted_words": [
+                  "Scrape news sites and feeds"
+                ],
+                "extensions": [
+                  {
+                    "type": "rating",
+                    "rating": 4.6,
+                    "reviews_cnt": 983,
+                    "rank": 1
+                  }
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAYFBMVEU9f/w8fvxCgvxNif00fPx1o/2gwf5hl/y1zv72+f+Ls/280f7///+IsP5SjvzQ3/6VuP5Jh/z7/P/o7/9yoP2qxf1nm/ybvf2Cqv3d6f7w9P/E2P7X4/9Ghfx9p/260P6lb7ToAAAAe0lEQVR4Ac3NNQKDAAxA0Rju7nD/U1bXhKVF/voicEa4Q8S2iuOKpej5QciGURTHcWJgmr0wB1Sx8Mu4qtH62UQJ6YhFm3RNrZ+VfhiDwPrZTmVcGgjCs41Ie7jcDCl9YVeoJmsWxOXop6ggOn60bVGnItDyCdTwG/yjJ+gWB6/VJxq3AAAAAElFTkSuQmCC",
+                "rank": 1,
+                "global_rank": 1
+              },
               {
                 "link": "https://brightdata.com/",
                 "source": "Bright Data",
@@ -2038,13 +1733,34 @@
                   {
                     "type": "must_include",
                     "text": "news",
-                    "link": "https://www.google.com/search?sca_esv=0a857c94be8f15ec&hl=en&q=brightdata+company+%22news%22&sa=X&ved=2ahUKEwivvpea1NeUAxWHq5UCHU8PLv0Q5t4CegQIHhAB",
+                    "link": "https://www.google.com/search?sca_esv=aac1224288ab2d4c&hl=en&q=brightdata+company+%22news%22&sa=X&ved=2ahUKEwjN-ePyuNmUAxXFs1YBHSLDBkQQ5t4CegQIQBAB",
                     "rank": 2
                   }
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAYFBMVEU9f/w8fvxCgvxNif00fPx1o/2gwf5hl/y1zv72+f+Ls/280f7///+IsP5SjvzQ3/6VuP5Jh/z7/P/o7/9yoP2qxf1nm/ybvf2Cqv3d6f7w9P/E2P7X4/9Ghfx9p/260P6lb7ToAAAAe0lEQVR4Ac3NNQKDAAxA0Rju7nD/U1bXhKVF/voicEa4Q8S2iuOKpej5QciGURTHcWJgmr0wB1Sx8Mu4qtH62UQJ6YhFm3RNrZ+VfhiDwPrZTmVcGgjCs41Ie7jcDCl9YVeoJmsWxOXop6ggOn60bVGnItDyCdTwG/yjJ+gWB6/VJxq3AAAAAElFTkSuQmCC",
-                "rank": 1,
-                "global_rank": 1
+                "rank": 2,
+                "global_rank": 6
+              },
+              {
+                "link": "https://www.newswire.ca/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-web-access-to-overcome-bottlenecks-831663276.html",
+                "source": "PR Newswire Canada",
+                "display_link": "https://www.newswire.ca › news-releases › bright-data-...",
+                "title": "Bright Data Powers LLMs and AI Agents with Real-Time ...",
+                "description": "CNW/ -- Bright Data, the world's #1 web data infrastructure company for AI & BI, today announced the launch of a powerful set of AI-powered ...",
+                "snippet_highlighted_words": [
+                  "Bright Data, the world's #1 web data infrastructure company for AI & BI"
+                ],
+                "extensions": [
+                  {
+                    "inline": true,
+                    "type": "text",
+                    "text": "2 Jul 2025",
+                    "rank": 1
+                  }
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAUVBMVEX///+LkZwUKUkAACc3RFzCxcshMk4AADMAHUAAHkAAGD0AACR+hZIADTgAACoAACHP0tbr7O5AS2EAEztbZHYAACwABTbb3eEAABevs7vh4+chdWYdAAAAbklEQVR4AdQPtQGAMAzq7vr/odhMujfucuwHJ8KYUDjPuJBS6RPKGy4tdkr6ABRwYc0Rk8rlPx+drI+iXCigoMr2qF5FAyd8BaP6ZUGcIS4LYNip4HnznhS5AYUIaoKRRTC6yUwwiCRHMNEOOQAAbEcH9LXXh2MAAAAASUVORK5CYII=",
+                "rank": 3,
+                "global_rank": 7
               },
               {
                 "link": "https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe",
@@ -2059,39 +1775,13 @@
                   {
                     "inline": true,
                     "type": "text",
-                    "text": "Nov 23, 2025",
+                    "text": "23 Nov 2025",
                     "rank": 1
                   }
                 ],
                 "icon": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD8sQzQ5OjcBCgoKDQwNGg8PGjclHyU3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc4Nzc3NzcuNTc1Nzc3NDc3NzU4MDc2MzU1MS0tOC03Lf/AABEIABwAHAMBEQACEQEDEQH/xAAZAAADAQEBAAAAAAAAAAAAAAABBQYHBAD/xAAnEAACAAYBAwMFAAAAAAAAAAABAgADBAUGESESMUETUYEHIyRhof/EABsBAAEFAQEAAAAAAAAAAAAAAAQAAQIDBQcG/8QALREAAQMCAgUNAAAAAAAAAAAAAQACAwQRBSETUaHB4RIiMTJBQ2FicYGR0fH/2gAMAwEAAhEDEQA/AJlFZ3WXLVndiFVVGyxPYAeTGWuhkgZlPFwzJnUMtmn6Pu6D+Fos0T9SCOJUY7wbfpc1zxy82mnFRcrfMp5JYIHZ0I2fHBPsYi5jm5kK2Gsp53cmN1z7pXEURZPcCUNmVpDAEeqx5/SMRFkXXCDxLKjk9N4WgfULLrnjtwpae3LTFJskuxnSyx3vXgiCJpXMIAWJheHQ1UbnyXyPZ+KDv+Z3a/0Ioq9aQSRMEz7MplOxvyWPHMDulc8WK2abDoKZ/LZe/ieCnYqR100xe4yrTkNBX1AYyZEzb9I2QCpUn43v4ibHBrgSh6yJ00D429JHFajepuDZFMk1FyudG7y06U/MMsgd9EAiCn6F+bjtXnKcYlSgsiYc/LfcpHM7diFJaUmY9UyJlX6ygrLrDNPRo74LHjtzFMjYgOYdq1KCavfKRUNIbbVbP4UTFC1kdQ6dCEkvQkkD3h7KBK//2Q==",
-                "rank": 2,
-                "global_rank": 2
-              },
-              {
-                "link": "https://www.crunchbase.com/organization/brightdata",
-                "source": "Crunchbase",
-                "display_link": "https://www.crunchbase.com › organization › brightdata",
-                "title": "Bright Data - Crunchbase Company Profile & Funding",
-                "description": "Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more",
-                "snippet_highlighted_words": [
-                  "Bright Data is a data collection platform"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcBAMAAACAI8KnAAAAIVBMVEUTav8CZf8AXf9Xiv////+KrP8mcv/O2/+kvv/0+P/b5v+sht7hAAAAfklEQVR4AWOgNxASQOYxmgQSyWUSU2Q0CUpUgMqku3gompS4lAlAuFNWTGky8ezyhHAlPJQ0HUwmCbU0grnqTgxMikCjVIogXEcGgQSTIAYRCFfUXSnF0WSaUkkgxJ4ls1yCTFxWekFt0piyWMG8y7MJ5iQlRQYhISUBegYZAJGsGV0XmjnwAAAAAElFTkSuQmCC",
-                "rank": 3,
-                "global_rank": 10
-              },
-              {
-                "link": "https://en.wikipedia.org/wiki/Bright_Data",
-                "source": "Wikipedia",
-                "display_link": "https://en.wikipedia.org › wiki › Bright_Data",
-                "title": "Bright Data",
-                "description": "Bright Data (formerly Luminati Networks) is a global technology company that offers web data collection and proxy services.Read more",
-                "snippet_highlighted_words": [
-                  "global technology company"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAnklEQVR4AeTNIQiDQABG4b+u17X1aF6PK3YEO9iMJqPVau82y4FgMezS0oVLhqsHtrcqeqzDXv3CEz/6L4yTtZM3dnHmPTtjzXZAXKYVo4agkU2GI2Lloc6JDez1+flswMu1EQZ3xlE7lK8eKDkjtwE+crBMV+wesKmCiisGGepZIfQJpMj9SNb2MYWrChjVkULuCyCfRvsdmBieyQQAsoDk/9ryhFMAAAAASUVORK5CYII=",
                 "rank": 4,
-                "global_rank": 11
+                "global_rank": 8
               },
               {
                 "link": "https://brightdata.com/media-center",
@@ -2104,34 +1794,60 @@
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAYFBMVEU9f/w8fvxCgvxNif00fPx1o/2gwf5hl/y1zv72+f+Ls/280f7///+IsP5SjvzQ3/6VuP5Jh/z7/P/o7/9yoP2qxf1nm/ybvf2Cqv3d6f7w9P/E2P7X4/9Ghfx9p/260P6lb7ToAAAAe0lEQVR4Ac3NNQKDAAxA0Rju7nD/U1bXhKVF/voicEa4Q8S2iuOKpej5QciGURTHcWJgmr0wB1Sx8Mu4qtH62UQJ6YhFm3RNrZ+VfhiDwPrZTmVcGgjCs41Ie7jcDCl9YVeoJmsWxOXop6ggOn60bVGnItDyCdTwG/yjJ+gWB6/VJxq3AAAAAElFTkSuQmCC",
                 "rank": 5,
+                "global_rank": 9
+              },
+              {
+                "link": "https://www.crunchbase.com/organization/brightdata",
+                "source": "Crunchbase",
+                "display_link": "https://www.crunchbase.com › organization › brightdata",
+                "title": "Bright Data - Crunchbase Company Profile & Funding",
+                "description": "Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more",
+                "snippet_highlighted_words": [
+                  "Bright Data is a data collection platform"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcBAMAAACAI8KnAAAAIVBMVEUTav8CZf8AXf9Xiv////+KrP8mcv/O2/+kvv/0+P/b5v+sht7hAAAAfklEQVR4AWOgNxASQOYxmgQSyWUSU2Q0CUpUgMqku3gompS4lAlAuFNWTGky8ezyhHAlPJQ0HUwmCbU0grnqTgxMikCjVIogXEcGgQSTIAYRCFfUXSnF0WSaUkkgxJ4ls1yCTFxWekFt0piyWMG8y7MJ5iQlRQYhISUBegYZAJGsGV0XmjnwAAAAAElFTkSuQmCC",
+                "rank": 6,
+                "global_rank": 10
+              },
+              {
+                "link": "https://www.zoominfo.com/c/bright-data/430599389",
+                "source": "ZoomInfo",
+                "display_link": "https://www.zoominfo.com › bright-data",
+                "title": "Bright Data - Overview, News & Similar companies",
+                "description": "Bright Data is a Netanya, Israel-based technology company and leading web data collection platform, formerly known as Luminati Networks.Read more",
+                "snippet_highlighted_words": [
+                  "Bright Data is a Netanya, Israel-based technology company"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAA90lEQVR4AWMAgfcKEgqvpEX3v5YRfQ+k/9Mav5QSWw+yE245zGI64/dgR7yWEVkPF6Q/3s+AKkD/UBhoB/wf/A4YdQARAJ/a4eMAooLzrYXx/z+PH9HbAZiW/338kF4OwLT895VLQL4RBQ7AxCRZ/lpTmX7Z8J2bE9zyn8eOwiyntQMQlv/9+BFs+feVyyksByi3nH4O+FSYC09g32bPoFdRjGn5l94u+tYFn+trSLGcutnwa28XuuU0dABhy+nrAByAkPxQcsBoi2jUAcBu2UCHwP6BsvyFlNgGhucSEgoDEQqgDjHIbgYQADFAnVR6WQz08H6Y5QAohh4QgciXDwAAAABJRU5ErkJggg==",
+                "rank": 7,
+                "global_rank": 11
+              },
+              {
+                "link": "https://en.wikipedia.org/wiki/Bright_Data",
+                "source": "Wikipedia",
+                "display_link": "https://en.wikipedia.org › wiki › Bright_Data",
+                "title": "Bright Data",
+                "description": "Bright Data (formerly Luminati Networks) is a global technology company that offers web data collection and proxy services.Read more",
+                "snippet_highlighted_words": [
+                  "global technology company"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAnklEQVR4AeTNIQiDQABG4b+u17X1aF6PK3YEO9iMJqPVau82y4FgMezS0oVLhqsHtrcqeqzDXv3CEz/6L4yTtZM3dnHmPTtjzXZAXKYVo4agkU2GI2Lloc6JDez1+flswMu1EQZ3xlE7lK8eKDkjtwE+crBMV+wesKmCiisGGepZIfQJpMj9SNb2MYWrChjVkULuCyCfRvsdmBieyQQAsoDk/9ryhFMAAAAASUVORK5CYII=",
+                "rank": 8,
                 "global_rank": 12
               },
               {
-                "link": "https://www.prnewswire.com/news-releases/bright-data-powers-llms-and-ai-agents-with-real-time-web-access-to-overcome-bottlenecks-302496790.html",
-                "source": "PR Newswire",
-                "display_link": "https://www.prnewswire.com › news-releases › bright-dat...",
-                "title": "Bright Data Powers LLMs and AI Agents with Real-Time ...",
-                "description": "PRNewswire/ -- Bright Data, the world's #1 web data infrastructure company for AI & BI, today announced the launch of a powerful set of ...",
-                "snippet_highlighted_words": [
-                  "Bright Data, the world's #1 web data infrastructure company for AI & BI"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAM1BMVEUeNmfHzdmPm7M6T3pzgqC5wdCdqL3////y8/ZIXISrtMbW2uNWaI2BjqpldZfk5+0sQ3FM32Y+AAAAw0lEQVR4AeXShRXDQAwDUNlhONh/2p7shmGAVkHd++HgVyKMVkDNnaYG0IrU1lnQWfoB6nsjIF03gV0NeMQAMxN01RFwZAGNgbAH2pZVXQZEp3I1A9MeAE0pNlCxip9xD3QBWEE4gGkBwwqmHdCxrKLdQ+q65KAbn55iJODNvr6HwL09SNUCAgjmtAeqdQaB8GYdtHsAhkBDQQ6GezCXlg0g3QK26KC9B2KPSTDcAq6SAyQHEBEH9gcNpeZWZAAC+5/kAwk4CsI5h7OJAAAAAElFTkSuQmCC",
-                "rank": 6,
+                "link": "https://www.youtube.com/watch?v=8DIgRxCNTaU",
+                "source": "YouTube · Summation with Auren Hoffman",
+                "display_link": "65.2K+ views · 1 year ago",
+                "title": "Bright Data CEO Or Lenchner - Why Meta Lost the Web ...",
+                "description": "Or Lenchner is the CEO of Bright Data, a leading web data collection company. #BrightData #Webscraping #Datafreedom Looking for more tech, ...",
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAhUlEQVR4AWNwL/ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI+RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D///feYzXIJBeBigH04BVW/9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg==",
+                "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0YbPjSBuLrWuqv7b4BGgpZroEMw0-QHACdDcqCLatknwpvWhSwQnN9g&s",
+                "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0YbPjSBuLrWuqv7b4BGgpZroEMw0-QHACdDcqCLatknwpvWhSwQnN9g&s",
+                "duration": "1:06:47",
+                "duration_sec": 4007,
+                "rank": 9,
                 "global_rank": 13
-              },
-              {
-                "link": "https://coresignal.com/coresignal-vs-brightdata/",
-                "source": "Coresignal",
-                "display_link": "https://coresignal.com › coresignal-vs-brightdata",
-                "title": "Coresignal vs Bright Data: Which One Has the Edge in 2026",
-                "description": "Compare Coresignal vs Bright Data to choose the right solution for your company. Evaluate real-time data access, coverage, structure, and quality.",
-                "snippet_highlighted_words": [
-                  "Bright Data",
-                  "company"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAflBMVEX////b3Pu2ufidoPWYnPWipfa/wvjs7f2sr/dHUO8zPu43Qu4uOu5fZvHJy/k8Ru4yPe5KU+95fvKCh/NwdvI2Qe5qcPH39/4gL+1BS+8/Se9TW/D9/f/Nz/ro6f1OVu98gvNzefJlbPGRlfTk5fzV1/uFivOOkvS9v/hZYfCxTfBVAAAA+0lEQVR4AcXLVZYCMRBA0QftqUwnNO0kuO5/g3Nw/+ZGy/ipwTAIozjhgzRTcqT/8repTIwdFePSVEbVDY/ytrNBwtGgsH2f8KieHGN3vPDS9Q0PnIN0oq2uc5hKX/KIZCamUmLsHLxVngcu62wwmPqikjEszJIHK1OtOUor69lUOuHGaTMEB8epEkRibjaVdWxb2UAuFmpJuYmlI7dZZ2Bd2Ya5BNx4UQwly1rYiIZSIm4aLd6J6BXszB90sudu0Y+cG3rY2GrIWtk1d4nushya1PYHWJkZjza6FyXKmFnDVMuQRySFrqRSATSjbsarZpMPAFzdrvnO8zv/QVcQ/aRws5oAAAAASUVORK5CYII=",
-                "rank": 7,
-                "global_rank": 14
               },
               {
                 "link": "https://siliconangle.com/2025/08/12/bright-data-debuts-free-tier-web-mcp-support-real-time-ai-interaction-web/",
@@ -2146,28 +1862,107 @@
                   {
                     "inline": true,
                     "type": "text",
-                    "text": "Aug 12, 2025",
+                    "text": "12 Aug 2025",
                     "rank": 1
                   }
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABoklEQVR4AcWXAWQCYRTHBwAIIEBQUIQEACKAAAAKAA4AS2IAB5gQnDEII5gY5xgLYiDDsCZrZsYtM2F4e8f25NnH3b/X+vjh7nPf+929//F9R+h4rFRazOKHFrwQULjKRAwpomRun4VzTCAF3QRMzrp4n4kZSknM9A0KS58JRPKB9xkGyIfuMwCQD7zPwn25TDvnI2vRr9WKfsdmvabrWi3T8zsJvHQ6pMeF59FVsfg/Ah/jMenxMJ3ScT6vJewFnppNKRovl/Q8n8u1X69rCXuB98FACoa+T5e9nlzfDIeJgEhYCujwyRuflErbYRQBkbAUePU8KXY3mUih29FoO4xawk7gMwz/LHTebuswaglcQIdPfWqBA6nDqCUgAR0+HTYhueeeFwlMQIfvtNHQiydv7fpCWiK7wFu3K4vzf+9cnOdURpwS2QQ2s1mqhXlOh9FJSgEJnwz+752L8lzy+XUYYQHhrFCQB3Fwgb1IQBsSI4mY6UNbMgOJgMnhm1JcImKq+LYcl1gwLdODiZJI32f7o5lIAH02O5yKBNzngx/PvwGgYScjUDerZQAAAABJRU5ErkJggg==",
-                "rank": 8,
-                "global_rank": 15
-              },
-              {
-                "link": "https://www.startuphub.ai/startups/bright-data",
-                "source": "StartupHub.ai",
-                "display_link": "https://www.startuphub.ai › Startups",
-                "title": "Bright Data — $34M Raised - Startups",
-                "description": "Bright Data is the world's leading web data platform, providing comprehensive infrastructure for AI and Business Intelligence.Read more",
-                "snippet_highlighted_words": [
-                  "Bright Data is the world's leading web data platform"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAEJElEQVR4AWIgFixWieZbqZQSCei1HIBcu6Mw/h/VHdbacG3Vtga1uXaytW3bbte2rZhrb5Xk+S2j03PeNOnq7iTb7PtmvvHc37n34H5FvISv0bJSXqK5jJdgLeclWSv4SeYqQZKsWpD0VZUg5Y7ygIeOZ75SHj/BP4+X8G0B/+GFIn4CFPMToRRdhi7nJ0GlIAkQDtWCZKhB16HrBSkL6G8aBcnibYMLz7j16DzeQ+/k8R62FSLYCzg0oJuEqdAkSLU2C1PfavO7/yiv4L8KHhD/5vewPh+h24UjGFrQbcI0aBek9XWclXSqR/Df/B6KQrjZZ3B0B7pLkDbXyU8N9+TNfQ8XpkO3CC1MmxvwSztlU/j32CeEa3YK3oPuFWVAvyhd0XuG5Gi2XjRwOw5HD4gP+cVNVu1hm6/gXSHZoLvzA+iPfWwDXCbOJB8cCF7VCtpzX775ftk4kKyWA9AfJl0Dl/tngiIgE5QBWZ+5LxwdGV9+9sXxv4DkWLaCIuaxzeDozPmhgEePZ3Refd1z5SXPwdRrpWC4+Z1N4arALFAHZYMmKPt2RrfdW3iLfzr0X/MS6BI/A81d70Nv/ONrBk5x3tOgvvQF0GAhnPDgQwV8SQXIvIHr0r6ElV0HYLWcdgfMflTjHrgDigkg2fYtcMK1aF1Idh8r4SVYvPns42+Xg3X3QTBVymH2y0Y4oJkGl/S3vwc0cAeV/xXADc8BfUi2iZXxEle86fnAFS9AZ2iOu+f90Y8AOJxAmn2rgnq+ugBueCg6TLLM8H++4s3AdeIDxl8ugt0teliaNoPTZgeXTL90Us9XF8AJN4RJyMsMw4TFU3iHfwbs//fh9vkl2N2sgz+/bQHHig1Ipt+6qOfuAuxYABfciB4MyzExSjKerpr6lrfBJcN9HwENnCxMCjSEJDMWoAhYUwA3PFwCQxHSPkYxigveHpoNe/tGgD7l+CvFYHjgE3BpBvutvvg5MBf0gEvmvC6gns+vKmALOAxHSr9glOG43lx12zvg0gJet/6YR8G65yCs1tKkCZxWO5Ased3Ucyxg0l3AFnDyrawtOO24OkHKPFfP/8S3olUbSvsaaM+1N74Buxs0sGCcA0txH2gueAaHrwMs+CWmHv0JqOd/vlsJuwt7wPJjOyd8JFIyb0A2I1GA9PaX6r5w3HvODUePRkm/Yi5ReqUAebjgY1HSlZHYHAFbLUqvhweeS36drRdFZ0qvOw0fj5b2jooyj2SbqQ0DY5cgfXYH4X+MREhOZ1uJojOlV5/Do3JnJ2IkYcwTdYoyT+wTZnT48rNPxT1yCvNG1CdKrzJxxvz/mfbxKOlr9Cy2XVF6pQBJGc5zuGR+NDL3S/eq+UJ0tSjDaYOyvkB4P4UJfVjOihFNf7WhCEn/cIT08+GInNvcF84D/QMLwxxMGDGqbQAAAABJRU5ErkJggg==",
-                "rank": 9,
-                "global_rank": 16
+                "rank": 10,
+                "global_rank": 14
               }
             ]
+          },
+          "mcp": {
+            "domain": "brightdata.com",
+            "mode": "standard",
+            "search": {
+              "query": "brightdata company funding competitors news hiring 2026",
+              "raw": "{\n  \"organic\": [\n    {\n      \"link\": \"https://brightdata.com/\",\n      \"title\": \"Bright Data - All in One Platform for Proxies and Web Scraping\",\n      \"description\": \"Award winning proxy networks, powerful web scrapers, and ready-to-use datasets for download. Welcome to the world's #1 web data platform.\"\n    },\n    {\n      \"link\": \"https://en.wikipedia.org/wiki/Bright_Data\",\n      \"title\": \"Bright Data\",\n      \"description\": \"Bright Data (formerly Luminati Networks) is a global technology company that offers web data collection and proxy services.Read more\"\n    },\n    {\n      \"link\": \"https://github.com/brightdata\",\n      \"title\": \"Bright Data\",\n      \"description\": \"18 hours ago — Bright Data is the only end-to-end web data vendor with a production-grade MCP server, a coding-agent CLI, the largest free tier in the category ...Read more\"\n    },\n    {\n      \"link\": \"https://www.trustpilot.com/review/brightdata.com\",\n      \"title\": \"Bright Data Reviews | Read Customer Service ...\",\n      \"description\": \"Bright Data, the world's #1 web data platform, simplifies the hard work of collecting & preparing web data through SaaS.Read more\"\n    },\n    {\n      \"link\": \"https://il.linkedin.com/company/bright-data\",\n      \"title\": \"Bright Data\",\n      \"description\": \"Bright Data is the leading web data infrastructure powering AI and BI, trusted by over 20,000 companies - from top AI innovators to global leaders in eCommerce, ...Read more\"\n    },\n    {\n      \"link\": \"https://www.youtube.com/BrightData\",\n      \"title\": \"Bright Data\",\n      \"description\": \"Bright Data is the world's number one web data platform. Fortune 500 companies, academic institutions, and small businesses all rely on Bright Data's solutions.Read more\"\n    }\n  ],\n  \"current_page\": 1\n}",
+              "tool": "search_engine"
+            },
+            "scraped": {
+              "url": "https://brightdata.com",
+              "markdown": "",
+              "tool": "scrape_as_markdown"
+            },
+            "via": "bd-mcp"
+          },
+          "crawl": {
+            "domain": "brightdata.com",
+            "pages": [
+              {
+                "url": "https://brightdata.com/",
+                "markdown": "[\n  {\n    \"url\": \"https://brightdata.com/\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/pricing\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/about\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/customers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/careers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/blog\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/contact\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://brightdata.com/security\",\n    \"content\": \"\"\n  }\n]"
+              }
+            ],
+            "count": 1
+          },
+          "discover": {
+            "query": "brightdata.com company news products competitors 2026",
+            "intent": "find official pages, news articles, and competitive intelligence about brightdata.com",
+            "results": [
+              {
+                "link": "https://www.zoominfo.com/c/bright-data/430599389",
+                "title": "Bright Data - Overview, News & Similar companies",
+                "description": "Bright Data is a Netanya, Israel-based technology company and leading web data collection platform, formerly known as Luminati Networks.Read more",
+                "relevance_score": 0.67578125
+              },
+              {
+                "link": "https://tracxn.com/d/companies/brightdata/__5cGf9nkBgdC3gRRiaGD5kZPglUqAyiz0fRUof3PJKwg",
+                "title": "Bright Data - 2026 Company Profile, Team & Competitors",
+                "description": "Feb 17, 2026 — Bright Data's top competitors include My IP Hide, Every Proxy and Apify. Among them, Firecrawl secured the most recent funding round in August, ...Read more",
+                "relevance_score": 0.66015625
+              },
+              {
+                "link": "https://www.webdataguru.com/blog/web-scraping-tools-companies",
+                "title": "Top Web Data Scraping Companies & Tools 2026",
+                "description": "Nov 1, 2024 — BrightData provides industry-leading web scraping solutions with a strong focus on AI and automation. Their platform supports extensive data ...Read more",
+                "relevance_score": 0.6328125
+              },
+              {
+                "link": "https://www.hpcwire.com/bigdatawire/this-just-in/bright-data-to-launch-bright-insights-with-the-acquisition-of-market-beyond/",
+                "title": "Bright Data to Launch Bright Insights with the Acquisition ...",
+                "description": "Mar 23, 2026 — 12, 2022 — Bright Data, an industry-leading web data platform, has today announced the acquisition of eCommerce insights provider Market Beyond.Read more",
+                "relevance_score": 0.609375
+              },
+              {
+                "link": "https://www.emkcapital.com/news/luminati-networks-becomes-bright-data-with-focus-on-web-transparency-and-continuous-innovation",
+                "title": "Luminati Networks Becomes Bright Data with Focus on ...",
+                "description": "Mar 23, 2021 — Luminati Networks has today announced it is to become Bright Data as it takes the next step in its journey to deliver valuable online data to organisations.Read more",
+                "relevance_score": 0.60546875
+              },
+              {
+                "link": "https://proxyway.com/news/luminati-rebrands-becomes-bright-data",
+                "title": "Luminati Rebrands, Becomes Bright Data",
+                "description": "Mar 17, 2021 — Israeli proxy provider Luminati Networks shall be called Luminati no more – the company has rebranded as Bright Data.Read more",
+                "relevance_score": 0.6015625
+              },
+              {
+                "link": "https://brightdata.com/about",
+                "title": "About Bright Data",
+                "description": "Bright Data is the world's #1 web data platform, supporting the public data needs of over 20,000 organizations in nearly every industry.Read more",
+                "relevance_score": 0.59375
+              },
+              {
+                "link": "https://traffic-creator.com/blog/bright-data-review-2026?srsltid=AfmBOoqqWlj_KMWAZJ0nM3qqJDnDAsaVY0KRDlW9iUfH6vVaGHqG4les",
+                "title": "Bright Data Review 2026: The Ultimate Proxy & AI ...",
+                "description": "Mar 25, 2026 — Oxylabs: Widely considered Bright Data's closest competitor. Oxylabs is slightly more competitively priced regarding enterprise residential ...Read more",
+                "relevance_score": 0.58984375
+              },
+              {
+                "link": "https://www.futuremarketinsights.com/reports/ai-driven-web-scraping-market",
+                "title": "AI-driven Web Scraping Market",
+                "description": "In 2025, Bright Data (formerly Luminati) strengthened its position as the leading AI-driven web scraping platform, reaching approximately $300 million ARR by ...Read more",
+                "relevance_score": 0.58203125
+              },
+              {
+                "link": "https://www.crunchbase.com/organization/brightdata",
+                "title": "Bright Data - Crunchbase Company Profile & Funding",
+                "description": "Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more",
+                "relevance_score": 0.578125
+              }
+            ],
+            "duration_seconds": 4
           },
           "homepage": {
             "url": "https://brightdata.com",
@@ -2177,17 +1972,17 @@
           },
           "linkedin": {
             "url": "https://linkedin.com/company/brightdata",
-            "text": "Skip to main content\nLinkedIn\nTop Content\nPeople\nLearning\nJobs\nGames\nGet the app\nSign in\nJoin now\nBrightData.ie\nIT Services and IT Consulting\nWe are an Irish company that work with our clients to help them extract value from their data and/or publish data online\nFollow\n\nDiscover all 2 employees\n\nAbout us\n\nImprove your business with data-driven decisions. Contact us for a free consultation.\n\nWebsite\nhttp://www.altitudeanalytics.com\nIndustry\nIT Services and IT Consulting\nCompany size\n2-10 employees\nHeadquarters\nCork\nType\nPrivately Held\nFounded\n2017\nSpecialties\nGeographical Information Systems, Data Analysis, Analytics, Data Visualisation, and Publication and Design\nLocations\nPrimary\n\nIGNITE Business Innovation Centre,\n\nWestern Gateway Building, Western Road\n\nCork, IE\n\nGet directions\nEmployees at BrightData.ie\nTravis Barbage\nSee all employees\nSimilar pages\nBright Data\n\nSoftware Development\n\nGreater Tel Aviv, Israel\n\nBrightData Insights\n\nPublic Relations and Communications Services\n\nHola\n\nEntertainment Providers\n\nNetanya, Netanya\n\nBrightData Solutions\n\nIT Services and IT Consulting\n\nShow more similar pages \nLinkedIn\n© 2026\nAbout\nAccessibility\nUser Agreement\nPrivacy Policy\nCookie Policy\nCopyright Policy\nBrand Policy\nGuest Controls\nCommunity Guidelines\nLanguage\nSign in to see who you already know at BrightData.ie\nSign in with Email\n\nor\n\nNew to LinkedIn? Join now\n\nBy clicking Continue to join or sign in, you agree to LinkedIn’s User Agreement, Privacy Policy, and Cookie Policy.",
+            "text": "Skip to main content\nLinkedIn\nTop Content\nPeople\nLearning\nJobs\nGames\nGet the app\nSign in Join now \nBrightData.ie\nIT Services and IT Consulting\nWe are an Irish company that work with our clients to help them extract value from their data and/or publish data online\nFollow\n\nDiscover all 2 employees\n\nReport this company\nAbout us\n\nImprove your business with data-driven decisions. Contact us for a free consultation.\n\nWebsite\nhttp://www.altitudeanalytics.com\n\nExternal link for BrightData.ie\n\nIndustry\nIT Services and IT Consulting\nCompany size\n2-10 employees\nHeadquarters\nCork\nType\nPrivately Held\nFounded\n2017\nSpecialties\nGeographical Information Systems, Data Analysis, Analytics, Data Visualisation, and Publication and Design\nLocations\nPrimary\n\nIGNITE Business Innovation Centre,\n\nWestern Gateway Building, Western Road\n\nCork, IE\n\nGet directions\nEmployees at BrightData.ie\nTravis Barbage\nSee all employees\nSimilar pages\nBright Data\n\nSoftware Development\n\nGreater Tel Aviv, Israel\n\nBrightData Insights\n\nPublic Relations and Communications Services\n\nHola\n\nEntertainment Providers\n\nNetanya, Netanya\n\nBrightData Solutions\n\nIT Services and IT Consulting\n\nBrightData System\n\nData Infrastructure and Analytics\n\nBright Insights\n\nSoftware Development\n\nNetanya, Center District\n\nRailvision\n\nIT Services and IT Consulting\n\nCastle Donington, Derbyshire\n\nNetNut.io\n\nInformation Technology & Services\n\nTel Aviv, Israel\n\nKEDAGO\n\nSoftware Development\n\nBerlin, Deutschland\n\nThe Bright Initiative by Bright Data\n\nNon-profit Organizations\n\nShow more similar pages Show fewer similar pages\nLinkedIn © 2026\nAbout\nAccessibility\nUser Agreement\nPrivacy Policy\nCookie Policy\nCopyright Policy\nBrand Policy\nGuest Controls\nCommunity Guidelines\nالعربية (Arabic)\nবাংলা (Bangla)\nČeština (Czech)\nDansk (Danish)\nDeutsch (German)\nΕλληνικά (Greek)\nEnglish (English)\nEspañol (Spanish)\nفارسی (Persian)\nSuomi (Finnish)\nFrançais (French)\nहिंदी (Hindi)\nMagyar (Hungarian)\nBahasa Indonesia (Indonesian)\nItaliano (Italian)\nעברית (Hebrew)\n日本語 (Japanese)\n한국어 (Korean)\nमराठी (Marathi)\nBahasa Malaysia (Malay)\nNederlands (Dutch)\nNorsk (Norwegian)\nਪੰਜਾਬੀ (Punjabi)\nPolski (Polish)\nPortuguês (Portuguese)\nRomână (Romanian)\nРусский (Russian)\nSvenska (Swedish)\nతెలుగు (Telugu)\nภาษาไทย (Thai)\nTagalog (Tagalog)\nTürkçe (Turkish)\nУкраїнська (Ukrainian)\nTiếng Việt (Vietnamese)\n简体中文 (Chinese (Simplified))\n正體中文 (Chinese (Traditional))\nLanguage\n\nAgree & Join LinkedIn\n\nBy clicking Continue to join or sign in, you agree to LinkedIn’s User Agreement, Privacy Policy, and Cookie Policy.\n\nLinkedIn\n\nLinkedIn is better on the app\n\nDon’t have the app? Get it in the Microsoft Store.\n\nOpen the app \nSign in to see who you already know at BrightData.ie\nEmail or phone\n\nPassword\n Show\n\nForgot password? Sign in\nSign in with Email\n\nor\n\nNew to LinkedIn? Join now\n\nBy clicking Continue to join or sign in, you agree to LinkedIn’s User Agreement, Privacy Policy, and Cookie Policy.",
             "status": 200
           },
           "crunchbase": {
             "url": "https://crunchbase.com/organization/brightdata",
-            "text": "We must verify your session before you can proceed\n\nNeed help? Contact our support team.\n\nRay ID: a01f169c5d01da19\n",
+            "text": "We must verify your session before you can proceed\n\nNeed help? Contact our support team.\n\nRay ID: a024f120f9ae2739\n",
             "status": 200
           },
           "assistant": {
             "question": "Tell me what Bright Data products would best be used to research the company at brightdata.com, and what data sources you would recommend for competitive intelligence on them.",
-            "answer": "Tool 'ask_brightdata_assistant' execution failed: Bright Data assistant timed out after 30s; retry with dialog_id=6a15f064e3fc5109e932509e to fetch the reply later"
+            "answer": "Tool 'ask_brightdata_assistant' execution failed: Bright Data assistant timed out after 30s; retry with dialog_id=6a16e0323b39bb60908a1c63 to fetch the reply later"
           },
           "batchSearch": {
             "queries": [
@@ -2198,13 +1993,13 @@
             "results": [
               {
                 "query": "brightdata company overview news 2026",
-                "data": "[\n  {\n    \"query\": \"brightdata company overview news 2026\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://brightdata.com/blog/why-brightdata/web-data-collection-2025\",\n          \"title\": \"Web Data Collection in 2026 – Everything you need to know\",\n          \"description\": \"Find out how web data is being collected in 2026, which tools are used and why businesses prefer Bright Data's automated solutions.\"\n        },\n        {\n          \"link\": \"https://brightdata.com/\",\n          \"title\": \"Bright Data - All in One Platform for Proxies and Web Scraping\",\n          \"description\": \"Award winning proxy networks, powerful web scrapers, and ready-to-use datasets for download. Welcome to the world's #1 web data platform.\"\n        },\n        {\n          \"link\": \"https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe\",\n          \"title\": \"Bright Data crosses $300 million ARR, eyes $400M by ...\",\n          \"description\": \"23 Nov 2025 — Bright Data crosses $300 million ARR, eyes $400M by 2026 as demand for live web data grows · CEO Or Lenchner says real-time, high-quality web ...Read more\"\n        },\n        {\n          \"link\": \"https://www.zoominfo.com/c/bright-data/430599389\",\n          \"title\": \"Bright Data - Overview, News & Similar companies\",\n          \"description\": \"Bright Data has been announced as a sponsor for the ODSC AI East 2026 conference. The event will occur from April 28th to April 30th, 2026 in Boston, MA.Read more\"\n        },\n        {\n          \"link\": \"https://brightdata.com/blog/web-data/best-market-research-data-providers\",\n          \"title\": \"Best Market Research Data Providers: Top 6 Solutions 2026\",\n          \"description\": \"8 days ago — Explore the leading market research data providers and discover how to choose the right solution for collecting, analyzing, and leveraging ...Read more\"\n        },\n        {\n          \"link\": \"https://www.crunchbase.com/organization/brightdata\",\n          \"title\": \"Bright Data - Crunchbase Company Profile & Funding\",\n          \"description\": \"Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more\"\n        },\n        {\n          \"link\": \"https://www.bigdataldn.com/en-gb/exhibitor-list/exhibitor-details.bright%20data.org-0b080250-c558-4357-a6bb-b20e64a4afcc.html\",\n          \"title\": \"Bright Data - Exhibitor Details\",\n          \"description\": \"Bright Data is the world's leading web data infrastructure for AI and BI, serving 20,000+ customers with real-time public web data for AI agents, models, ...Read more\"\n        },\n        {\n          \"link\": \"https://www.firecrawl.dev/blog/bright-data-alternatives\",\n          \"title\": \"4 Best Bright Data Alternatives for Web Scraping and ...\",\n          \"description\": \"27 Apr 2026 — Comparing the top Bright Data alternatives for web scraping and SERP APIs in 2026: real pricing, feature breakdowns, and community-sourced ...\"\n        },\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/118151-83\",\n          \"title\": \"Bright Data 2026 Company Profile\",\n          \"description\": \"Developer of a web data platform designed to retrieve crucial public web data in the most efficient, reliable, and flexible way.Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"brightdata competitors alternatives\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://scrapegraphai.com/blog/brightdata-alternatives\",\n          \"title\": \"7 Best Bright Data Alternatives for Web Scraping in 2026\",\n          \"description\": \"\"\n        },\n        {\n          \"link\": \"https://scrape.do/blog/bright-data-alternatives/\",\n          \"title\": \"Top 5 Bright Data Alternatives to Use in 2026\",\n          \"description\": \"7 Oct 2025 — Top 5 Bright Data Alternatives to Use in 2026 · 1. Oxylabs · 2. Decodo · 3. IPRoyal; Web Scraping API Alternatives for Bright Data · 4. Scrape.do · 5 ...Read more\"\n        },\n        {\n          \"link\": \"https://oxylabs.io/products/brightdata-alternative\",\n          \"title\": \"Premium Bright Data Alternative\",\n          \"description\": \"Looking for an alternative to Bright Data? Recognized by Proxyway, Oxylabs stands out as an award-winning service and a trusted business partner.Read more\"\n        },\n        {\n          \"link\": \"https://brightdata.com/blog/web-data/proxycurl-alternatives\",\n          \"title\": \"Top 3 Compliant Proxycurl Alternatives for LinkedIn\",\n          \"description\": \"Proxycurl was shut down for illegal scraping. Discover the top 3 compliant alternatives for LinkedIn data and learn how to choose a legal, ethical provider.\"\n        },\n        {\n          \"link\": \"https://www.reddit.com/r/webscraping/comments/pmzrjv/alternative_to_brightdata/\",\n          \"title\": \"Alternative to Brightdata? : r/webscraping\",\n          \"description\": \"I have an application that does a lot of real time web scraping on websites that do eventually block IPs (ex. Bing). I've been using Brightdata because ...\"\n        },\n        {\n          \"link\": \"https://www.scraperapi.com/scraperapi-the-best-alternative-to-bright-data-luminati/\",\n          \"title\": \"Best Alternative to Bright Data (Formerly Luminati)\",\n          \"description\": \"Looking for a Bright Data (formerly Luminati) alternative? Learn why ScraperAPI is the best option out there.\"\n        },\n        {\n          \"link\": \"https://crustdata.com/blog/brightdata-alternatives\",\n          \"title\": \"8 Bright Data Alternatives To Consider [2026 Comparison]\",\n          \"description\": \"28 Jan 2026 — Coresignal alternative · PeopleDataLabs alternative · MixRank alternative · Proxycurl alternative · Clay alternative · Clado alternative.Read more\"\n        },\n        {\n          \"link\": \"https://medium.com/@darshankhandelwal12/5-bright-data-alternatives-for-web-scraping-eab92d27b0e3\",\n          \"title\": \"5 Bright Data Alternatives for Web Scraping\",\n          \"description\": \"ScraperAPI can be a great brightdata alternative if you're looking for an all-in-one web scraping tool. They offer a vast network of over 90 ...Read more\"\n        },\n        {\n          \"link\": \"https://www.youtube.com/watch?v=KjrL6JQvoYU\",\n          \"title\": \"Top Bright Data Alternatives - Proxy Pools And Data ...\",\n          \"description\": \"If Bright Data services aren't the right fit, consider other alternatives. In this video, we compare and suggest other options for Bright ...\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"brightdata funding investors valuation\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/118151-83\",\n          \"title\": \"Bright Data 2026 Company Profile\",\n          \"description\": \"Information on valuation, funding, acquisitions, investors, and executives for Bright Data. Use the PitchBook Platform to explore the full profile.\"\n        },\n        {\n          \"link\": \"https://en.wikipedia.org/wiki/Bright_Data\",\n          \"title\": \"Bright Data\",\n          \"description\": \"... investment fund from London, at a value of approximately 200 million dollars. In March 2021, Luminati Networks was renamed to Bright Data.\"\n        },\n        {\n          \"link\": \"https://www.crunchbase.com/organization/brightdata\",\n          \"title\": \"Bright Data - Crunchbase Company Profile & Funding\",\n          \"description\": \"Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.\"\n        },\n        {\n          \"link\": \"https://brightdata.com/bright-ventures\",\n          \"title\": \"bright-ventures\",\n          \"description\": \"At Bright Ventures, our value to founders and co-investors extends beyond finances, rooted in our strategic position at the heart of the data for AI industry.\"\n        },\n        {\n          \"link\": \"https://www.calcalistech.com/ctech/articles/0,7340,L-3924814,00.html\",\n          \"title\": \"Bright Data CEO: “We have crossed $100 million in annual ...\",\n          \"description\": \"Dec 12, 2021 — ... valued at $7.25 billion in a funding round earlier this year. “Five years ago the reaction to becoming a unicorn was 'wow'. But now almost ...\"\n        },\n        {\n          \"link\": \"https://getlatka.com/companies/brdta.com\",\n          \"title\": \"Bright Data Revenue 2025: $300M ARR, $383.1M Valuation\",\n          \"description\": \"Dec 12, 2025 — Bright Data's most recent disclosed valuation is $383.1M. Bright Data is a bootstrapped Database as a Service (DBaaS) Provider startup that has ...\"\n        },\n        {\n          \"link\": \"https://tracxn.com/d/companies/bright-data/__FwsiQppLF0M0L3P8vsc1yL61jPTc_upDg_1vjwaBo1g\",\n          \"title\": \"Bright Data - 2026 Company Profile, Team, Funding & ...\",\n          \"description\": \"4 days ago — Explore Bright Data's in-depth company profile, including funding details, key investors, leadership, competitors, and acquisitions.\"\n        },\n        {\n          \"link\": \"https://arr.club/bright-data/bright-data-arr-hit-300m\",\n          \"title\": \"Bright Data ARR Hit $300M\",\n          \"description\": \"Nov 25, 2025 — The company is growing at more than 50% year-over-year, with its CEO Or Lenchner projecting ARR could reach $400 million by mid-2026. Bright ...\"\n        },\n        {\n          \"link\": \"https://brightdata.com/about\",\n          \"title\": \"About Bright Data\",\n          \"description\": \"Bright Data is the world's #1 web data platform, supporting the public data needs of over 20,000 organizations in nearly every industry.\"\n        },\n        {\n          \"link\": \"https://www.cbinsights.com/company/luminati/financials\",\n          \"title\": \"Bright Data Stock Price, Funding, Valuation, Revenue ...\",\n          \"description\": \"Bright Data's latest funding round was a Incubator/Accelerator for on June 7, 2023. Bright Data's valuation in August 2017 was $200M. Date. Round.\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  }\n]"
+                "data": "[\n  {\n    \"query\": \"brightdata company overview news 2026\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://brightdata.com/blog/why-brightdata/web-data-collection-2025\",\n          \"title\": \"Web Data Collection in 2026 – Everything you need to know\",\n          \"description\": \"Find out how web data is being collected in 2026, which tools are used and why businesses prefer Bright Data's automated solutions.\"\n        },\n        {\n          \"link\": \"https://www.zoominfo.com/c/bright-data/430599389\",\n          \"title\": \"Bright Data - Overview, News & Similar companies\",\n          \"description\": \"Bright Data has been announced as a sponsor for the ODSC AI East 2026 conference. The event will occur from April 28th to April 30th, 2026 in Boston, MA.Read more\"\n        },\n        {\n          \"link\": \"https://www.calcalistech.com/ctechnews/article/sjeyg2ezwe\",\n          \"title\": \"Bright Data crosses $300 million ARR, eyes $400M by ...\",\n          \"description\": \"23 Nov 2025 — Bright Data crosses $300 million ARR, eyes $400M by 2026 as demand for live web data grows · CEO Or Lenchner says real-time, high-quality web ...Read more\"\n        },\n        {\n          \"link\": \"https://docs.brightdata.com/release-notes\",\n          \"title\": \"Release Notes - Bright Data Docs\",\n          \"description\": \"Stay up to date with Bright Data product updates from 2024-2026. Scroll down to explore release notes from previous weeks across all proxy and API products.\"\n        },\n        {\n          \"link\": \"https://www.crunchbase.com/organization/brightdata\",\n          \"title\": \"Bright Data - Crunchbase Company Profile & Funding\",\n          \"description\": \"Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.Read more\"\n        },\n        {\n          \"link\": \"https://tracxn.com/d/companies/brightdata/__FwsiQppLF0M0L3P8vsc1yL61jPTc_upDg_1vjwaBo1g\",\n          \"title\": \"Bright Data - 2026 Company Profile & Team\",\n          \"description\": \"5 days ago — Explore Bright Data's in-depth company profile, including funding details, key investors, leadership, competitors, and acquisitions.\"\n        },\n        {\n          \"link\": \"https://brightdata.com/blog/web-data/best-alternative-data-providers\",\n          \"title\": \"Best Alternative Data Providers 2026: Full Comparison Guide\",\n          \"description\": \"Bright Data began as a proxy provider and has since evolved into a leading web data platform. Today, it offers pre-collected datasets, scalable web scraping ...Read more\"\n        },\n        {\n          \"link\": \"https://en.wikipedia.org/wiki/Bright_Data\",\n          \"title\": \"Bright Data\",\n          \"description\": \"Bright Data (formerly Luminati Networks) is a global technology company that offers web data collection and proxy services.Read more\"\n        },\n        {\n          \"link\": \"https://finance.yahoo.com/news/bright-data-powers-llms-ai-131500112.html\",\n          \"title\": \"Bright Data Powers LLMs and AI Agents with Real-Time ...\",\n          \"description\": \"2 Jul 2025 — Bright Data, the world's #1 web data infrastructure company for AI & BI, today announced the launch of a powerful set of AI-powered web ...\"\n        },\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/118151-83\",\n          \"title\": \"Bright Data 2026 Company Profile\",\n          \"description\": \"Developer of a web data platform designed to retrieve crucial public web data in the most efficient, reliable, and flexible way.Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"brightdata competitors alternatives\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://scrapegraphai.com/blog/brightdata-alternatives\",\n          \"title\": \"7 Best Bright Data Alternatives for Web Scraping in 2026\",\n          \"description\": \"May 7, 2026 — Tired of Bright Data pricing and complexity? Compare the 7 best Bright Data alternatives for 2026 with real costs, performance data, ...\"\n        },\n        {\n          \"link\": \"https://oxylabs.io/products/brightdata-alternative\",\n          \"title\": \"Premium Bright Data Alternative\",\n          \"description\": \"Looking for an alternative to Bright Data? Recognized by Proxyway, Oxylabs stands out as an award-winning service and a trusted business partner.Read more\"\n        },\n        {\n          \"link\": \"https://www.reddit.com/r/selfhosted/comments/pmzt5p/alternative_to_brightdata_web_scraping/\",\n          \"title\": \"Alternative to Brightdata? (Web Scraping) : r/selfhosted\",\n          \"description\": \"Alternatives to Brightdata for web scraping. Best self-hosted alternatives to Google Drive. How to set up a personal cloud with Nextcloud. Best ...Read more\"\n        },\n        {\n          \"link\": \"https://www.g2.com/products/bright-data/competitors/alternatives\",\n          \"title\": \"Top 10 Bright Data Alternatives & Competitors in 2026\",\n          \"description\": \"The best Bright Data alternatives are Decodo (formerly Smartproxy), Oxylabs, and Apify. Find top-ranking free & paid apps similar to Bright Data for your ...\"\n        },\n        {\n          \"link\": \"https://crustdata.com/blog/brightdata-alternatives\",\n          \"title\": \"8 Bright Data Alternatives To Consider [2026 Comparison]\",\n          \"description\": \"Jan 28, 2026 — Coresignal alternative · PeopleDataLabs alternative · MixRank alternative · Proxycurl alternative · Clay alternative · Clado alternative.Read more\"\n        },\n        {\n          \"link\": \"https://brightdata.com/blog/web-data/proxycurl-alternatives\",\n          \"title\": \"Top 3 Compliant Proxycurl Alternatives for LinkedIn\",\n          \"description\": \"Specifically, Bright Data's LinkedIn Scraper stands out as the leading Proxycurl alternative. It offers similar data access but with more functionality. Also, ...Read more\"\n        },\n        {\n          \"link\": \"https://www.scraperapi.com/scraperapi-the-best-alternative-to-bright-data-luminati/\",\n          \"title\": \"Best Alternative to Bright Data (Formerly Luminati)\",\n          \"description\": \"Looking for a Bright Data (formerly Luminati) alternative? Learn why ScraperAPI is the best option out there.\"\n        },\n        {\n          \"link\": \"https://medium.com/@darshankhandelwal12/5-bright-data-alternatives-for-web-scraping-eab92d27b0e3\",\n          \"title\": \"5 Bright Data Alternatives for Web Scraping\",\n          \"description\": \"ScraperAPI can be a great brightdata alternative if you're looking for an all-in-one web scraping tool. They offer a vast network of over 90 ...Read more\"\n        },\n        {\n          \"link\": \"https://scrape.do/blog/bright-data-alternatives/\",\n          \"title\": \"Top 5 Bright Data Alternatives to Use in 2026\",\n          \"description\": \"Oct 7, 2025 — Top 5 Bright Data Alternatives to Use in 2026 · 1. Oxylabs · 2. Decodo · 3. IPRoyal; Web Scraping API Alternatives for Bright Data · 4. Scrape.do · 5 ...Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"brightdata funding investors valuation\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/118151-83\",\n          \"title\": \"Bright Data 2026 Company Profile\",\n          \"description\": \"Information on valuation, funding, acquisitions, investors, and executives for Bright Data. Use the PitchBook Platform to explore the full profile.\"\n        },\n        {\n          \"link\": \"https://en.wikipedia.org/wiki/Bright_Data\",\n          \"title\": \"Bright Data\",\n          \"description\": \"... investment fund from London, at a value of approximately 200 million dollars. In March 2021, Luminati Networks was renamed to Bright Data.\"\n        },\n        {\n          \"link\": \"https://brightdata.com/bright-ventures\",\n          \"title\": \"bright-ventures\",\n          \"description\": \"At Bright Ventures, our value to founders and co-investors extends beyond finances, rooted in our strategic position at the heart of the data for AI industry.\"\n        },\n        {\n          \"link\": \"https://www.calcalistech.com/ctech/articles/0,7340,L-3924814,00.html\",\n          \"title\": \"Bright Data CEO: “We have crossed $100 million in annual ...\",\n          \"description\": \"Dec 12, 2021 — ... valued at $7.25 billion in a funding round earlier this year. “Five years ago the reaction to becoming a unicorn was 'wow'. But now almost ...\"\n        },\n        {\n          \"link\": \"https://www.crunchbase.com/organization/brightdata\",\n          \"title\": \"Bright Data - Crunchbase Company Profile & Funding\",\n          \"description\": \"Bright Data is a data collection platform that helps businesses gather publicly available web data in an ethical manner.\"\n        },\n        {\n          \"link\": \"https://brightdata.com/products/data-feeds/company-data-api\",\n          \"title\": \"Company Data API - Filter Billions of Records\",\n          \"description\": \"Track funding rounds, investors, and valuations; Search by technology stack and software adoption; Monitor employee growth and hiring trends; Identify ...\"\n        },\n        {\n          \"link\": \"https://getlatka.com/companies/brdta.com\",\n          \"title\": \"Bright Data Revenue 2025: $300M ARR, $383.1M Valuation\",\n          \"description\": \"Dec 12, 2025 — Bright Data's most recent disclosed valuation is $383.1M. Bright Data is a bootstrapped Database as a Service (DBaaS) Provider startup that has ...\"\n        },\n        {\n          \"link\": \"https://www.forbes.com/sites/josipamajic/2025/11/20/inside-the-209-billion-battle-powering-ais-web-data-infrastructure-future/\",\n          \"title\": \"Inside The $209 Billion Battle Powering AI's Web Data ...\",\n          \"description\": \"Nov 20, 2025 — Bright Data: Privately held, no disclosed institutional funding ... investors and operators. Milestones such as Bright Data's $300 million ...\"\n        },\n        {\n          \"link\": \"https://www.linkedin.com/posts/arshgoyal_data-ai-tools-activity-7358110237490335745-M1Qm\",\n          \"title\": \"How to find companies with funding using Deep Lookup\",\n          \"description\": \"Finding recently funded companies is crucial for winning in lead generation. Complementary tools alongside Deep Lookup can provide a ...\"\n        },\n        {\n          \"link\": \"https://n8n.io/workflows/5978-monitor-competitor-financial-performance-with-bright-data-mcp-openai-and-google-sheets/\",\n          \"title\": \"Monitor competitor financial performance with Bright Data ...\",\n          \"description\": \"Using Bright Data, the automation scrapes Crunchbase, press releases, and SEC Edgar filings. OpenAI extracts key figures (revenue, funding amount, valuation) ...\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  }\n]"
               }
             ],
             "count": 1
           }
         },
-        "elapsed": 35.02,
+        "elapsed": 35.58,
         "cost": 2.2,
         "costBreakdown": {
           "webUnlocker": 0.3,
@@ -2217,14 +2012,12 @@
           "datasetsApi": 0
         },
         "bdHealth": {
-          "ok": 11,
-          "failed": 1,
-          "errors": [
-            "bd-discover: BD Discover API timeout after 15s (task_id=ec91ce62-f70f-4f11-b413-8b89cc072577)"
-          ]
+          "ok": 12,
+          "failed": 0,
+          "errors": []
         }
       },
-      "ts": 90197
+      "ts": 181148
     }
   ]
 }

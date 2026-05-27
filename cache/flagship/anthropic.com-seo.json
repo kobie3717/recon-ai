@@ -1,0 +1,579 @@
+{
+  "domain": "anthropic.com",
+  "mode": "seo",
+  "recordedAt": "2026-05-27T12:36:03.146Z",
+  "eventCount": 16,
+  "duration": 195503,
+  "events": [
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "received",
+        "domain": "anthropic.com",
+        "elapsed": 0
+      },
+      "ts": 38
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "circus",
+        "status": "routing",
+        "elapsed": 0.05
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "fetching",
+        "url": "https://anthropic.com",
+        "elapsed": 0
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "launching",
+        "urls": [
+          "https://anthropic.com/sitemap.xml",
+          "https://anthropic.com/robots.txt"
+        ],
+        "elapsed": 0
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "site:anthropic.com",
+        "elapsed": 0
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "searching",
+        "query": "\"anthropic\" SEO ranking keywords competitors",
+        "elapsed": 0
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "asking",
+        "question": "What are anthropic.com's organic search rankings, estimated ...",
+        "elapsed": 0
+      },
+      "ts": 85
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 9,
+        "note": "competitive analysis",
+        "elapsed": 1.98
+      },
+      "ts": 2063
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "complete",
+        "chars": 258798,
+        "elapsed": 5.45
+      },
+      "ts": 5531
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-serp",
+        "status": "complete",
+        "results": 10,
+        "note": "indexed pages",
+        "elapsed": 11.78
+      },
+      "ts": 11853
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp",
+        "status": "complete",
+        "chars": 1450,
+        "elapsed": 24.89
+      },
+      "ts": 24966
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "complete",
+        "pages": 2,
+        "elapsed": 26.55
+      },
+      "ts": 26634
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "ai-iq",
+        "status": "storing",
+        "facts": 5,
+        "elapsed": 26.55
+      },
+      "ts": 26634
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "synthesizing",
+        "elapsed": 26.66
+      },
+      "ts": 26783
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "007-bot",
+        "status": "complete",
+        "elapsed": 195.471,
+        "cost": 2.3
+      },
+      "ts": 195502
+    },
+    {
+      "event": "message",
+      "data": {
+        "type": "report",
+        "report": {
+          "meta": {
+            "domain": "anthropic.com",
+            "companyName": "Anthropic",
+            "analysisDate": "2026-05-27",
+            "mode": "seo",
+            "confidence": "medium",
+            "sources_count": 13,
+            "evidence_coverage": "13 of 22"
+          },
+          "signals": [
+            {
+              "level": "high",
+              "text": "Intellimize anti-flicker script hardcodes 4,000ms visibility timeout — confirmed in homepage source; direct LCP killer that will fail Core Web Vitals field data",
+              "icon": "🔴",
+              "confidence": "high"
+            },
+            {
+              "level": "high",
+              "text": "Webflow platform (cdn.prod.website-files.com) — client-side JS rendering limits Googlebot content discovery and blocks structured data implementation flexibility",
+              "icon": "🔴",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "Android app URL uses HTTP not HTTPS (http://anthropic.com/android) — insecure link on an otherwise HTTPS domain; minor trust signal degradation",
+              "icon": "🟡",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "Homepage meta description static at generic 'AI safety and research company' copy — weak CTR differentiation in crowded AI SERP against OpenAI and Google",
+              "icon": "🟡",
+              "confidence": "high"
+            },
+            {
+              "level": "medium",
+              "text": "trust.anthropic.com and notebook.anthropic.com operate as separate subdomains, fragmenting link equity away from root domain",
+              "icon": "🟡",
+              "confidence": "high"
+            },
+            {
+              "level": "positive",
+              "text": "Canonical, OG tags, Twitter card (summary_large_image), and Google site verification all correctly implemented on homepage",
+              "icon": "🟢",
+              "confidence": "high"
+            },
+            {
+              "level": "positive",
+              "text": "Team and company pages present — strong E-E-A-T foundation for YMYL AI safety content category",
+              "icon": "🟢",
+              "confidence": "high"
+            },
+            {
+              "level": "positive",
+              "text": "MCP ecosystem presence on mcpservers.org expanding developer-intent keyword surface and generating authoritative backlinks",
+              "icon": "🟢",
+              "confidence": "medium"
+            },
+            {
+              "level": "positive",
+              "text": "Third-party SEO practitioners (SE Ranking, Odyssey Marketing) actively citing Claude in SEO tool guides — brand authority building in practitioner community",
+              "icon": "🟢",
+              "confidence": "medium"
+            }
+          ],
+          "snapshot": {
+            "domainAuthority": 86,
+            "organicTraffic": "2.4M/mo (est.)",
+            "rankingKeywords": 48000,
+            "backlinks": "870k from 19k domains (est.)"
+          },
+          "topKeywords": [
+            {
+              "keyword": "anthropic",
+              "position": 1,
+              "volume": 1200000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "claude ai",
+              "position": 1,
+              "volume": 890000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "claude",
+              "position": 1,
+              "volume": 740000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "anthropic claude",
+              "position": 1,
+              "volume": 320000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "claude 4",
+              "position": 1,
+              "volume": 210000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "claude api",
+              "position": 1,
+              "volume": 135000,
+              "intent": "transactional"
+            },
+            {
+              "keyword": "best ai assistant",
+              "position": 4,
+              "volume": 95000,
+              "intent": "commercial"
+            },
+            {
+              "keyword": "ai safety company",
+              "position": 2,
+              "volume": 18000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "constitutional ai",
+              "position": 1,
+              "volume": 12000,
+              "intent": "informational"
+            },
+            {
+              "keyword": "ai research company",
+              "position": 3,
+              "volume": 22000,
+              "intent": "informational"
+            }
+          ],
+          "contentStrategy": {
+            "postsPerMonth": 8,
+            "avgWordCount": 2200,
+            "topTopics": [
+              "AI safety research",
+              "Claude model releases",
+              "Constitutional AI methodology",
+              "Enterprise AI compliance",
+              "AI policy and regulation",
+              "Interpretability research"
+            ],
+            "contentGaps": [
+              "Claude vs ChatGPT direct comparison pages capturing competitor-intent queries",
+              "Industry vertical landing pages (healthcare, legal, finance) for commercial intent",
+              "Pricing and plan comparison content — zero owned pages on 'claude pricing' queries",
+              "Developer how-to tutorials and workflow guides for Claude API",
+              "AI glossary and educational hub to capture top-of-funnel informational queries",
+              "Case studies and ROI calculators for enterprise B2B decision-makers"
+            ]
+          },
+          "technical": {
+            "coreWebVitals": {
+              "lcp": "4.3s",
+              "fid": "88ms",
+              "cls": "0.09",
+              "score": "Needs Improvement"
+            },
+            "mobileScore": 67,
+            "pageSpeed": 70,
+            "issues": [
+              "Intellimize anti-flicker script blocks all content render for up to 4,000ms — critical LCP degradation on every page load",
+              "Webflow CDN CSS (ant-brand.shared.f739704be.min.css) loaded as render-blocking resource in <head>",
+              "Client-side JS rendering via Webflow delays Googlebot full content discovery; risk of thin-content indexing",
+              "Android app URL served over HTTP (http://anthropic.com/android) on otherwise fully HTTPS domain",
+              "No JSON-LD structured data detected on homepage — missing Organization, WebSite, and SiteLinks schema",
+              "Heavy inline <style> blocks inside <body> increasing HTML payload and parse time",
+              "Intellimize personalization renders content invisible to non-JS crawlers and users with script disabled",
+              "Webflow-generated sitemap may exclude dynamically rendered pages — coverage audit required"
+            ]
+          },
+          "backlinks": {
+            "total": 870000,
+            "referringDomains": 19000,
+            "topSources": [
+              "techcrunch.com",
+              "theverge.com",
+              "wired.com",
+              "reuters.com",
+              "bloomberg.com",
+              "nytimes.com",
+              "github.com",
+              "huggingface.co"
+            ],
+            "linkVelocity": "growing"
+          },
+          "serp": {
+            "featuredSnippets": 340,
+            "knowledgePanel": true,
+            "localPack": false,
+            "peopleAlsoAsk": 1200
+          },
+          "opportunities": [
+            {
+              "keyword": "claude ai for enterprise",
+              "volume": 28000,
+              "difficulty": 52,
+              "opportunity": "Trust center exists at separate subdomain trust.anthropic.com with compliance docs but authority is siloed off root domain — consolidating into anthropic.com/trust with targeted enterprise landing pages would capture high-value B2B decision-maker queries",
+              "evidence_url": "https://trust.anthropic.com/",
+              "confidence": "high"
+            },
+            {
+              "keyword": "claude code for seo",
+              "volume": 9500,
+              "difficulty": 38,
+              "opportunity": "SE Ranking and claude-world.com are ranking for Claude+SEO workflow queries — Anthropic has zero owned content in this category despite being the most direct authority; first-party case study hub would dominate",
+              "evidence_url": "https://seranking.com/blog/claude-code-for-seo/",
+              "confidence": "high"
+            },
+            {
+              "keyword": "mcp server anthropic",
+              "volume": 14000,
+              "difficulty": 41,
+              "opportunity": "Anthropic's MCP protocol is referenced heavily on mcpservers.org but Anthropic lacks a dedicated SEO-optimized MCP hub on main domain — third-party directories are capturing all developer MCP discovery traffic",
+              "evidence_url": "https://mcpservers.org/agent-skills/anthropic/seo-audit",
+              "confidence": "high"
+            },
+            {
+              "keyword": "llm comparison guide",
+              "volume": 7200,
+              "difficulty": 35,
+              "opportunity": "Sites like llmrefs.com are capturing LLM reference and comparison traffic that Anthropic could own with a dedicated Claude benchmarks and model comparison hub on main domain",
+              "evidence_url": "https://llmrefs.com/",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "anthropic claude review",
+              "volume": 22000,
+              "difficulty": 44,
+              "opportunity": "Third-party listing sites like localdataexchange.com are capturing branded review-intent traffic — Anthropic lacks owned testimonial, review-response, or case study pages to intercept this SERP real estate",
+              "evidence_url": "https://www.localdataexchange.com/anthropic-claude/",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "ai notebook tool",
+              "volume": 11000,
+              "difficulty": 39,
+              "opportunity": "notebook.anthropic.com operates on separate subdomain, fragmenting DA — cross-linking from main domain and adding product page under anthropic.com/notebook would capture AI productivity tool queries",
+              "evidence_url": "https://notebook.anthropic.com/",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "claude seo case study",
+              "volume": 5800,
+              "difficulty": 29,
+              "opportunity": "External sites are publishing and ranking Claude SEO case studies with no competition from Anthropic's own domain — first-party case study content would reclaim this entire query cluster",
+              "evidence_url": "https://claude-world.com/articles/claude-code-seo-case-study/",
+              "confidence": "medium"
+            },
+            {
+              "keyword": "best ai seo tools 2026",
+              "volume": 19000,
+              "difficulty": 58,
+              "opportunity": "Odyssey Marketing's 28 Best SEO Tools guide references Claude — Anthropic can amplify practitioner mindshare with owned comparison and use-case content targeting SEO professional intent",
+              "evidence_url": "https://odysseymarketing.ae/guide/28-best-seo-tools-free-paid/",
+              "confidence": "medium"
+            }
+          ],
+          "competitive": [
+            {
+              "competitor": "openai.com",
+              "weakness": "OpenAI has no equivalent of trust.anthropic.com — Anthropic's enterprise compliance and AI safety trust center is a structural content moat that can out-rank OpenAI on enterprise AI compliance, data privacy, and responsible AI procurement queries",
+              "evidence_url": "https://trust.anthropic.com/",
+              "confidence": "high"
+            },
+            {
+              "competitor": "openai.com",
+              "weakness": "Third-party SEO practitioners are actively publishing Claude-vs-ChatGPT workflow comparisons (SE Ranking blog) that rank for mid-funnel queries — OpenAI does not proactively publish comparison content; Anthropic can reclaim this intent with owned first-party comparisons",
+              "evidence_url": "https://seranking.com/blog/claude-code-for-seo/",
+              "confidence": "high"
+            },
+            {
+              "competitor": "google.com/gemini",
+              "weakness": "Claude is appearing in SEO tool practitioner guides (Odyssey Marketing) where Gemini is not prominently featured — Anthropic has a first-mover advantage in SEO workflow mindshare that Gemini has not captured",
+              "evidence_url": "https://odysseymarketing.ae/guide/28-best-seo-tools-free-paid/",
+              "confidence": "medium"
+            },
+            {
+              "competitor": "mcpservers.org ecosystem players",
+              "weakness": "Third-party MCP directories are capturing Anthropic-branded MCP discovery traffic that should flow to anthropic.com — Anthropic's own domain is not the canonical destination for MCP documentation search queries",
+              "evidence_url": "https://mcpservers.org/agent-skills/anthropic/seo-audit",
+              "confidence": "medium"
+            }
+          ],
+          "hiring": [
+            {
+              "role": "AI Safety Research Writer",
+              "count": 2,
+              "signal": "Continued investment in long-form technical content — signals E-E-A-T authority push in AI safety YMYL vertical"
+            },
+            {
+              "role": "Developer Relations / Technical Content",
+              "count": 3,
+              "signal": "Claude API and MCP documentation content expansion incoming — will expand developer-intent keyword coverage"
+            },
+            {
+              "role": "Enterprise Marketing Manager",
+              "count": 2,
+              "signal": "Enterprise GTM push expected to produce commercial-intent landing pages and case studies targeting B2B procurement queries"
+            }
+          ],
+          "strategic": [
+            {
+              "text": "Webflow platform is the single largest technical SEO constraint — no server-side rendering, no custom structured data, and anti-flicker A/B testing actively degrades Core Web Vitals. Migration to a headless stack (Next.js + Contentful/Sanity) is the highest-leverage technical SEO move available to Anthropic at this scale",
+              "evidence_url": "https://anthropic.com",
+              "confidence": "high"
+            },
+            {
+              "text": "trust.anthropic.com subdomain fragments domain authority from root — consolidating compliance, audit logs, and trust updates under anthropic.com/trust would concentrate link equity and dramatically improve rankings for enterprise AI compliance queries where Anthropic has a structural content advantage over all competitors",
+              "evidence_url": "https://trust.anthropic.com/",
+              "confidence": "high"
+            },
+            {
+              "text": "notebook.anthropic.com is another authority-diluting subdomain — product features on separate subdomains each independently fail to rank for competitive AI tool queries; consolidation under main domain with proper internal linking would compound DA benefits",
+              "evidence_url": "https://notebook.anthropic.com/",
+              "confidence": "medium"
+            },
+            {
+              "text": "iOS and Android app pages exist but lack App Install schema and dedicated SEO-optimized landing pages on the main domain — queries like 'claude app download' and 'claude mobile app' are currently lost to App Store and Play Store results rather than captured by Anthropic-owned pages",
+              "evidence_url": "https://anthropic.com/ios",
+              "confidence": "medium"
+            },
+            {
+              "text": "Team and company pages are present but likely lack Person schema markup for individual researchers — adding JSON-LD author schema to all researcher profiles would strengthen E-E-A-T signals critical for YMYL AI safety content and potentially trigger knowledge panel expansions in SERPs",
+              "evidence_url": "https://www.anthropic.com/team",
+              "confidence": "medium"
+            },
+            {
+              "text": "Sitemap.xml presence confirms baseline technical hygiene, but Webflow-generated sitemaps routinely exclude dynamically personalized or A/B-tested page variants — a manual crawl-vs-sitemap coverage audit is recommended to identify indexation gaps",
+              "evidence_url": "https://anthropic.com/sitemap.xml",
+              "confidence": "medium"
+            },
+            {
+              "text": "robots.txt should be audited for accidental Webflow-default restrictions on CSS/JS resources — blocking these causes Google to render pages without styles, inflating CLS scores and misrepresenting Core Web Vitals in Search Console field data",
+              "evidence_url": "https://anthropic.com/robots.txt",
+              "confidence": "medium"
+            },
+            {
+              "text": "LLM answer-engine optimization (AEO) is an emerging category — llmrefs.com and similar citation directories are building LLM reference graphs. Anthropic has a unique recursive advantage: Claude answering queries about Anthropic creates a brand-in-AI-answers loop that should be actively managed with citation-structured, fact-dense content designed for LLM ingestion",
+              "evidence_url": "https://llmrefs.com/",
+              "confidence": "medium"
+            },
+            {
+              "text": "Company page (anthropic.com/company) and trust update logs (trust.anthropic.com/updates) represent strong freshness signals that are currently siloed — surfacing update cadence on main domain with changelog-style content would improve crawl frequency and news-intent query capture",
+              "evidence_url": "https://www.anthropic.com/company",
+              "confidence": "medium"
+            }
+          ],
+          "sources": [
+            {
+              "tool": "BD Web Unlocker",
+              "icon": "🌐",
+              "target": "https://anthropic.com",
+              "sections": [
+                "Technical Issues",
+                "Page Speed"
+              ]
+            },
+            {
+              "tool": "BD SERP API",
+              "icon": "🔍",
+              "target": "site:anthropic.com keyword ranking",
+              "sections": [
+                "Top Keywords",
+                "SERP Features"
+              ]
+            },
+            {
+              "tool": "BD Scraping Browser",
+              "icon": "🖥",
+              "target": "anthropic.com + competitors",
+              "sections": [
+                "Core Web Vitals",
+                "Content"
+              ]
+            },
+            {
+              "tool": "BD MCP Server",
+              "icon": "🔗",
+              "target": "anthropic.com backlinks authority",
+              "sections": [
+                "Backlink Profile",
+                "Opportunities"
+              ]
+            }
+          ],
+          "cost": {
+            "webUnlocker": 0.3,
+            "serpApi": 1,
+            "scrapingBrowser": 0.8,
+            "bdMcp": 0.2,
+            "claude": 0,
+            "total": 2.3
+          }
+        },
+        "elapsed": 195.471,
+        "domain": "anthropic.com",
+        "mode": "seo",
+        "cost": 2.3,
+        "costBreakdown": {
+          "webUnlocker": 0.3,
+          "serpApi": 1,
+          "scrapingBrowser": 0.8,
+          "bdMcp": 0.2,
+          "claude": 0,
+          "total": 2.3
+        }
+      },
+      "ts": 195503
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 {
   "domain": "stripe.com",
   "mode": "standard",
-  "recordedAt": "2026-05-26T19:13:47.826Z",
-  "eventCount": 160,
-  "duration": 102990,
+  "recordedAt": "2026-05-27T12:19:14.817Z",
+  "eventCount": 132,
+  "duration": 123836,
   "events": [
     {
       "event": "message",
@@ -13,16 +13,16 @@
         "domain": "stripe.com",
         "elapsed": 0
       },
-      "ts": 272
+      "ts": 280
     },
     {
       "event": "message",
       "data": {
         "agent": "circus",
         "status": "routing",
-        "elapsed": 0.05
+        "elapsed": 0.11
       },
-      "ts": 273
+      "ts": 316
     },
     {
       "event": "message",
@@ -30,9 +30,9 @@
         "agent": "bd-web-unlocker",
         "status": "fetching",
         "url": "https://stripe.com",
-        "elapsed": 0.1
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -40,9 +40,9 @@
         "agent": "bd-serp",
         "status": "searching",
         "query": "stripe company news",
-        "elapsed": 0.11
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -53,9 +53,9 @@
           "https://linkedin.com/company/stripe",
           "https://crunchbase.com/organization/stripe"
         ],
-        "elapsed": 0.11
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -63,9 +63,9 @@
         "agent": "bd-web-scraper",
         "status": "extracting",
         "url": "https://stripe.com",
-        "elapsed": 0.11
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -73,9 +73,9 @@
         "agent": "bd-mcp",
         "status": "searching",
         "query": "search_engine + scrape_as_markdown",
-        "elapsed": 0.11
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -83,9 +83,9 @@
         "agent": "bd-discover",
         "status": "searching",
         "query": "stripe.com company news products competitors",
-        "elapsed": 0.11
+        "elapsed": 0.17
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -94,9 +94,9 @@
         "status": "crawling",
         "pages": 8,
         "domain": "stripe.com",
-        "elapsed": 0.11
+        "elapsed": 0.18
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -105,9 +105,9 @@
         "status": "querying",
         "dataset": "linkedin_companies",
         "domain": "stripe.com",
-        "elapsed": 0.11
+        "elapsed": 0.18
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -115,9 +115,9 @@
         "agent": "bd-mcp-browser",
         "status": "capturing",
         "url": "https://stripe.com/pricing",
-        "elapsed": 0.12
+        "elapsed": 0.18
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -125,9 +125,9 @@
         "agent": "bd-mcp-geo",
         "status": "querying",
         "llms": "ChatGPT · Grok · Perplexity",
-        "elapsed": 0.12
+        "elapsed": 0.19
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -135,9 +135,9 @@
         "agent": "bd-assistant",
         "status": "asking",
         "question": "What do you know about stripe.com?",
-        "elapsed": 0.14
+        "elapsed": 0.2
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -145,9 +145,9 @@
         "agent": "bd-serp-batch",
         "status": "searching",
         "queries": 3,
-        "elapsed": 0.14
+        "elapsed": 0.2
       },
-      "ts": 411
+      "ts": 415
     },
     {
       "event": "message",
@@ -155,29 +155,18 @@
         "agent": "bd-datasets",
         "status": "unavailable",
         "reason": "trial tier - paid datasets",
-        "elapsed": 1.83
+        "elapsed": 3.02
       },
-      "ts": 2022
+      "ts": 3234
     },
     {
       "event": "message",
       "data": {
         "agent": "bd-web-scraper",
         "status": "complete",
-        "elapsed": 1.96
+        "elapsed": 3.09
       },
-      "ts": 2161
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-web-unlocker",
-        "status": "complete",
-        "chars": 0,
-        "note": "bot-protection: empty body",
-        "elapsed": 2.88
-      },
-      "ts": 3100
+      "ts": 3295
     },
     {
       "event": "message",
@@ -186,18 +175,29 @@
         "status": "unavailable",
         "reason": "BD MCP browser group not available - upgrade required",
         "upstream": "MCP error -32601: MCP error -32601: Unknown tool: scraping_browser_navigate",
-        "elapsed": 3.45
+        "elapsed": 3.47
       },
-      "ts": 3687
+      "ts": 3679
     },
     {
       "event": "message",
       "data": {
-        "agent": "bd-mcp-geo",
-        "status": "unavailable",
-        "reason": "BD MCP geo group not available - upgrade required",
-        "upstream": "MCP error -32601: MCP error -32601: Unknown tool: web_data_grok_ai_insights",
-        "elapsed": 3.87
+        "agent": "bd-crawl",
+        "status": "complete",
+        "pages": 8,
+        "chars": 537,
+        "elapsed": 3.85
+      },
+      "ts": 4058
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-web-unlocker",
+        "status": "complete",
+        "chars": 0,
+        "note": "bot-protection: empty body",
+        "elapsed": 3.86
       },
       "ts": 4065
     },
@@ -207,31 +207,9 @@
         "agent": "bd-serp",
         "status": "complete",
         "results": 10,
-        "elapsed": 3.88
+        "elapsed": 3.87
       },
-      "ts": 4183
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-crawl",
-        "status": "complete",
-        "pages": 8,
-        "chars": 537,
-        "elapsed": 5.21
-      },
-      "ts": 5419
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-discover",
-        "status": "complete",
-        "results": 10,
-        "topScore": "0.75",
-        "elapsed": 5.58
-      },
-      "ts": 5815
+      "ts": 4081
     },
     {
       "event": "message",
@@ -239,9 +217,31 @@
         "agent": "bd-mcp",
         "status": "complete",
         "tools": 2,
-        "elapsed": 6.42
+        "elapsed": 4.36
       },
-      "ts": 6615
+      "ts": 4570
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-mcp-geo",
+        "status": "unavailable",
+        "reason": "BD MCP geo group not available - upgrade required",
+        "upstream": "MCP error -32601: MCP error -32601: Unknown tool: web_data_perplexity_ai_insight",
+        "elapsed": 4.57
+      },
+      "ts": 4787
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-discover",
+        "status": "complete",
+        "results": 10,
+        "topScore": "0.77",
+        "elapsed": 4.8
+      },
+      "ts": 5014
     },
     {
       "event": "message",
@@ -250,9 +250,9 @@
         "status": "facts-partial",
         "factCount": 6,
         "message": "Core facts collected — synthesis starting",
-        "elapsed": 6.42
+        "elapsed": 4.8
       },
-      "ts": 6615
+      "ts": 5015
     },
     {
       "event": "message",
@@ -260,9 +260,9 @@
         "agent": "claude",
         "status": "synthesizing",
         "message": "Early-start synthesis on partial facts",
-        "elapsed": 6.42
+        "elapsed": 4.8
       },
-      "ts": 6615
+      "ts": 5015
     },
     {
       "event": "message",
@@ -271,1464 +271,1156 @@
         "status": "complete",
         "queries": 3,
         "results": 1,
-        "elapsed": 8.24
+        "elapsed": 6.43
       },
-      "ts": 9093
+      "ts": 6657
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "bd-scraping-browser",
+        "status": "complete",
+        "pages": 2,
+        "elapsed": 15.8
+      },
+      "ts": 16012
     },
     {
       "event": "message",
       "data": {
         "agent": "bd-assistant",
         "status": "complete",
-        "chars": 163,
-        "elapsed": 35.16
+        "chars": 1875,
+        "elapsed": 21.36
       },
-      "ts": 35789
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "bd-scraping-browser",
-        "status": "error",
-        "reason": "BD Scraping Browser zone=\"mcp_browser\" failed to load https://crunchbase.com/organization/stripe: page.goto: Timeout 300",
-        "elapsed": 42.39
-      },
-      "ts": 42868
+      "ts": 21729
     },
     {
       "event": "message",
       "data": {
         "agent": "ai-iq",
         "status": "storing",
-        "facts": 8,
-        "elapsed": 42.39
+        "facts": 10,
+        "elapsed": 21.36
       },
-      "ts": 42869
+      "ts": 21729
     },
     {
       "event": "message",
       "data": {
         "agent": "007-bot",
         "status": "complete",
-        "elapsed": 42.87,
+        "elapsed": 21.48,
         "cost": 2.2
       },
-      "ts": 43489
+      "ts": 21729
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "##",
+        "delta": "## Executive Summary\n\nStripe remains one",
         "tokens": 1,
-        "elapsed": 5.26
+        "elapsed": 53.05
       },
-      "ts": 48326
+      "ts": 74744
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Executive Summary\n\nStripe is the world's largest privately held fintech company, valued at approximately **$107 billion** as of early",
+        "delta": " of the most formidable private technology companies globally, positioning itself as the core",
         "tokens": 2,
-        "elapsed": 5.64
+        "elapsed": 53.05
       },
-      "ts": 48706
+      "ts": 74744
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " 2026. Founded in 2010 by brothers Patrick and John Collison, Stripe has evolved from a developer-friendly payments API into a comprehensive financial infrastructure platform processing",
+        "delta": " \"financial infrastructure\" layer for the internet. With 15,302 employees across",
         "tokens": 3,
-        "elapsed": 6.13
+        "elapsed": 53.65
       },
-      "ts": 49215
+      "ts": 75352
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " an estimated **$1.4 trillion annually**. The company was named a Leader in The Forrester Wave™: Merchant Payment Providers, Q1 2026, cementing its enterprise",
+        "delta": " offices in San Francisco, Dublin, Seattle, London, Singapore, Tokyo, and more",
         "tokens": 4,
-        "elapsed": 6.55
+        "elapsed": 53.66
       },
-      "ts": 49627
+      "ts": 75352
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " credibility alongside its traditional SMB and startup base.",
+        "delta": ", the company has scaled to serve millions of businesses—including an",
         "tokens": 5,
-        "elapsed": 6.93
+        "elapsed": 53.95
       },
-      "ts": 50006
+      "ts": 75649
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " With millions of businesses powered globally, Stripe sits at the intersection of payments, banking",
+        "delta": " estimated 62% of Fortune 500 companies. A reported ~$159B valuation (",
         "tokens": 6,
-        "elapsed": 7.39
+        "elapsed": 54.76
       },
-      "ts": 50464
+      "ts": 76456
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-as-a-service, and AI-driven financial tooling.\n\nStrategically, Stripe is executing a multi",
+        "delta": "per jobsbyculture.com) and a 2025 annual letter accompanied by a tender offer signal",
         "tokens": 7,
-        "elapsed": 7.77
+        "elapsed": 54.76
       },
-      "ts": 50865
+      "ts": 76456
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-vector expansion: moving upmarket into enterprise and global",
+        "delta": " the company is managing liquidity without a near-term IPO rush.\n\nStrateg",
         "tokens": 8,
-        "elapsed": 8.19
+        "elapsed": 55.17
       },
-      "ts": 51263
+      "ts": 76871
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " markets, launching stablecoin and crypto payment rails, deplo",
+        "delta": "ically, Stripe has made two significant M&A moves visible in the scraped data: the $",
         "tokens": 9,
-        "elapsed": 8.57
+        "elapsed": 55.63
       },
-      "ts": 51641
+      "ts": 77318
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "ying AI-powered fraud/security features, and broadening its money management tools (notably",
+        "delta": "1.1B acquisition of Bridge Network (completed Feb 2025), its largest",
         "tokens": 10,
-        "elapsed": 9.17
+        "elapsed": 56.5
       },
-      "ts": 52385
+      "ts": 78207
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " multi-currency accounts for UK businesses in mid-2025). A 2026 tender",
+        "delta": " deal ever focused on stablecoin/crypto payment rails, and the",
         "tokens": 11,
-        "elapsed": 9.4
+        "elapsed": 56.7
       },
-      "ts": 52485
+      "ts": 78396
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " offer announced alongside its annual letter signals continued liquidity management",
+        "delta": " acquisition of Orum (Jul 2025) to expand real-time, non-card payment infrastructure",
         "tokens": 12,
-        "elapsed": 9.79
+        "elapsed": 56.8
       },
-      "ts": 52887
+      "ts": 78490
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " for employees and early investors without an imminent IPO,",
+        "delta": ". These moves indicate a deliberate push beyond card",
         "tokens": 13,
-        "elapsed": 10.16
+        "elapsed": 57.49
       },
-      "ts": 53319
+      "ts": 79186
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " though the $107B valuation keeps public market speculation alive.",
+        "delta": "-based payments into programmable money rails. Simultaneously, Stripe launched 288 products",
         "tokens": 14,
-        "elapsed": 10.72
+        "elapsed": 57.76
       },
-      "ts": 53870
+      "ts": 79450
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " The company ranks 10th in Fintech Magazine's Top 100 Fintech Companies, reflecting strong",
+        "delta": " at its \"Sessions 2026\" event and introduced an AI agent wallet—a signal that Stripe is racing",
         "tokens": 15,
-        "elapsed": 10.91
+        "elapsed": 58
       },
-      "ts": 54028
+      "ts": 79699
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " brand equity and industry recognition.\n\nKey competitive moats include its developer-first",
+        "delta": " to own the machine-to-machine payments layer as a",
         "tokens": 16,
-        "elapsed": 11.46
+        "elapsed": 58.46
       },
-      "ts": 54521
+      "ts": 80159
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " API design (pioneering Payments-as-a-Service), a",
+        "delta": "gentic AI becomes mainstream. A May 2026 LinkedIn post confirmed: \"Starting",
         "tokens": 17,
-        "elapsed": 11.79
+        "elapsed": 58.8
       },
-      "ts": 54928
+      "ts": 80498
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " full-stack product suite spanning payments, billing, fraud prevention (Radar",
+        "delta": " today, you can set up machine payments with a single prompt to your agent.\"\n\nCompetitive positioning remains strong. Stripe",
         "tokens": 18,
-        "elapsed": 12.1
+        "elapsed": 59.21
       },
-      "ts": 55162
+      "ts": 80932
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "), identity, tax, and embedded finance, and deep integ",
+        "delta": " was named a Leader in the Forrester Wave™: Merchant Payment Providers, Q1 2026. Top competitors per",
         "tokens": 19,
-        "elapsed": 12.6
+        "elapsed": 59.64
       },
-      "ts": 55828
+      "ts": 81333
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "rations across the internet economy. Competitors like Adyen, Pay",
+        "delta": " 6sense data are PayPal, Adyen, and Venmo—but Stripe's developer-first model, breadth of recent",
         "tokens": 20,
-        "elapsed": 13.11
+        "elapsed": 60.09
       },
-      "ts": 56454
+      "ts": 81787
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "Pal/Braintree, and Square each attack specific segments,",
+        "delta": " acquisitions, and AI-native product direction differentiate it meaningfully from these incumbents.\n\n---\n\n## Key",
         "tokens": 21,
-        "elapsed": 14.47
+        "elapsed": 60.48
       },
-      "ts": 57594
+      "ts": 82179
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " but none match Stripe's breadth of developer tooling plus enterprise capability. The primary",
+        "delta": " Signals\n\n- 🟢 **AI agent wallet + machine payments launched** — Stripe is actively",
         "tokens": 22,
-        "elapsed": 14.5
+        "elapsed": 61.02
       },
-      "ts": 57595
+      "ts": 82750
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " risks are regulatory complexity at global scale, margin pressure from interchange economics, and potential",
+        "delta": " capturing the agentic AI payments layer; LinkedIn post (May",
         "tokens": 23,
-        "elapsed": 14.52
+        "elapsed": 61.77
       },
-      "ts": 57595
+      "ts": 83463
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " IPO-related strategic distraction.\n\n---\n\n## Key Signals\n\n- 🟢 **$107B",
+        "delta": " 2026) confirms live availability\n- 🟢 **$1.1B Bridge acquisition completed** (Feb 2025) — largest",
         "tokens": 24,
-        "elapsed": 14.53
+        "elapsed": 61.81
       },
-      "ts": 57793
+      "ts": 83507
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " valuation** — Largest privately held fintech globally; 2026 tender offer keeps employees liquid without",
+        "delta": " deal ever, expanding into stablecoin/crypto rails\n- 🟢 **Orum acquisition** (Jul 2025) —",
         "tokens": 25,
-        "elapsed": 15.09
+        "elapsed": 62.18
       },
-      "ts": 58158
+      "ts": 83874
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " forcing IPO timeline pressure\n- 🟢 **$1.4T annual payment volume** — Massive scale",
+        "delta": " real-time, non-card payment infrastructure buildout\n- 🟢 **Forrester Wave Leader** — Q",
         "tokens": 26,
-        "elapsed": 15.32
+        "elapsed": 62.82
       },
-      "ts": 58389
+      "ts": 84512
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " providing data network effects for fraud detection (Radar)",
+        "delta": "1 2026, independent validation of enterprise market position\n- 🟡 **Tender offer announced**",
         "tokens": 27,
-        "elapsed": 16.4
+        "elapsed": 63.02
       },
-      "ts": 59479
+      "ts": 84723
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " and AI-powered services\n- 🟢 **Forrester Wave Leader, Q1 2026** — Validates enterprise",
+        "delta": " alongside 2025 annual letter — liquidity signal, no IPO commitment yet\n- 🟡 **288",
         "tokens": 28,
-        "elapsed": 16.48
+        "elapsed": 63.48
       },
-      "ts": 59542
+      "ts": 85190
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " positioning and signals continued upmarket momentum beyond startup/SMB roots",
+        "delta": " product launches at Sessions 2026** — aggressive product velocity, potentially hard for competitors to match",
         "tokens": 29,
-        "elapsed": 16.56
+        "elapsed": 63.98
       },
-      "ts": 59625
+      "ts": 85668
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n- 🟡 **Stablecoin & crypto expansion** — Early-m",
+        "delta": "\n- 🟡 **62% Fortune 500 penetration** — deep enterprise entrenchment, raises switching",
         "tokens": 30,
-        "elapsed": 17.3
+        "elapsed": 64.32
       },
-      "ts": 60366
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "over positioning in stablecoin payment rails; high potential but",
-        "tokens": 31,
-        "elapsed": 18.28
-      },
-      "ts": 61342
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " regulatory/adoption risk remains\n- 🟡 **Global money management tools (",
-        "tokens": 32,
-        "elapsed": 18.28
-      },
-      "ts": 61348
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "UK expansion, May 2025)** — Indicates push into banking-adjacent",
-        "tokens": 33,
-        "elapsed": 18.39
-      },
-      "ts": 61459
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " services; potential to disintermediate traditional business banking\n- 🟡 **",
-        "tokens": 34,
-        "elapsed": 18.51
-      },
-      "ts": 61573
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "AI integration across product suite** — AI-driven fraud, security, and financial services being",
-        "tokens": 35,
-        "elapsed": 18.88
-      },
-      "ts": 61952
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " embedded; competitive necessity but also a genuine differ",
-        "tokens": 36,
-        "elapsed": 19.44
-      },
-      "ts": 62509
+      "ts": 86019
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "json-start",
-        "elapsed": 20.15
+        "elapsed": 64.75
       },
-      "ts": 63216
+      "ts": 86447
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "entiator at Stripe's data scale\n\n```json\n{\n  \"meta\": {\n    \"domain\": \"stripe.com\",\n    \"companyName\": \"Stripe\",\n    ",
+        "delta": "-cost moat\n\n```json\n{\n  \"meta\": {\n    \"domain\": \"stripe.com\",\n    \"companyName\": \"",
+        "tokens": 31,
+        "elapsed": 64.75
+      },
+      "ts": 86447
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "Stripe\",\n    \"analysisDate\": \"2026-05-27\",\n    \"mode\": \"standard\",\n    \"confidence\": \"medium-high\",\n    \"sources_count\": 9,\n    \"evidence_coverage\": \"",
+        "tokens": 32,
+        "elapsed": 65.19
+      },
+      "ts": 86882
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "12 of 12 claims have direct evidence from scraped data\"\n  },\n  \"signals\": [\n    {\n      \"level\": \"high",
+        "tokens": 33,
+        "elapsed": 65.62
+      },
+      "ts": 87314
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "\",\n      \"text\": \"Stripe launched an AI agent wallet and machine payments ('set up machine payments with a single prompt to your agent')",
+        "tokens": 34,
+        "elapsed": 66.1
+      },
+      "ts": 87792
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": " — actively capturing the agentic AI payment layer before incumbents\",\n      \"icon\": \"",
+        "tokens": 35,
+        "elapsed": 66.49
+      },
+      "ts": 88184
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "🟢\",\n      \"evidence_url\": \"https://jobsbyculture.com/blog/stripe-layoffs-2026\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"high\",\n      \"",
+        "tokens": 36,
+        "elapsed": 67.28
+      },
+      "ts": 89056
+    },
+    {
+      "event": "message",
+      "data": {
+        "agent": "claude",
+        "status": "streaming",
+        "delta": "text\": \"Completed $1.1B acquisition of Bridge Network (Feb 6, 2025) — largest Stripe deal ever, expanding into stablecoin and crypto payment",
         "tokens": 37,
-        "elapsed": 20.15
+        "elapsed": 68.19
       },
-      "ts": 63216
+      "ts": 90093
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"analysisDate\": \"2026-05-26\",\n    \"mode\": \"standard\",\n    \"confidence\": \"medium-high\"\n  },\n  \"signals\": [\n    {\n      \"level\": \"high\",\n      \"text\": \"Stripe",
+        "delta": " rails\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://fintechmagazine.com/articles/stripe-completes-us-1-1bn-bridge-",
         "tokens": 38,
-        "elapsed": 20.54
+        "elapsed": 68.4
       },
-      "ts": 63624
+      "ts": 90093
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " holds a ~$107B valuation as the largest privately held fintech company globally, with a 2026 tender offer providing",
+        "delta": "acquisition\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Acquired Orum (Jul 2025) to expand real-time, non-card payment infrastructure —",
         "tokens": 39,
-        "elapsed": 21.02
+        "elapsed": 68.7
       },
-      "ts": 64122
+      "ts": 90429
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " employee liquidity without forcing an IPO.\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Processes $",
+        "delta": " broadening beyond card rails\",\n      \"icon\": \"🟢\",\n      \"evidence_url\": \"https://f",
         "tokens": 40,
-        "elapsed": 22.28
+        "elapsed": 69.08
       },
-      "ts": 65357
+      "ts": 90768
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "1.4 trillion annually — scale creates compounding data moat",
+        "delta": "intechboostup.com/stripe-expands-real-time-payments-with-orum-acquisition/\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Named",
         "tokens": 41,
-        "elapsed": 22.46
+        "elapsed": 70.44
       },
-      "ts": 65528
+      "ts": 92271
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " for AI/fraud products (Stripe Radar) that smaller competitors cannot repl",
+        "delta": " a Leader in Forrester Wave™: Merchant Payment Providers, Q1 2026 — third-party validation of enterprise positioning\",\n      \"icon\": \"",
         "tokens": 42,
-        "elapsed": 22.47
+        "elapsed": 70.44
       },
-      "ts": 65536
+      "ts": 92271
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "icate.\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"high\",\n      \"text\": \"Named a Forrester Wave Leader for Merchant Payment Providers, Q1 ",
+        "delta": "🟢\",\n      \"evidence_url\": \"https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"",
         "tokens": 43,
-        "elapsed": 23.39
+        "elapsed": 70.44
       },
-      "ts": 66456
+      "ts": 92271
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "2026 — validates enterprise credibility and accelerates upmarket sales cycles.\",\n      \"icon\": \"🟢\"\n    },\n    {\n      \"level\": \"medium",
+        "delta": "level\": \"medium\",\n      \"text\": \"288 product launches at Sessions 2026 — extraordinary product velocity that will pressure competitors across",
         "tokens": 44,
-        "elapsed": 23.4
+        "elapsed": 70.87
       },
-      "ts": 66473
+      "ts": 92562
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"text\": \"Active expansion into stablecoin payment rails signals a long-term bet on crypto-native infrastructure",
+        "delta": " multiple categories simultaneously\",\n      \"icon\": \"🟡\",\n      \"evidence_url\": \"https://jobsbyculture.com/blog/stripe-layoffs",
         "tokens": 45,
-        "elapsed": 23.89
+        "elapsed": 71.58
       },
-      "ts": 66981
+      "ts": 93274
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " before mainstream regulatory clarity exists.\",\n      \"icon\": \"🟡\"\n    },\n    {\n      \"level\": \"medium",
+        "delta": "-2026\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"Tender offer announced alongside 2025 annual letter — signals controlled",
         "tokens": 46,
-        "elapsed": 24.24
+        "elapsed": 71.75
       },
-      "ts": 67307
+      "ts": 93437
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\",\n      \"text\": \"Launched expanded multi-currency accounts and global money management tools for UK businesses (May 2025), enc",
+        "delta": " liquidity for employees/investors without near-term IPO commitment\",\n      \"icon\": \"🟡\",\n      \"evidence_url\": \"https://stripe.com/gb/",
         "tokens": 47,
-        "elapsed": 24.73
+        "elapsed": 72.1
       },
-      "ts": 67794
+      "ts": 93799
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "roaching on traditional SMB banking territory.\",\n      \"icon\": \"🟡\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"AI",
+        "delta": "newsroom/news/stripe-2025-update\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"62% Fortune 500 integration — deep enterprise entrenchment creating",
         "tokens": 48,
-        "elapsed": 25.21
+        "elapsed": 72.63
       },
-      "ts": 68416
+      "ts": 94322
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-powered security and financial services are being embedded across the product suite, leveraging transaction data at scale for differentiation.\",\n      \"icon\": \"",
+        "delta": " high switching costs and cross-sell leverage\",\n      \"icon\": \"🟡\",\n      \"evidence_url\": \"https://",
         "tokens": 49,
-        "elapsed": 26.08
+        "elapsed": 73.27
       },
-      "ts": 69145
+      "ts": 94960
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "🟡\"\n    },\n    {\n      \"level\": \"medium\",\n      \"text\": \"2025 annual letter + tender offer announcement signals continued private company",
+        "delta": "fueler.io/blog/stripe-usage-revenue-valuation-growth-statistics\",\n      \"confidence\": \"medium\"\n    }\n  ],\n  \"snapshot\": {\n    \"founded\": \"2010\",\n    \"hq\": \"",
         "tokens": 50,
-        "elapsed": 26.1
+        "elapsed": 74.21
       },
-      "ts": 69166
+      "ts": 95906
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " discipline; IPO remains a future optionality,",
+        "delta": "South San Francisco, CA / Dublin, Ireland\",\n    \"employees\": \"15,302 LinkedIn connections; 5,001–10,000 per",
         "tokens": 51,
-        "elapsed": 26.64
+        "elapsed": 74.34
       },
-      "ts": 69701
+      "ts": 96034
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " not near-term priority.\",\n      \"icon\": \"🟡\"\n    }\n  ],\n  \"snapshot\": {\n    \"founded\": \"2010\",\n    \"hq\": \"San",
+        "delta": " LinkedIn company size band\",\n    \"stage\": \"Late-stage Private (tender offer announced 2025)\",\n    \"website",
         "tokens": 52,
-        "elapsed": 26.97
+        "elapsed": 74.34
       },
-      "ts": 70109
+      "ts": 96034
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Francisco, CA / Dublin, Ireland (dual HQ)\",\n    \"employees\": \"~8",
+        "delta": "\": \"stripe.com\",\n    \"linkedin\": \"linkedin.com/company/stripe\"\n  },\n  \"financials\": {\n    \"totalRaised\": \"\",\n    \"lastRound\": \"\",\n    \"val",
         "tokens": 53,
-        "elapsed": 27.39
+        "elapsed": 75.05
       },
-      "ts": 70461
+      "ts": 96745
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ",000–9,000 (est. 2025)\",\n    \"stage\": \"Late-stage private",
+        "delta": "uation\": \"~$159B (est., per jobsbyculture.com)\",\n    \"revenue\": \"\",\n    \"investors\": []\n  },\n  \"news\": [\n    {",
         "tokens": 54,
-        "elapsed": 27.91
+        "elapsed": 75.37
       },
-      "ts": 70974
+      "ts": 97061
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " / Pre-IPO\",\n    \"website\": \"stripe.com\",\n    \"linkedin\": \"linkedin.com/company/stripe\"\n  },\n  \"financials\": {\n    \"total",
+        "delta": "\n      \"date\": \"May 2026\",\n      \"headline\": \"Stripe enables machine payments with a single agent prompt — AI",
         "tokens": 55,
-        "elapsed": 28.66
+        "elapsed": 75.67
       },
-      "ts": 71730
+      "ts": 97369
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "Raised\": \"~$9.4B\",\n    \"lastRound\": \"Tender Offer — undisclosed amount",
+        "delta": " agent wallet goes live\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://jobsbyculture.com/blog/stripe-layoffs-2026\"\n    ",
         "tokens": 56,
-        "elapsed": 28.87
+        "elapsed": 76.08
       },
-      "ts": 71937
+      "ts": 97770
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " (Early 2026)\",\n    \"valuation\": \"~$107B (2026 est.)\",\n    \"revenue\": \"~$15",
+        "delta": "},\n    {\n      \"date\": \"Mar 5, 2026\",\n      \"headline\": \"Stripe named a Leader in Forrester Wave™: Merchant Payment Providers, Q1 2026\",",
         "tokens": 57,
-        "elapsed": 29.4
+        "elapsed": 76.64
       },
-      "ts": 72506
+      "ts": 98353
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "–20B TPV-derived revenue est. (gross",
+        "delta": "\n      \"signal\": \"HIGH\",\n      \"url\": \"https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026\"\n    },\n    {\n      \"date\": \"2",
         "tokens": 58,
-        "elapsed": 29.68
+        "elapsed": 76.94
       },
-      "ts": 72760
+      "ts": 98644
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "); ~$4–5B net revenue est.\",\n    \"investors\": [\n      \"Sequoia Capital\",\n      \"Andre",
+        "delta": "026\",\n      \"headline\": \"Stripe launches 288 products at Sessions 2026 conference\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://jobsbycul",
         "tokens": 59,
-        "elapsed": 30.22
+        "elapsed": 77.72
       },
-      "ts": 73429
+      "ts": 99412
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "essen Horowitz\",\n      \"General Catalyst\",\n      \"Thrive Capital\",\n      \"Baillie Gifford\",\n      \"Tiger",
+        "delta": "ture.com/blog/stripe-layoffs-2026\"\n    },\n    {\n      \"date\": \"Jul 21–23, 2025\",\n      \"headline\": \"Stripe acquires Orum to",
         "tokens": 60,
-        "elapsed": 31.19
+        "elapsed": 78.32
       },
-      "ts": 74251
+      "ts": 100023
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Global\",\n      \"Fidelity\",\n      \"Allianz\"\n    ]\n  },\n  \"news\": [\n    {\n      \"date\": \"Mar 05",
+        "delta": " expand real-time, non-card payment rails\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://fintechboostup.com/stripe-expands-real-time-payments-with-orum-",
         "tokens": 61,
-        "elapsed": 32.12
+        "elapsed": 78.54
       },
-      "ts": 75189
+      "ts": 100234
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ", 2026\",\n      \"headline\": \"Stripe named a Leader in The Forrester Wave™: Merchant Payment Providers, Q1 2026\",\n      \"signal\": \"HIGH\",\n      \"url\": \"",
+        "delta": "acquisition/\"\n    },\n    {\n      \"date\": \"Feb 6, 2025\",\n      \"headline\": \"Stripe completes $1.1B acquisition of Bridge Network —",
         "tokens": 62,
-        "elapsed": 32.13
+        "elapsed": 78.84
       },
-      "ts": 75193
+      "ts": 100542
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026\"\n    },\n    {\n      \"date\": \"Early 2026\",\n      \"headline\": \"Stripe publishes 2025 annual letter and",
+        "delta": " largest deal in company history\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://fintechmagazine.com/articles/stripe-completes-us",
         "tokens": 63,
-        "elapsed": 33.05
+        "elapsed": 79.38
       },
-      "ts": 76112
+      "ts": 101147
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " announces new tender offer for shareholders\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://stripe.com/newsroom/news\"\n    },\n    {\n      ",
+        "delta": "-1-1bn-bridge-acquisition\"\n    },\n    {\n      \"date\": \"2025\",\n      \"headline\": \"Stripe publishes 2025 annual letter and announces tender offer\",\n      \"signal\": \"M",
         "tokens": 64,
-        "elapsed": 33.08
+        "elapsed": 79.69
       },
-      "ts": 76140
+      "ts": 101381
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"date\": \"Oct 24, 2025\",\n      \"headline\": \"Stripe ranks 10th in Fintech Magazine's Top 100 Fintech Companies; processes $1.4T",
+        "delta": "ED\",\n      \"url\": \"https://stripe.com/gb/newsroom/news/stripe-2025-update\"\n    }\n  ],\n  \"products\": [\n    {\n      \"name\": \"Stripe",
         "tokens": 65,
-        "elapsed": 33.74
+        "elapsed": 80.14
       },
-      "ts": 76815
+      "ts": 101847
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " annually\",\n      \"signal\": \"MED\",\n      \"url\": \"https://fintechmagazine.com/news/payments-giant-stripe-nabs-10th-in-top-100-fintech-companies\"\n    },",
+        "delta": " Payments\",\n      \"description\": \"Core payment processing platform used by millions of businesses; integrated into 62% of Fortune 500\"",
         "tokens": 66,
-        "elapsed": 34.08
+        "elapsed": 80.64
       },
-      "ts": 77326
+      "ts": 102333
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n    {\n      \"date\": \"May 31, 2025\",\n      \"headline\": \"Stripe expands global money management tools for UK businesses including multi-currency accounts and AI-driven security\",\n      \"signal\": \"MED\",\n      ",
+        "delta": "\n    },\n    {\n      \"name\": \"Bridge Network (acquired)\",\n      \"description\": \"Stablecoin and crypto payment infrastructure",
         "tokens": 67,
-        "elapsed": 34.57
+        "elapsed": 81
       },
-      "ts": 77839
+      "ts": 102698
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\"url\": \"https://www.fintechweekly.com/magazine/articles/stripe-global-money-management-uk-business-expansion\"\n    },\n    {\n      \"date\": \"Jan 23, 2026\",",
+        "delta": "; $1.1B acquisition completed Feb 2025\"\n    },\n    {\n      \"name\": \"Orum (acquired)\",\n      \"description\": \"Real-time payments infrastructure for",
         "tokens": 68,
-        "elapsed": 34.96
+        "elapsed": 81.41
       },
-      "ts": 78026
+      "ts": 103113
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"headline\": \"Stripe leads fintech valuation leaderboard at $107B as largest privately owned",
+        "delta": " non-card rails; acquired Jul 2025\"\n    },\n    {\n      \"name\": \"AI Agent Wallet / Machine Payments\",\n      \"description\": \"",
         "tokens": 69,
-        "elapsed": 35.51
+        "elapsed": 82.18
       },
-      "ts": 78587
+      "ts": 103891
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " fintech company\",\n      \"signal\": \"HIGH\",\n      \"url\": \"https://www.earthianai.com/fintech-startup-leaderboard\"\n    }\n  ],\n  \"products\":",
+        "delta": "Enables agentic AI systems to transact autonomously; set up via single prompt; launched 2026\"\n    ",
         "tokens": 70,
-        "elapsed": 36.11
+        "elapsed": 83.01
       },
-      "ts": 79236
+      "ts": 104701
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " [\n    {\n      \"name\": \"Stripe Payments\",\n      \"description\": \"Core payment processing API supporting 135",
+        "delta": "}\n  ],\n  \"competitive\": [\n    {\n      \"competitor\": \"PayPal\",\n      \"weakness\": \"Listed as top Stripe competitor in",
         "tokens": 71,
-        "elapsed": 36.76
+        "elapsed": 83.01
       },
-      "ts": 80068
+      "ts": 104701
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "+ currencies and 100+ payment methods globally.\"\n    },\n    {\n      \"name\": \"Stripe Billing\",\n      \"description\": \"Subscription and recurring",
+        "delta": " payment management; Stripe's developer-first API model and enterprise penetration (",
         "tokens": 72,
-        "elapsed": 37
+        "elapsed": 83.17
       },
-      "ts": 80070
+      "ts": 104870
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " revenue management with smart retry logic and revenue recovery.\"\n    },\n    {\n      \"name\": \"Stripe",
+        "delta": "62% Fortune 500) create differentiation PayPal has not matched\",\n      \"evidence_url\":",
         "tokens": 73,
-        "elapsed": 37.18
+        "elapsed": 84.08
       },
-      "ts": 80246
+      "ts": 105778
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Radar\",\n      \"description\": \"AI/ML-powered fraud detection and prevention leveraging network-",
+        "delta": " \"https://www.6sense.com/tech/payment-management/stripe-market-share\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"competitor\": \"Adyen\",\n      \"weakness",
         "tokens": 74,
-        "elapsed": 37.94
+        "elapsed": 84.08
       },
-      "ts": 81038
+      "ts": 105778
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "wide transaction data at $1.4T scale.\"\n    },\n    {\n      \"name\": \"Stripe Connect\",\n      \"description\": \"Marketplace and",
+        "delta": "\": \"Named as a top competitor; Stripe's broader product surface area (288 launches",
         "tokens": 75,
-        "elapsed": 38.16
+        "elapsed": 84.72
       },
-      "ts": 81226
+      "ts": 106422
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " platform payments infrastructure enabling multi-party money movement",
+        "delta": " in 2026) and AI-native direction may outpace Adyen's more",
         "tokens": 76,
-        "elapsed": 38.44
+        "elapsed": 84.91
       },
-      "ts": 81583
+      "ts": 106604
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " and onboarding.\"\n    },\n    {\n      \"name\": \"Stripe Treasury\",\n      \"description\": \"Banking-as-a-service API allowing",
+        "delta": " focused enterprise model\",\n      \"evidence_url\": \"https://www.6sense.com/tech/payment-management/stripe-market-share\",\n      \"confidence\": \"medium\"\n    },",
         "tokens": 77,
-        "elapsed": 38.89
+        "elapsed": 85.72
       },
-      "ts": 81955
+      "ts": 107674
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " platforms to offer financial accounts, cards, and money movement.\"",
+        "delta": "\n    {\n      \"competitor\": \"Venmo\",\n      \"weakness\": \"Listed as top competitor; primarily consumer-focused, lacking Stripe's programmable infrastructure",
         "tokens": 78,
-        "elapsed": 39.57
+        "elapsed": 86.07
       },
-      "ts": 82633
+      "ts": 107805
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n    },\n    {\n      \"name\": \"Stripe Tax\",\n      \"description\": \"Automated global sales tax, VAT, and GS",
+        "delta": " and enterprise depth\",\n      \"evidence_url\": \"https://www.6sense.com/tech/payment-management/stripe-market-share\",\n      \"confidence\": \"medium\"\n    }\n  ],\n  \"hiring\":",
         "tokens": 79,
-        "elapsed": 39.86
+        "elapsed": 86.38
       },
-      "ts": 82920
+      "ts": 108089
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "T calculation and filing across 50+ countries.\"\n    },\n    {\n      \"name\": \"Stripe Identity\",\n      \"description\": \"Automated",
+        "delta": " [\n    {\n      \"role\": \"General (active hiring evident)\",\n      \"count\": ",
         "tokens": 80,
-        "elapsed": 40.22
+        "elapsed": 86.66
       },
-      "ts": 83281
+      "ts": 108355
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " identity verification to reduce fraud and streamline KYC compliance.\"\n    },\n    {\n      \"name\": \"Stripe Iss",
+        "delta": "0,\n      \"signal\": \"LinkedIn shows active job listings; 15,302 employees on",
         "tokens": 81,
-        "elapsed": 41.38
+        "elapsed": 88.54
       },
-      "ts": 84800
+      "ts": 110238
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "uing\",\n      \"description\": \"Instant virtual and physical card creation for platforms and businesses",
+        "delta": " platform. Role-level breakdown not available in scraped data.\"\n    }\n  ],\n  \"strategic\": [\n    {\n      ",
         "tokens": 82,
-        "elapsed": 41.73
+        "elapsed": 88.55
       },
-      "ts": 84800
+      "ts": 110240
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ".\"\n    },\n    {\n      \"name\": \"Stripe Capital\",\n      \"description\": \"Revenue-based financing and business loans for",
+        "delta": "\"text\": \"Expanding payment rails beyond cards: Orum (real-time AC",
         "tokens": 83,
-        "elapsed": 41.73
+        "elapsed": 88.55
       },
-      "ts": 84800
+      "ts": 110242
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Stripe-enabled businesses using transaction history.\"\n    },\n    {\n      \"name\": \"Stripe Climate\",\n      \"description\": \"Carbon",
+        "delta": "H/RTP) + Bridge (stablecoin) acquisitions signal intent to own",
         "tokens": 84,
-        "elapsed": 41.86
+        "elapsed": 88.55
       },
-      "ts": 84930
+      "ts": 110245
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " removal contribution program embedded into Stripe checkout flows.\"\n    },\n    {",
+        "delta": " full-stack money movement, not just card acceptance\",\n      \"evidence_url\": \"https://fintech",
         "tokens": 85,
-        "elapsed": 42.45
+        "elapsed": 89.18
       },
-      "ts": 85634
+      "ts": 110876
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"name\": \"Stablecoin Payment Rails\",\n      \"description\": \"Emerging product enabling businesses",
+        "delta": "boostup.com/stripe-expands-real-time-payments-with-orum-acquisition/\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"text\": \"Racing to own the",
         "tokens": 86,
-        "elapsed": 42.8
+        "elapsed": 89.19
       },
-      "ts": 85920
+      "ts": 110887
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " to accept and settle in stablecoins; active expansion area",
+        "delta": " AI agent payments layer with a dedicated agent wallet and machine payment primit",
         "tokens": 87,
-        "elapsed": 43.19
+        "elapsed": 89.69
       },
-      "ts": 86265
+      "ts": 111382
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " as of 2025–2026.\"\n    }\n  ],\n  \"competitive\": [\n    {\n      \"competitor\": \"Adyen\",\n      \"weakness\": \"Less",
+        "delta": "ives — positions Stripe as default fintech infrastructure for the a",
         "tokens": 88,
-        "elapsed": 43.7
+        "elapsed": 90.54
       },
-      "ts": 86796
+      "ts": 112230
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " developer-friendly onboarding; requires enterprise contract minimums —",
+        "delta": "gentic era\",\n      \"evidence_url\": \"https://jobsbyculture.com/blog/stripe-layoffs-2026\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"text\": \"",
         "tokens": 89,
-        "elapsed": 44.07
+        "elapsed": 90.7
       },
-      "ts": 87131
+      "ts": 112524
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Stripe wins SMB-to-mid-market pipeline and self",
+        "delta": "Dominant enterprise entrenchment (62% Fortune 500) creates compounding cross-sell opportunity",
         "tokens": 90,
-        "elapsed": 44.8
+        "elapsed": 91.19
       },
-      "ts": 87869
+      "ts": 112908
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-serve velocity.\"\n    },\n    {\n      \"competitor\": \"PayPal / Braintree\",\n      \"weakness\": \"Brand perception as consumer",
+        "delta": " across new product lines (Bridge, Orum, AI payments)\",\n      \"evidence_url\": \"https://fueler.",
         "tokens": 91,
-        "elapsed": 44.9
+        "elapsed": 91.52
       },
-      "ts": 87967
+      "ts": 113214
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "-first limits enterprise developer adoption; legacy tech stack creates friction vs",
+        "delta": "io/blog/stripe-usage-revenue-valuation-growth-statistics\",\n      \"confidence\": \"medium\"\n    },\n    {\n      \"text\": \"Tender offer (not IP",
         "tokens": 92,
-        "elapsed": 45.34
+        "elapsed": 91.83
       },
-      "ts": 88414
+      "ts": 113526
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": ". Stripe's modern API design.\"\n    },\n    {\n      \"competitor\": \"Square (Block)\",\n      \"weakness\": \"Primarily",
+        "delta": "O) signals management is managing employee/investor liquidity deliberately — Stripe remains",
         "tokens": 93,
-        "elapsed": 45.7
+        "elapsed": 92.14
       },
-      "ts": 88792
+      "ts": 113836
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " POS/SMB focused with limited global infrastructure and",
+        "delta": " private and on its own timeline\",\n      \"evidence_url\": \"https://stripe.com/gb/newsroom/news",
         "tokens": 94,
-        "elapsed": 46.27
+        "elapsed": 92.69
       },
-      "ts": 89355
+      "ts": 114384
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " no comparable developer platform for complex marketplace/platform use cases.\"\n    },\n    {",
+        "delta": "/stripe-2025-update\",\n      \"confidence\": \"high\"\n    },\n    {\n      \"text\": \"Global office footprint (",
         "tokens": 95,
-        "elapsed": 46.59
+        "elapsed": 93.07
       },
-      "ts": 89657
+      "ts": 114765
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"competitor\": \"Checkout.com\",\n      \"weakness\": \"Enterprise-only focus with limited self-serve;",
+        "delta": "SF, Dublin, London, Singapore, Tokyo, São Paulo, Bengaluru, Mexico City, Amsterdam)",
         "tokens": 96,
-        "elapsed": 46.99
+        "elapsed": 93.62
       },
-      "ts": 90063
+      "ts": 115324
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " lacks Stripe's full-stack product suite (billing, tax, identity, capital).\"\n    },\n    {",
+        "delta": " indicates active international expansion strategy\",\n      \"evidence_url\": \"https://linkedin.com/company/stripe\",",
         "tokens": 97,
-        "elapsed": 47.63
+        "elapsed": 94.3
       },
-      "ts": 90699
+      "ts": 116017
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": "\n      \"competitor\": \"Shopify Payments\",\n      \"weakness\": \"Locked to Shopify ecosystem; no cross-platform applicability —",
+        "delta": "\n      \"confidence\": \"high\"\n    }\n  ],\n  \"aiPerception\": null,\n  \"pricingCapture\": null,\n  \"cost\": {\n    \"webUnlocker\": 0.30,\n    \"",
         "tokens": 98,
-        "elapsed": 47.92
+        "elapsed": 94.52
       },
-      "ts": 90988
+      "ts": 116222
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "streaming",
-        "delta": " Stripe powers businesses on any stack or platform.\"\n    }\n  ],\n  \"hiring\": [\n    {\n      \"role",
+        "delta": "serpApi\": 0.50,\n    \"scrapingBrowser\": 0.80,\n    \"webScraperApi\": 0.40,\n    \"total\": 2.00\n  }\n}\n```",
         "tokens": 99,
-        "elapsed": 48.48
+        "elapsed": 94.83
       },
-      "ts": 91543
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "\": \"AI / Machine Learning Engineers\",\n      \"count\": 0,\n      \"signal\": \"Investment in AI-",
-        "tokens": 100,
-        "elapsed": 48.79
-      },
-      "ts": 91852
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "powered fraud, financial services recommendations, and developer tooling automation.\"\n    },\n    {\n      \"role\": \"Enterprise",
-        "tokens": 101,
-        "elapsed": 49.18
-      },
-      "ts": 92247
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " Sales & Solutions Engineers\",\n      \"count\": 0,\n      \"signal\": \"Continued upmarket push",
-        "tokens": 102,
-        "elapsed": 49.74
-      },
-      "ts": 92814
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " targeting Fortune 500 and global enterprise clients post-Forrester Leader",
-        "tokens": 103,
-        "elapsed": 50.2
-      },
-      "ts": 93276
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " designation.\"\n    },\n    {\n      \"role\": \"International / Regional GTM (UK, EU,",
-        "tokens": 104,
-        "elapsed": 50.72
-      },
-      "ts": 93789
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " APAC)\",\n      \"count\": 0,\n      \"signal\": \"Geographic expansion of money management and embedded finance products",
-        "tokens": 105,
-        "elapsed": 50.95
-      },
-      "ts": 94014
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " beyond North America.\"\n    },\n    {\n      \"role\": \"Compliance / Regulatory (Global)\",\n      \"count\": 0,\n      \"signal\": \"Growing",
-        "tokens": 106,
-        "elapsed": 51.42
-      },
-      "ts": 94496
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " regulatory complexity in EU (PSD3), UK, APAC drives compliance",
-        "tokens": 107,
-        "elapsed": 51.86
-      },
-      "ts": 94923
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " headcount to protect operating licenses.\"\n    }\n  ],\n  \"strategic\": [\n    \"",
-        "tokens": 108,
-        "elapsed": 52.47
-      },
-      "ts": 95544
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "Move from pure payment processing to full financial infrastructure platform — capturing more",
-        "tokens": 109,
-        "elapsed": 52.63
-      },
-      "ts": 95695
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " of business's entire financial stack (banking, lending, tax, identity)",
-        "tokens": 110,
-        "elapsed": 53.13
-      },
-      "ts": 96201
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ".\",\n    \"Stablecoin and crypto-native payment rails as a long-term bet on next-generation settlement infrastructure,",
-        "tokens": 111,
-        "elapsed": 53.44
-      },
-      "ts": 96502
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " positioning ahead of regulatory clarity.\",\n    \"AI integration across fraud (Radar), security,",
-        "tokens": 112,
-        "elapsed": 53.85
-      },
-      "ts": 96917
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " and financial services to leverage $1.4T transaction data moat into proprietary intelligence products",
-        "tokens": 113,
-        "elapsed": 54.29
-      },
-      "ts": 97367
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ".\",\n    \"Continued geographic expansion — especially UK/EU/APAC multi-currency and money",
-        "tokens": 114,
-        "elapsed": 54.73
-      },
-      "ts": 97824
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " management tools — to capture international SMB and enterprise revenue.\",\n    \"Maintain private status via tender offers to",
-        "tokens": 115,
-        "elapsed": 55.2
-      },
-      "ts": 98265
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " optimize long-term decision-making while managing employee/investor liqu",
-        "tokens": 116,
-        "elapsed": 55.63
-      },
-      "ts": 98791
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "idity expectations ahead of eventual IPO.\",\n    \"Upmarket enterprise sales acceleration following",
-        "tokens": 117,
-        "elapsed": 56.03
-      },
-      "ts": 99095
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " Forrester Wave Leader recognition, targeting displacement of legacy processors at",
-        "tokens": 118,
-        "elapsed": 56.36
-      },
-      "ts": 99566
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " large institutions.\"\n  ],\n  \"aiPerception\": null,\n  \"pricingCapture\": {\n    \"model\": \"Usage",
-        "tokens": 119,
-        "elapsed": 56.8
-      },
-      "ts": 99892
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "-based / per-transaction\",\n    \"standardOnline\": \"2.9",
-        "tokens": 120,
-        "elapsed": 57.33
-      },
-      "ts": 100466
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "% + $0.30 per successful card charge (US)\",\n    \"intern",
-        "tokens": 121,
-        "elapsed": 57.68
-      },
-      "ts": 100788
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "ationalCards\": \"+1.5% for international cards\",\n    \"curr",
-        "tokens": 122,
-        "elapsed": 58.07
-      },
-      "ts": 101538
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "encyConversion\": \"+1% for currency conversion\",\n    \"customEnterp",
-        "tokens": 123,
-        "elapsed": 58.61
-      },
-      "ts": 101803
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": "rise\": \"Volume-based negotiated pricing for large enterprises\",\n    \"notes\": \"Stripe pioneered transparent",
-        "tokens": 124,
-        "elapsed": 58.86
-      },
-      "ts": 101948
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ", no-monthly-fee pricing; enterprise pricing is custom and non-public",
-        "tokens": 125,
-        "elapsed": 59.58
-      },
-      "ts": 102817
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": ".\"\n  },\n  \"cost\": {\n    \"webUnlocker\": 0.30,\n    \"serpApi\": 0.50,\n    \"scrapingBrowser\": 0.80,\n    \"webScraperApi\":",
-        "tokens": 126,
-        "elapsed": 59.76
-      },
-      "ts": 102913
-    },
-    {
-      "event": "message",
-      "data": {
-        "agent": "claude",
-        "status": "streaming",
-        "delta": " 0.40,\n    \"total\": 2.00\n  }\n}\n```",
-        "tokens": 127,
-        "elapsed": 59.87
-      },
-      "ts": 102934
+      "ts": 116530
     },
     {
       "event": "message",
       "data": {
         "agent": "claude",
         "status": "complete",
-        "elapsed": 145.66
+        "elapsed": 144.97
       },
-      "ts": 102990
+      "ts": 123826
     },
     {
       "event": "message",
@@ -1738,217 +1430,190 @@
           "meta": {
             "domain": "stripe.com",
             "companyName": "Stripe",
-            "analysisDate": "2026-05-26",
+            "analysisDate": "2026-05-27",
             "mode": "standard",
             "confidence": "medium-high",
-            "degraded": true,
-            "bdStatus": "partial",
-            "bdOk": 11,
-            "bdFailed": 1,
-            "bdErrors": [
-              "bd-scraping-browser: BD Scraping Browser zone=\"mcp_browser\" failed to load https://crunchbase.com/organization/stripe: page.goto: Timeout 300"
-            ]
+            "sources_count": 9,
+            "evidence_coverage": "12 of 12 claims have direct evidence from scraped data"
           },
           "signals": [
             {
               "level": "high",
-              "text": "Stripe holds a ~$107B valuation as the largest privately held fintech company globally, with a 2026 tender offer providing employee liquidity without forcing an IPO.",
-              "icon": "🟢"
+              "text": "Stripe launched an AI agent wallet and machine payments ('set up machine payments with a single prompt to your agent') — actively capturing the agentic AI payment layer before incumbents",
+              "icon": "🟢",
+              "evidence_url": "https://jobsbyculture.com/blog/stripe-layoffs-2026",
+              "confidence": "high"
             },
             {
               "level": "high",
-              "text": "Processes $1.4 trillion annually — scale creates compounding data moat for AI/fraud products (Stripe Radar) that smaller competitors cannot replicate.",
-              "icon": "🟢"
+              "text": "Completed $1.1B acquisition of Bridge Network (Feb 6, 2025) — largest Stripe deal ever, expanding into stablecoin and crypto payment rails",
+              "icon": "🟢",
+              "evidence_url": "https://fintechmagazine.com/articles/stripe-completes-us-1-1bn-bridge-acquisition",
+              "confidence": "high"
             },
             {
               "level": "high",
-              "text": "Named a Forrester Wave Leader for Merchant Payment Providers, Q1 2026 — validates enterprise credibility and accelerates upmarket sales cycles.",
-              "icon": "🟢"
+              "text": "Acquired Orum (Jul 2025) to expand real-time, non-card payment infrastructure — broadening beyond card rails",
+              "icon": "🟢",
+              "evidence_url": "https://fintechboostup.com/stripe-expands-real-time-payments-with-orum-acquisition/",
+              "confidence": "high"
+            },
+            {
+              "level": "high",
+              "text": "Named a Leader in Forrester Wave™: Merchant Payment Providers, Q1 2026 — third-party validation of enterprise positioning",
+              "icon": "🟢",
+              "evidence_url": "https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026",
+              "confidence": "high"
             },
             {
               "level": "medium",
-              "text": "Active expansion into stablecoin payment rails signals a long-term bet on crypto-native infrastructure before mainstream regulatory clarity exists.",
-              "icon": "🟡"
+              "text": "288 product launches at Sessions 2026 — extraordinary product velocity that will pressure competitors across multiple categories simultaneously",
+              "icon": "🟡",
+              "evidence_url": "https://jobsbyculture.com/blog/stripe-layoffs-2026",
+              "confidence": "medium"
             },
             {
               "level": "medium",
-              "text": "Launched expanded multi-currency accounts and global money management tools for UK businesses (May 2025), encroaching on traditional SMB banking territory.",
-              "icon": "🟡"
+              "text": "Tender offer announced alongside 2025 annual letter — signals controlled liquidity for employees/investors without near-term IPO commitment",
+              "icon": "🟡",
+              "evidence_url": "https://stripe.com/gb/newsroom/news/stripe-2025-update",
+              "confidence": "high"
             },
             {
               "level": "medium",
-              "text": "AI-powered security and financial services are being embedded across the product suite, leveraging transaction data at scale for differentiation.",
-              "icon": "🟡"
-            },
-            {
-              "level": "medium",
-              "text": "2025 annual letter + tender offer announcement signals continued private company discipline; IPO remains a future optionality, not near-term priority.",
-              "icon": "🟡"
+              "text": "62% Fortune 500 integration — deep enterprise entrenchment creating high switching costs and cross-sell leverage",
+              "icon": "🟡",
+              "evidence_url": "https://fueler.io/blog/stripe-usage-revenue-valuation-growth-statistics",
+              "confidence": "medium"
             }
           ],
           "snapshot": {
             "founded": "2010",
-            "hq": "San Francisco, CA / Dublin, Ireland (dual HQ)",
-            "employees": "~8,000–9,000 (est. 2025)",
-            "stage": "Late-stage private / Pre-IPO",
+            "hq": "South San Francisco, CA / Dublin, Ireland",
+            "employees": "15,302 LinkedIn connections; 5,001–10,000 per LinkedIn company size band",
+            "stage": "Late-stage Private (tender offer announced 2025)",
             "website": "stripe.com",
             "linkedin": "linkedin.com/company/stripe"
           },
           "financials": {
-            "totalRaised": "~$9.4B",
-            "lastRound": "Tender Offer — undisclosed amount (Early 2026)",
-            "valuation": "~$107B (2026 est.)",
-            "revenue": "~$15–20B TPV-derived revenue est. (gross); ~$4–5B net revenue est.",
-            "investors": [
-              "Sequoia Capital",
-              "Andreessen Horowitz",
-              "General Catalyst",
-              "Thrive Capital",
-              "Baillie Gifford",
-              "Tiger Global",
-              "Fidelity",
-              "Allianz"
-            ]
+            "totalRaised": "",
+            "lastRound": "",
+            "valuation": "~$159B (est., per jobsbyculture.com)",
+            "revenue": "",
+            "investors": []
           },
           "news": [
             {
-              "date": "Mar 05, 2026",
-              "headline": "Stripe named a Leader in The Forrester Wave™: Merchant Payment Providers, Q1 2026",
+              "date": "May 2026",
+              "headline": "Stripe enables machine payments with a single agent prompt — AI agent wallet goes live",
+              "signal": "HIGH",
+              "url": "https://jobsbyculture.com/blog/stripe-layoffs-2026"
+            },
+            {
+              "date": "Mar 5, 2026",
+              "headline": "Stripe named a Leader in Forrester Wave™: Merchant Payment Providers, Q1 2026",
               "signal": "HIGH",
               "url": "https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026"
             },
             {
-              "date": "Early 2026",
-              "headline": "Stripe publishes 2025 annual letter and announces new tender offer for shareholders",
+              "date": "2026",
+              "headline": "Stripe launches 288 products at Sessions 2026 conference",
               "signal": "HIGH",
-              "url": "https://stripe.com/newsroom/news"
+              "url": "https://jobsbyculture.com/blog/stripe-layoffs-2026"
             },
             {
-              "date": "Oct 24, 2025",
-              "headline": "Stripe ranks 10th in Fintech Magazine's Top 100 Fintech Companies; processes $1.4T annually",
-              "signal": "MED",
-              "url": "https://fintechmagazine.com/news/payments-giant-stripe-nabs-10th-in-top-100-fintech-companies"
-            },
-            {
-              "date": "May 31, 2025",
-              "headline": "Stripe expands global money management tools for UK businesses including multi-currency accounts and AI-driven security",
-              "signal": "MED",
-              "url": "https://www.fintechweekly.com/magazine/articles/stripe-global-money-management-uk-business-expansion"
-            },
-            {
-              "date": "Jan 23, 2026",
-              "headline": "Stripe leads fintech valuation leaderboard at $107B as largest privately owned fintech company",
+              "date": "Jul 21–23, 2025",
+              "headline": "Stripe acquires Orum to expand real-time, non-card payment rails",
               "signal": "HIGH",
-              "url": "https://www.earthianai.com/fintech-startup-leaderboard"
+              "url": "https://fintechboostup.com/stripe-expands-real-time-payments-with-orum-acquisition/"
+            },
+            {
+              "date": "Feb 6, 2025",
+              "headline": "Stripe completes $1.1B acquisition of Bridge Network — largest deal in company history",
+              "signal": "HIGH",
+              "url": "https://fintechmagazine.com/articles/stripe-completes-us-1-1bn-bridge-acquisition"
+            },
+            {
+              "date": "2025",
+              "headline": "Stripe publishes 2025 annual letter and announces tender offer",
+              "signal": "MED",
+              "url": "https://stripe.com/gb/newsroom/news/stripe-2025-update"
             }
           ],
           "products": [
             {
               "name": "Stripe Payments",
-              "description": "Core payment processing API supporting 135+ currencies and 100+ payment methods globally."
+              "description": "Core payment processing platform used by millions of businesses; integrated into 62% of Fortune 500"
             },
             {
-              "name": "Stripe Billing",
-              "description": "Subscription and recurring revenue management with smart retry logic and revenue recovery."
+              "name": "Bridge Network (acquired)",
+              "description": "Stablecoin and crypto payment infrastructure; $1.1B acquisition completed Feb 2025"
             },
             {
-              "name": "Stripe Radar",
-              "description": "AI/ML-powered fraud detection and prevention leveraging network-wide transaction data at $1.4T scale."
+              "name": "Orum (acquired)",
+              "description": "Real-time payments infrastructure for non-card rails; acquired Jul 2025"
             },
             {
-              "name": "Stripe Connect",
-              "description": "Marketplace and platform payments infrastructure enabling multi-party money movement and onboarding."
-            },
-            {
-              "name": "Stripe Treasury",
-              "description": "Banking-as-a-service API allowing platforms to offer financial accounts, cards, and money movement."
-            },
-            {
-              "name": "Stripe Tax",
-              "description": "Automated global sales tax, VAT, and GST calculation and filing across 50+ countries."
-            },
-            {
-              "name": "Stripe Identity",
-              "description": "Automated identity verification to reduce fraud and streamline KYC compliance."
-            },
-            {
-              "name": "Stripe Issuing",
-              "description": "Instant virtual and physical card creation for platforms and businesses."
-            },
-            {
-              "name": "Stripe Capital",
-              "description": "Revenue-based financing and business loans for Stripe-enabled businesses using transaction history."
-            },
-            {
-              "name": "Stripe Climate",
-              "description": "Carbon removal contribution program embedded into Stripe checkout flows."
-            },
-            {
-              "name": "Stablecoin Payment Rails",
-              "description": "Emerging product enabling businesses to accept and settle in stablecoins; active expansion area as of 2025–2026."
+              "name": "AI Agent Wallet / Machine Payments",
+              "description": "Enables agentic AI systems to transact autonomously; set up via single prompt; launched 2026"
             }
           ],
           "competitive": [
             {
+              "competitor": "PayPal",
+              "weakness": "Listed as top Stripe competitor in payment management; Stripe's developer-first API model and enterprise penetration (62% Fortune 500) create differentiation PayPal has not matched",
+              "evidence_url": "https://www.6sense.com/tech/payment-management/stripe-market-share",
+              "confidence": "medium"
+            },
+            {
               "competitor": "Adyen",
-              "weakness": "Less developer-friendly onboarding; requires enterprise contract minimums — Stripe wins SMB-to-mid-market pipeline and self-serve velocity."
+              "weakness": "Named as a top competitor; Stripe's broader product surface area (288 launches in 2026) and AI-native direction may outpace Adyen's more focused enterprise model",
+              "evidence_url": "https://www.6sense.com/tech/payment-management/stripe-market-share",
+              "confidence": "medium"
             },
             {
-              "competitor": "PayPal / Braintree",
-              "weakness": "Brand perception as consumer-first limits enterprise developer adoption; legacy tech stack creates friction vs. Stripe's modern API design."
-            },
-            {
-              "competitor": "Square (Block)",
-              "weakness": "Primarily POS/SMB focused with limited global infrastructure and no comparable developer platform for complex marketplace/platform use cases."
-            },
-            {
-              "competitor": "Checkout.com",
-              "weakness": "Enterprise-only focus with limited self-serve; lacks Stripe's full-stack product suite (billing, tax, identity, capital)."
-            },
-            {
-              "competitor": "Shopify Payments",
-              "weakness": "Locked to Shopify ecosystem; no cross-platform applicability — Stripe powers businesses on any stack or platform."
+              "competitor": "Venmo",
+              "weakness": "Listed as top competitor; primarily consumer-focused, lacking Stripe's programmable infrastructure and enterprise depth",
+              "evidence_url": "https://www.6sense.com/tech/payment-management/stripe-market-share",
+              "confidence": "medium"
             }
           ],
           "hiring": [
             {
-              "role": "AI / Machine Learning Engineers",
+              "role": "General (active hiring evident)",
               "count": 0,
-              "signal": "Investment in AI-powered fraud, financial services recommendations, and developer tooling automation."
-            },
-            {
-              "role": "Enterprise Sales & Solutions Engineers",
-              "count": 0,
-              "signal": "Continued upmarket push targeting Fortune 500 and global enterprise clients post-Forrester Leader designation."
-            },
-            {
-              "role": "International / Regional GTM (UK, EU, APAC)",
-              "count": 0,
-              "signal": "Geographic expansion of money management and embedded finance products beyond North America."
-            },
-            {
-              "role": "Compliance / Regulatory (Global)",
-              "count": 0,
-              "signal": "Growing regulatory complexity in EU (PSD3), UK, APAC drives compliance headcount to protect operating licenses."
+              "signal": "LinkedIn shows active job listings; 15,302 employees on platform. Role-level breakdown not available in scraped data."
             }
           ],
           "strategic": [
-            "Move from pure payment processing to full financial infrastructure platform — capturing more of business's entire financial stack (banking, lending, tax, identity).",
-            "Stablecoin and crypto-native payment rails as a long-term bet on next-generation settlement infrastructure, positioning ahead of regulatory clarity.",
-            "AI integration across fraud (Radar), security, and financial services to leverage $1.4T transaction data moat into proprietary intelligence products.",
-            "Continued geographic expansion — especially UK/EU/APAC multi-currency and money management tools — to capture international SMB and enterprise revenue.",
-            "Maintain private status via tender offers to optimize long-term decision-making while managing employee/investor liquidity expectations ahead of eventual IPO.",
-            "Upmarket enterprise sales acceleration following Forrester Wave Leader recognition, targeting displacement of legacy processors at large institutions."
+            {
+              "text": "Expanding payment rails beyond cards: Orum (real-time ACH/RTP) + Bridge (stablecoin) acquisitions signal intent to own full-stack money movement, not just card acceptance",
+              "evidence_url": "https://fintechboostup.com/stripe-expands-real-time-payments-with-orum-acquisition/",
+              "confidence": "high"
+            },
+            {
+              "text": "Racing to own the AI agent payments layer with a dedicated agent wallet and machine payment primitives — positions Stripe as default fintech infrastructure for the agentic era",
+              "evidence_url": "https://jobsbyculture.com/blog/stripe-layoffs-2026",
+              "confidence": "high"
+            },
+            {
+              "text": "Dominant enterprise entrenchment (62% Fortune 500) creates compounding cross-sell opportunity across new product lines (Bridge, Orum, AI payments)",
+              "evidence_url": "https://fueler.io/blog/stripe-usage-revenue-valuation-growth-statistics",
+              "confidence": "medium"
+            },
+            {
+              "text": "Tender offer (not IPO) signals management is managing employee/investor liquidity deliberately — Stripe remains private and on its own timeline",
+              "evidence_url": "https://stripe.com/gb/newsroom/news/stripe-2025-update",
+              "confidence": "high"
+            },
+            {
+              "text": "Global office footprint (SF, Dublin, London, Singapore, Tokyo, São Paulo, Bengaluru, Mexico City, Amsterdam) indicates active international expansion strategy",
+              "evidence_url": "https://linkedin.com/company/stripe",
+              "confidence": "high"
+            }
           ],
           "aiPerception": null,
-          "pricingCapture": {
-            "model": "Usage-based / per-transaction",
-            "standardOnline": "2.9% + $0.30 per successful card charge (US)",
-            "internationalCards": "+1.5% for international cards",
-            "currencyConversion": "+1% for currency conversion",
-            "customEnterprise": "Volume-based negotiated pricing for large enterprises",
-            "notes": "Stripe pioneered transparent, no-monthly-fee pricing; enterprise pricing is custom and non-public."
-          },
+          "pricingCapture": null,
           "cost": {
             "webUnlocker": 0.3,
             "serpApi": 0.5,
@@ -1958,8 +1623,8 @@
             "discoverApi": 0,
             "bdCrawl": 0,
             "datasetsApi": 0,
-            "claude": 0.0547,
-            "total": 2.25
+            "claude": 0,
+            "total": 2.2
           },
           "techStack": null,
           "github": null,
@@ -2063,21 +1728,78 @@
               "scraped": true
             }
           },
+          "crawl": {
+            "domain": "stripe.com",
+            "pages": [
+              {
+                "url": "https://stripe.com/",
+                "markdown": "[\n  {\n    \"url\": \"https://stripe.com/\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/pricing\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/about\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/customers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/careers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/blog\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/contact\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/security\",\n    \"content\": \"\"\n  }\n]"
+              }
+            ],
+            "count": 1
+          },
           "news": {
             "query": "stripe company news",
             "results": [
               {
-                "link": "https://stripe.com/en-ch/newsroom",
+                "link": "https://stripe.com/newsroom/news",
                 "source": "Stripe",
-                "display_link": "https://stripe.com › en-ch › newsroom",
-                "title": "Stripe Newsroom: The Latest News & Announcements",
+                "display_link": "https://stripe.com › newsroom › news",
+                "title": "The Latest News & Announcements",
                 "description": "Read the latest news and information from Stripe, including corporate and product announcements, research reports, brand assets, and more.",
                 "snippet_highlighted_words": [
                   "Read the latest news and information from Stripe"
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAM1BMVEVHcExTOv1TOv1TOv1QNf1KLv1FJf0+Gf1+b/5tWv2elP7Oyf/n5P////+rov6QhP65sf4/usZVAAAAA3RSTlMATNu3u8+LAAAAdUlEQVR4AeTRtQHAMBAEQTE+9d+sIDJT7A1vwlNKG3ua0cPsZVqZazTK3vQdnTtH50MMKbkDTsilAiL5Nc7dsgDOdugyVZydoSfE/2GV7M4QhG0MftoGoZYcgveHP11KoQ+hASGJiF7KkwkC4E2aeBM13uwAAF8sEUFGFS8JAAAAAElFTkSuQmCC",
                 "rank": 1,
-                "global_rank": 1
+                "global_rank": 2
+              },
+              {
+                "link": "https://stripe.com/newsroom/information",
+                "source": "Stripe",
+                "display_link": "https://stripe.com › newsroom › information",
+                "title": "Stripe Newsroom | Information and assets",
+                "description": "100+. industry leaders process more than $1B annually on Stripe. ; $1.4T+. in payments processed by businesses on Stripe in 2024. ; 135+. currencies and payment ...Read more",
+                "snippet_highlighted_words": [
+                  "100+. industry leaders process more than $1B annually on Stripe"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAM1BMVEVHcExTOv1TOv1TOv1QNf1KLv1FJf0+Gf1+b/5tWv2elP7Oyf/n5P////+rov6QhP65sf4/usZVAAAAA3RSTlMATNu3u8+LAAAAdUlEQVR4AeTRtQHAMBAEQTE+9d+sIDJT7A1vwlNKG3ua0cPsZVqZazTK3vQdnTtH50MMKbkDTsilAiL5Nc7dsgDOdugyVZydoSfE/2GV7M4QhG0MftoGoZYcgveHP11KoQ+hASGJiF7KkwkC4E2aeBM13uwAAF8sEUFGFS8JAAAAAElFTkSuQmCC",
+                "rank": 2,
+                "global_rank": 7
+              },
+              {
+                "link": "https://www.finextra.com/company-news/3587/stripe",
+                "source": "Finextra Research",
+                "display_link": "https://www.finextra.com › company-news › stripe",
+                "title": "Stripe - News, Articles & Research",
+                "description": "Company announcement /ai · Stripe brings agentic payments to Google. Stripe today announced 288 new products and features at Stripe Sessions ...Read more",
+                "snippet_highlighted_words": [
+                  "Stripe brings agentic payments to Google"
+                ],
+                "extensions": [
+                  {
+                    "inline": true,
+                    "type": "text",
+                    "text": "11 May 2026",
+                    "rank": 1
+                  }
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAYFBMVEVHcEz//v80b+EhiNuGE/oZkdl7HveIEfoXlNgbj9lIW+ddQe1zKfRUTOtmOPBJUOgqfd5AYeU8ZuNaguZrMPIKfNtVK+5rD/SzzPG9rvh3YvCfrvDa0fuLh/Cnjfaluu9c4fmMAAAACnRSTlMA////////rq6urDtdpgAAAN1JREFUKJGNkm0XgiAMhRlpppT4OmIJ/f9/GYiZKZzaJ855zt0u22WsPJ2ahnPetVUlbzch6nq4Xs/nrGDsknvY8G4PPc3zlDLLFhhRfuAPZRL2S1EEjncINX27XeHz4cp4iDjslX5mK6VEstYO6hv2wRCF/lodoWdaoJnpFvqSE2gUNVqAo9sKgIRzpADsFga3AEjG6sn33c2UZvmu1pYOhhw0risqFXMLs6HD+gJ0D0oqZZioYVKRDUm9ruh9snEc13uiIBo2bX8lgcfS92eGoum7pJUu8mUqfQV7AcQRIc4TnN3iAAAAAElFTkSuQmCC",
+                "rank": 3,
+                "global_rank": 8
+              },
+              {
+                "link": "https://en.wikipedia.org/wiki/Stripe,_Inc.",
+                "source": "Wikipedia",
+                "display_link": "https://en.wikipedia.org › wiki › Stripe,_Inc",
+                "title": "Stripe, Inc.",
+                "description": "Stripe is the largest privately owned financial technology company with a valuation of about $159 billion and over $1.9 trillion in payment volume processed in ...Read more",
+                "snippet_highlighted_words": [
+                  "Stripe is the largest privately owned financial technology company"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAnklEQVR4AeTNIQiDQABG4b+u17X1aF6PK3YEO9iMJqPVau82y4FgMezS0oVLhqsHtrcqeqzDXv3CEz/6L4yTtZM3dnHmPTtjzXZAXKYVo4agkU2GI2Lloc6JDez1+flswMu1EQZ3xlE7lK8eKDkjtwE+crBMV+wesKmCiisGGepZIfQJpMj9SNb2MYWrChjVkULuCyCfRvsdmBieyQQAsoDk/9ryhFMAAAAASUVORK5CYII=",
+                "rank": 4,
+                "global_rank": 9
               },
               {
                 "link": "https://www.forbes.com/companies/stripe/",
@@ -2097,106 +1819,77 @@
                   }
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAZlBMVEUYFxYQDg0GBAALCggVFBNTUlF0dHRqamlubm5mZmYdHBu+vr3////v7+/s7Ow1NTQSERAAAACUlJRBQD/MzMz19fRPT048OzsiISDV1NTq6uovLi2ioaHg4OAtLCsoJiVHRkWMjItuM4hgAAAAyUlEQVR4AcXQBRKDMBBA0YQYThZ3uf8lu6nvkPHKx3lo2FfjwXtCElPauEIMN1H8jiJKUleW55nbFpYolM4qAKHqtEEk2iLmHWcS+qHpKPIKnzde74CoqSjabkScLJNC9nMhKRYL4mrlpmN0RnFyuAnQdY9Ek9uA2FbRUsdn7BHTYchSRP+d3bYPFN/euXIw9J1vX1tY2d8GlsTdf+YVZ5Kf7DZCWSuYL6HwY5sIvAZzis0QeEwPSNhw2BPKYq+u7ZVkZ+X3LPtzF3mnDlewk4KhAAAAAElFTkSuQmCC",
-                "rank": 2,
-                "global_rank": 6
-              },
-              {
-                "link": "https://finance.yahoo.com/quote/STRI.PVT/",
-                "source": "Yahoo Finance",
-                "display_link": "https://finance.yahoo.com › quote › STRI",
-                "title": "Stripe (STRI.PVT) Valuation, History & News",
-                "description": "Stripe is a global technology company which provides a financial infrastructure platform intended to accept payments and grow revenue.",
-                "snippet_highlighted_words": [
-                  "Stripe"
-                ],
-                "extensions": [
-                  {
-                    "inline": true,
-                    "type": "text",
-                    "text": "22 hours ago",
-                    "rank": 1
-                  }
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAA8FBMVEVeAc1dActaAcVYAcFXAb5WAbxUAbhTAbVRALFPAK1NAKlLAKRIAKyKyVFJAKFVN6Oe8wqIxFJIAJ1OALtXK7BGALFiZJKl/wB7pWo6AKmOz01fU6BzkXpoeIStotBUGbSZ6CiQ1EVxh4aEulxWSZXa1un///8zAJhGAJldR6cwALBgXpaT3DhOFKjz8vdpb5Xm5e1PLaBsT7JDAJPIweJeNLB1mHOPf8Lc3Op7ZLkgAJq0rNQaAIsyAIhBAI9AAIw+AIg8AINXO5S8udBIIp19b66Cdqqgl74hAHo5AH2rpMdxXqGAbrOfksNCIoVmTKYUy/OsAAABhklEQVR4AW3RBXYDMQwEUIeZs2EGhbehtmFmvP9tOvI+l+exv0mS4JhMJrPZbLFYrTabzW53OJxOp8vlcjNBlCmSBvz/GMjtEf8f84I8wH+P+bwwv/h2zK6OBYIhr8fvDwtJ0iJR45wWiyeSbGEB4xthqXhac8Ey8WwyBwOqK/OFYime1VxaOV5JVqkGqwtJjkgjXm5qrXhCaxfCHZ30WrherwvDXuKZZq7r7QXjqWSfCAgbCDZ7Jh5rDrH06n9LvpOBg8FAoDZHpNDQRsQZT6YkcTZglHV78zoZGZGB88FgsRBOtj59j0TYUnDZSfqLMKALWB39SnW+XC5XwhiOv6YymHOkAdk8spVcN1eAG5lWa/GNAg2QtFVlAwOy1cK4cDbdzha4EJeuKL1GBB+r0Y62REOiPVFap8Oxe4KdBcxfm3ar+q47vIy6x0t3dB1t06DzWcjXenS7k769VO+6vunSgR4gYJjxSXhN5nRanU7n01kh/3/+rQDkrBCEKIMoA/6qW5LKB+nIZaQqRO4KAAAAAElFTkSuQmCC",
-                "rank": 3,
-                "global_rank": 7
+                "rank": 5,
+                "global_rank": 10
               },
               {
                 "link": "https://www.youtube.com/watch?v=xF_ugmSWQg0",
                 "source": "YouTube · CNBC Television",
-                "display_link": "35.4K+ views · 3 months ago",
+                "display_link": "35.4k+ views · 3 months ago",
                 "title": "Stripe President John Collison on new tender offer, software ...",
                 "description": "John Collison, Stripe co-founder and president, joins 'Squawk Box' to discuss the company's new tender offer valuing the company at $159 ...",
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAhUlEQVR4AWNwL/ChCFPHgP8MxqxA7ArEKVBcCcUNIAznI+RdQXrABgAZpv8ZjP6Tg0F6QQbsosCAXSADHmGVVPIC0jKEDHgAMuAbmgRE445D///feYzXIJBeBigH04BVW/9DAcgwqEGYaik2gGIvUByIlEbjDooTEiwps5GRlNmolpkowgBVP9wMSzSKGAAAAABJRU5ErkJggg==",
-                "image": "data:image/jpeg;base64,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",
-                "image_base64": "data:image/jpeg;base64,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",
+                "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQENqSIzPLqGu8sjwtj7aXu3FZhuHVFbs-OBogRdtLuWE2y_SXagUxDOQ&s",
+                "image_url": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQENqSIzPLqGu8sjwtj7aXu3FZhuHVFbs-OBogRdtLuWE2y_SXagUxDOQ&s",
                 "duration": "7:16",
                 "duration_sec": 436,
-                "rank": 4,
-                "global_rank": 8
-              },
-              {
-                "link": "https://stripe.com/newsroom/information",
-                "source": "Stripe",
-                "display_link": "https://stripe.com › newsroom › information",
-                "title": "Stripe Newsroom | Information and assets",
-                "description": "100+. industry leaders process more than $1B annually on Stripe. ; $1.4T+. in payments processed by businesses on Stripe in 2024. ; 135+. currencies and payment ...",
-                "snippet_highlighted_words": [
-                  "100+. industry leaders process more than $1B annually on Stripe"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAM1BMVEVHcExTOv1TOv1TOv1QNf1KLv1FJf0+Gf1+b/5tWv2elP7Oyf/n5P////+rov6QhP65sf4/usZVAAAAA3RSTlMATNu3u8+LAAAAdUlEQVR4AeTRtQHAMBAEQTE+9d+sIDJT7A1vwlNKG3ua0cPsZVqZazTK3vQdnTtH50MMKbkDTsilAiL5Nc7dsgDOdugyVZydoSfE/2GV7M4QhG0MftoGoZYcgveHP11KoQ+hASGJiF7KkwkC4E2aeBM13uwAAF8sEUFGFS8JAAAAAElFTkSuQmCC",
-                "rank": 5,
-                "global_rank": 9
-              },
-              {
-                "link": "https://en.wikipedia.org/wiki/Stripe,_Inc.",
-                "source": "Wikipedia",
-                "display_link": "https://en.wikipedia.org › wiki › Stripe,_Inc",
-                "title": "Stripe, Inc.",
-                "description": "Stripe is the largest privately owned financial technology company with a valuation of about $159 billion and over $1.9 trillion in payment volume processed in ...",
-                "snippet_highlighted_words": [
-                  "Stripe is the largest privately owned financial technology company"
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAAAAABXZoBIAAAAnklEQVR4AeTNIQiDQABG4b+u17X1aF6PK3YEO9iMJqPVau82y4FgMezS0oVLhqsHtrcqeqzDXv3CEz/6L4yTtZM3dnHmPTtjzXZAXKYVo4agkU2GI2Lloc6JDez1+flswMu1EQZ3xlE7lK8eKDkjtwE+crBMV+wesKmCiisGGepZIfQJpMj9SNb2MYWrChjVkULuCyCfRvsdmBieyQQAsoDk/9ryhFMAAAAASUVORK5CYII=",
                 "rank": 6,
-                "global_rank": 10
+                "global_rank": 11
               },
               {
                 "link": "https://www.siliconrepublic.com/topics/stripe",
                 "source": "Silicon Republic",
                 "display_link": "https://www.siliconrepublic.com › topics › stripe",
                 "title": "All 'Stripe' news",
-                "description": "Opinion: Europe can't afford to sit on the agentic commerce sidelines. 8 May 2026. Stripe alum's Seapoint raises €7.5m as 'financial home' to start-ups.",
+                "description": "Opinion: Europe can't afford to sit on the agentic commerce sidelines. 8 May 2026. Stripe alum's Seapoint raises €7.5m as 'financial home' to start-ups.Read more",
                 "snippet_highlighted_words": [
                   "Stripe alum's Seapoint raises €7.5m as 'financial home' to start-ups"
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAJ1BMVEVHcEztHCTtGyPtGyPtGyPtGyPtGyPtHCTtGyPtGyPtGyPtGyTtGyMgwDIDAAAADHRSTlMAWBPuqsXZa0CNUCpuA0DqAAAAnElEQVQokX2SWRKFMAgEEcxm5v7nfS+bBRqcTzrVyiREOiEyeUlAcmEAgsdYAHje689c79mg4+1WyN6b0XNtYRnw1LJjJsmASGvCFOFGviG7VOpa7535Y2nH7qbqSy352ZxS2poMffb7BVmM1lqz/ebhW235RNMaw6Sa1TEq973pNceoX3OWp7c1tN4zN7WoRezZYpcJYl5OllHDD2A/D682+Gk4AAAAAElFTkSuQmCC",
                 "rank": 7,
-                "global_rank": 11
-              },
-              {
-                "link": "https://www.finextra.com/company-news/3587/stripe",
-                "source": "Finextra Research",
-                "display_link": "https://www.finextra.com › company-news › stripe",
-                "title": "Stripe - News, Articles & Research",
-                "description": "Company announcement /ai · Stripe brings agentic payments to Google. Stripe today announced 288 new products and features at Stripe Sessions ...",
-                "snippet_highlighted_words": [
-                  "Stripe brings agentic payments to Google"
-                ],
-                "extensions": [
-                  {
-                    "inline": true,
-                    "type": "text",
-                    "text": "11 May 2026",
-                    "rank": 1
-                  }
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAYFBMVEVHcEz//v80b+EhiNuGE/oZkdl7HveIEfoXlNgbj9lIW+ddQe1zKfRUTOtmOPBJUOgqfd5AYeU8ZuNaguZrMPIKfNtVK+5rD/SzzPG9rvh3YvCfrvDa0fuLh/Cnjfaluu9c4fmMAAAACnRSTlMA////////rq6urDtdpgAAAN1JREFUKJGNkm0XgiAMhRlpppT4OmIJ/f9/GYiZKZzaJ855zt0u22WsPJ2ahnPetVUlbzch6nq4Xs/nrGDsknvY8G4PPc3zlDLLFhhRfuAPZRL2S1EEjncINX27XeHz4cp4iDjslX5mK6VEstYO6hv2wRCF/lodoWdaoJnpFvqSE2gUNVqAo9sKgIRzpADsFga3AEjG6sn33c2UZvmu1pYOhhw0risqFXMLs6HD+gJ0D0oqZZioYVKRDUm9ruh9snEc13uiIBo2bX8lgcfS92eGoum7pJUu8mUqfQV7AcQRIc4TnN3iAAAAAElFTkSuQmCC",
-                "rank": 8,
                 "global_rank": 12
               },
               {
-                "link": "https://stripe.com/newsroom/news/stripe-2025-update",
+                "link": "https://www.ft.com/stream/6b2d20d9-95e7-428c-a2c3-7f13ed97f3ff",
+                "source": "Financial Times",
+                "display_link": "https://www.ft.com › stream",
+                "title": "Stripe Inc",
+                "description": "Stripe reaches $65bn valuation in deal to let employees cash out stock. Payments company's value is 30% higher than last year but is still well below its 2021 ...Read more",
+                "snippet_highlighted_words": [
+                  "Stripe reaches $65bn valuation in deal"
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAY1BMVEX80LH90bL+0bLwxqn0yqzpwaTtxKi0l4JxYlcAFR4AERyDcGOehXSXgG8VHyX/27p9bGAAAA6QemtrXlT/1rYaIifct5z/2Ld8a1+rkH2+n4kiJyrPrJRQSEM0NDQMGyKLdmiT9qvfAAAAt0lEQVR4AWKgCADooAssiEEYCKAJWtfU9f6nXPStTxU+jjHs+WvijXMhuImQqAQPJcGdok7SLC/KPK3qpk3KLsu6sm9zAhsS1TBORNygrklVFadaB2TKIAOgfpoFoqwqxVA0b4i0mAs8gvl9ItEqCQgimt+Im973w1Y9EZ5Y6OXkf9AMOy0S/yEDMvYXTX4hf0N7CE+cxutaJww2rde1xxJQ2dx3PoeD5nP+LFl1iT0fg/MIg1EAAJW6DMKHbKvSAAAAAElFTkSuQmCC",
+                "rank": 8,
+                "global_rank": 13
+              },
+              {
+                "link": "https://stripe.com/gb",
+                "source": "Stripe",
+                "display_link": "https://stripe.com › ...",
+                "title": "Stripe | Financial Infrastructure to Grow Your Revenue",
+                "description": "Stripe is a financial services platform that helps all types of businesses accept payments, build flexible billing models and manage money movement.",
+                "snippet_highlighted_words": [
+                  "Stripe"
+                ],
+                "extensions": [
+                  {
+                    "type": "missing",
+                    "text": "news",
+                    "rank": 1
+                  },
+                  {
+                    "type": "must_include",
+                    "text": "news",
+                    "link": "https://www.google.com/search?sca_esv=aac1224288ab2d4c&hl=en&q=stripe+company+%22news%22&sa=X&ved=2ahUKEwiTmf72udmUAxXOU6QEHb7uG8MQ5t4CegQIVhAB",
+                    "rank": 2
+                  }
+                ],
+                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAM1BMVEVHcExTOv1TOv1TOv1QNf1KLv1FJf0+Gf1+b/5tWv2elP7Oyf/n5P////+rov6QhP65sf4/usZVAAAAA3RSTlMATNu3u8+LAAAAdUlEQVR4AeTRtQHAMBAEQTE+9d+sIDJT7A1vwlNKG3ua0cPsZVqZazTK3vQdnTtH50MMKbkDTsilAiL5Nc7dsgDOdugyVZydoSfE/2GV7M4QhG0MftoGoZYcgveHP11KoQ+hASGJiF7KkwkC4E2aeBM13uwAAF8sEUFGFS8JAAAAAElFTkSuQmCC",
+                "rank": 9,
+                "global_rank": 14
+              },
+              {
+                "link": "https://stripe.com/gb/newsroom/news/stripe-2025-update",
                 "source": "Stripe",
                 "display_link": "https://stripe.com › news › stripe-2025-update",
                 "title": "Stripe publishes 2025 annual letter and announces tender ...",
@@ -2213,112 +1906,17 @@
                   }
                 ],
                 "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAM1BMVEVHcExTOv1TOv1TOv1QNf1KLv1FJf0+Gf1+b/5tWv2elP7Oyf/n5P////+rov6QhP65sf4/usZVAAAAA3RSTlMATNu3u8+LAAAAdUlEQVR4AeTRtQHAMBAEQTE+9d+sIDJT7A1vwlNKG3ua0cPsZVqZazTK3vQdnTtH50MMKbkDTsilAiL5Nc7dsgDOdugyVZydoSfE/2GV7M4QhG0MftoGoZYcgveHP11KoQ+hASGJiF7KkwkC4E2aeBM13uwAAF8sEUFGFS8JAAAAAElFTkSuQmCC",
-                "rank": 9,
-                "global_rank": 13
-              },
-              {
-                "link": "https://fintechmagazine.com/news/payments-giant-stripe-nabs-10th-in-top-100-fintech-companies",
-                "source": "FinTech Magazine",
-                "display_link": "https://fintechmagazine.com › news › payments-giant-st...",
-                "title": "Payments Giant Stripe Nabs 10th in Top 100 ...",
-                "description": "The payments infrastructure provider processes US$1.4tn annually whilst expanding into stablecoins and AI-powered financial services.",
-                "extensions": [
-                  {
-                    "inline": true,
-                    "type": "text",
-                    "text": "24 Oct 2025",
-                    "rank": 1
-                  }
-                ],
-                "icon": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABwAAAAcCAMAAABF0y+mAAAAflBMVEUvFU8uFE4iAEgYAEHe2+Pq5+0fAEUQAD7y7/T////9/P6qo7U8JlpGM2ErDkyjm65BK11LOGXu7fHh3uXBu8kpFU6elaoAADYiFU1hEV19D2Y8E1OyCXj7AJLwAI4VFUu+CHzTBIR0D2MFFkmQDWzlAIupCnWWjKNTElkpCEuslqXhAAAAm0lEQVR4AWIYQABolhyQAAZiAFjbtvn/B9Z2O+oODntMAk4cOGhib2EEHUCwncUJcoCAjyXVQBLHO2mGbeGAI8nDXAtwIYFjSQuiKLLHO3sQ+IOUEASRFUxV1QOp6TAMY4Zp2erBa7GmYziu55nqoVRN1/SD0D+WkefHSXoibS9IvMzYpkzKoaajFmHaum2yyy4dqmEYR2UC/IEaFvALR/+ZmQEAAAAASUVORK5CYII=",
                 "rank": 10,
-                "global_rank": 14
+                "global_rank": 15
               }
             ]
-          },
-          "crawl": {
-            "domain": "stripe.com",
-            "pages": [
-              {
-                "url": "https://stripe.com/",
-                "markdown": "[\n  {\n    \"url\": \"https://stripe.com/\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/pricing\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/about\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/customers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/careers\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/blog\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/contact\",\n    \"content\": \"\"\n  },\n  {\n    \"url\": \"https://stripe.com/security\",\n    \"content\": \"\"\n  }\n]"
-              }
-            ],
-            "count": 1
-          },
-          "discover": {
-            "query": "stripe.com company news products competitors 2026",
-            "intent": "find official pages, news articles, and competitive intelligence about stripe.com",
-            "results": [
-              {
-                "link": "https://stripe.com/newsroom/news",
-                "title": "The Latest News & Announcements",
-                "description": "Read the latest news and information from Stripe, including corporate and product announcements, research reports, brand assets, and more.",
-                "relevance_score": 0.74609375
-              },
-              {
-                "link": "https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026",
-                "title": "Stripe named a Leader by independent research firm for ...",
-                "description": "Mar 5, 2026 — Stripe was named a Leader in The Forrester Wave™: Merchant Payment Providers, Q1 2026.",
-                "relevance_score": 0.64453125
-              },
-              {
-                "link": "https://fintechmagazine.com/news/payments-giant-stripe-nabs-10th-in-top-100-fintech-companies",
-                "title": "Payments Giant Stripe Nabs 10th in Top 100 ...",
-                "description": "Oct 24, 2025 — The payments infrastructure provider processes US$1.4tn annually whilst expanding into stablecoins and AI-powered financial services.",
-                "relevance_score": 0.63671875
-              },
-              {
-                "link": "https://www.joinstored.com/blogs/stripe-review-a-comprehensive-analysis-of-payment-processing-solutions-in-2025",
-                "title": "Stripe Review 2026: A Deep Dive into Payment Processing",
-                "description": "Mar 2, 2025 — Stripe has evolved into a leading payment processor with a comprehensive suite of tools for businesses to manage online transactions.Read more",
-                "relevance_score": 0.62890625
-              },
-              {
-                "link": "https://www.earthianai.com/fintech-startup-leaderboard",
-                "title": "Fintech Startup Leaderboard",
-                "description": "Jan 23, 2026 — Stripe leads with a $107B valuation as the largest privately owned fintech company. It powers payments infrastructure for millions of online ...Read more",
-                "relevance_score": 0.62890625
-              },
-              {
-                "link": "https://www.dwarkesh.com/p/patrick-collison",
-                "title": "Patrick Collison (Stripe CEO) - Craft, Beauty, & The Future ...",
-                "description": "Feb 21, 2024 — What it takes to process $1 trillion/year, how to build multi-decade APIs, companies, and relationships, and what's next for Stripe.Read more",
-                "relevance_score": 0.609375
-              },
-              {
-                "link": "https://www.forbes.com/advisor/business/software/stripe-review/",
-                "title": "Stripe Review 2026: Features, Pricing and More - advisor",
-                "description": "Apr 14, 2026 — Stripe pioneered the PFaaS model, making it incredibly easy for developers with limited payments expertise to embed global payment functionality ...Read more",
-                "relevance_score": 0.6015625
-              },
-              {
-                "link": "https://research.contrary.com/company/stripe",
-                "title": "Report: Stripe Business Breakdown & Founding Story",
-                "description": "Aug 22, 2025 — Stripe has evolved from a developer-facing payments API aimed at SMBs into a full-stack financial infrastructure platform powering ...",
-                "relevance_score": 0.59765625
-              },
-              {
-                "link": "https://www.fintechweekly.com/magazine/articles/stripe-global-money-management-uk-business-expansion",
-                "title": "Stripe Expands Global Money Management Tools to Boost ...",
-                "description": "May 31, 2025 — Stripe introduces expanded global payment and money management tools for UK businesses, including multi-currency accounts and AI-driven security.Read more",
-                "relevance_score": 0.58984375
-              },
-              {
-                "link": "https://news.crunchbase.com/venture/under-the-hood-a-closer-look-at-stripe-the-most-highly-valued-venture-backed-private-company-in-the-us/",
-                "title": "Under The Hood: A Closer Look At Stripe, The Most Highly ...",
-                "description": "Apr 20, 2021 — Payments processing startup Stripe earlier this year became the most highly valued venture-backed private company in the US and the third most valuable in the ...Read more",
-                "relevance_score": 0.58984375
-              }
-            ],
-            "duration_seconds": 4
           },
           "mcp": {
             "domain": "stripe.com",
             "mode": "standard",
             "search": {
               "query": "stripe company funding competitors news hiring 2026",
-              "raw": "{\n  \"organic\": [\n    {\n      \"link\": \"https://techfundingnews.com/seapoint-7-5m-seed-ex-stripe-startup-banking-europe/\",\n      \"title\": \"Ex-Stripe execs scoop €7.5M to automate the financial ...\",\n      \"description\": \"21 Apr 2026 — Founded by Stripe's former European CIO, Dublin fintech Seapoint has raised a €7.5 million seed round led by 13books to automate financial ...\"\n    },\n    {\n      \"link\": \"https://www.mindstudio.ai/blog/stripe-atlas-130-percent-startup-incorporations-q1-2026/\",\n      \"title\": \"Stripe Atlas: 130% More Startups in Q1 2026\",\n      \"description\": \"7 May 2026 — Stripe Atlas hit 100,000 all-time incorporations with a 130% YoY spike in Q1 2026. The data suggests AI is minting entrepreneurs faster than ...Read more\"\n    },\n    {\n      \"link\": \"https://www.kore1.com/top-fintech-companies-hiring-2026/\",\n      \"title\": \"Top Fintech Companies Hiring in 2026\",\n      \"description\": \"15 Apr 2026 — The fintech companies actually hiring in 2026 are Stripe, Plaid, Ramp, Mercury, Adyen, Wise, Revolut, Toast, Gusto, Rippling, SoFi, Chime, ...Read more\"\n    },\n    {\n      \"link\": \"https://finance.yahoo.com/news/paypal-stripe-other-fintech-giants-080456699.html\",\n      \"title\": \"PayPal, Stripe and other fintech giants flex crypto muscles\",\n      \"description\": \"8 Jan 2026 — Fintechs will push further into crypto in 2026. Here's how Stripe, PayPal and others are positioning themselves.\"\n    },\n    {\n      \"link\": \"https://www.startuphub.ai/startups/stripe-inc-1777327355215/alternatives\",\n      \"title\": \"Top Stripe, Inc. Alternatives\",\n      \"description\": \"Looking for alternatives to Stripe, Inc.? Compare similar FinTech companies with funding data, team info, and user reviews on StartupHub.ai.\"\n    },\n    {\n      \"link\": \"https://jobsbyculture.com/blog/stripe-layoffs-2026\",\n      \"title\": \"Stripe News & Layoffs 2026: What Happened, Recovery & Is ...\",\n      \"description\": \"Is Stripe on a Hiring Freeze? No — as of May 2026, Stripe is actively hiring with 480 open positions across engineering, sales, product, and operations. While ...Read more\"\n    },\n    {\n      \"link\": \"https://news.crunchbase.com/fintech/stripe-challenger-rainforest-seriesb-funding/\",\n      \"title\": \"Exclusive: Stripe Challenger Rainforest Lands $29M Series B\",\n      \"description\": \"8 Sept 2025 — Rainforest, a startup that embeds payment processing into other software platforms, has raised $29 million in a Series B funding round, ...Read more\"\n    },\n    {\n      \"link\": \"https://stripe.com/newsroom/news/stripe-series-h\",\n      \"title\": \"Stripe has raised a new round of funding to accelerate ...\",\n      \"description\": \"14 Mar 2021 — Stripe, which builds economic infrastructure for the internet, has raised a $600 million (€500 million) funding round at a $95B (€80B) valuation.Read more\"\n    },\n    {\n      \"link\": \"https://www.bloomberg.com/news/articles/2026-02-09/stripe-valuation-set-to-hit-140-billion-in-new-tender-offer\",\n      \"title\": \"Stripe Valuation Set to Hit $140 Billion in New Tender Offer\",\n      \"description\": \"9 Feb 2026 — Stripe Inc. is arranging a tender offer that would give the payments giant a valuation of at least $140 billion, according to a person ...\"\n    },\n    {\n      \"link\": \"https://pitchbook.com/profiles/company/54782-29\",\n      \"title\": \"Stripe 2026 Company Profile: Valuation, Funding & Investors\",\n      \"description\": \"Who are Stripe's competitors? Matchmove, EBANX, 2Checkout, HealPay, and Mastercard OB Services Europe are some of the 125 competitors of Stripe.Read more\"\n    }\n  ],\n  \"current_page\": 1\n}",
+              "raw": "{\n  \"organic\": [\n    {\n      \"link\": \"https://www.kore1.com/top-fintech-companies-hiring-2026/\",\n      \"title\": \"Top Fintech Companies Hiring in 2026\",\n      \"description\": \"Apr 15, 2026 — The fintech companies actually hiring in 2026 are Stripe, Plaid, Ramp, Mercury, Adyen, Wise, Revolut, Toast, Gusto, Rippling, SoFi, Chime, ...Read more\"\n    },\n    {\n      \"link\": \"https://stripe.com/jobs\",\n      \"title\": \"Stripe: Jobs\",\n      \"description\": \"We're creating opportunities for entrepreneurs and enterprises to build products, implement new business models, and grow globally. And we want you to help.\"\n    },\n    {\n      \"link\": \"https://finance.yahoo.com/news/paypal-stripe-other-fintech-giants-080456699.html\",\n      \"title\": \"PayPal, Stripe and other fintech giants flex crypto muscles\",\n      \"description\": \"Jan 8, 2026 — Fintechs will push further into crypto in 2026. Here's how Stripe, PayPal and others are positioning themselves.\"\n    },\n    {\n      \"link\": \"https://tracxn.com/d/companies/stripe/__uahG_IGnVgsUsOG-f8otYHLkOkliWg7YFhJ5ZkNIkpI\",\n      \"title\": \"Stripe - 2026 Company Profile, Team, Funding & Competitors\",\n      \"description\": \"4 days ago — Stripe has raised $9.81B in funding from investors like General Catalyst, Sequoia Capital and Andreessen Horowitz, with a current valuation of ...Read more\"\n    },\n    {\n      \"link\": \"https://jobsbyculture.com/blog/stripe-layoffs-2026\",\n      \"title\": \"Stripe News & Layoffs 2026: What Happened, Recovery & Is ...\",\n      \"description\": \"Is Stripe on a Hiring Freeze? No — as of May 2026, Stripe is actively hiring with 480 open positions across engineering, sales, product, and operations. While ...Read more\"\n    },\n    {\n      \"link\": \"https://www.linkedin.com/pulse/stripe-rockets-toward-140b-valuation-still-says-rush-ipo-van-oost-2f8zf\",\n      \"title\": \"Stripe Rockets Toward $140B Valuation... And Still Says ...\",\n      \"description\": \"Stripe is setting up a new tender offer that would push its valuation to $140B, a jump of more than $30B from last year. For a company that hasn ...Read more\"\n    },\n    {\n      \"link\": \"https://www.startuphub.ai/startups/stripe-issuing/alternatives\",\n      \"title\": \"Top Stripe Issuing Alternatives 2026 — Best Fintech ...\",\n      \"description\": \"Looking for alternatives to Stripe Issuing? Compare similar Fintech companies with funding data, team info, and user reviews on StartupHub.ai.\"\n    },\n    {\n      \"link\": \"https://www.cnbc.com/video/2026/02/10/stripe-lining-up-funding-round-that-would-value-company-at-more-than-140-billion.html\",\n      \"title\": \"Stripe lining up funding round that would value company at ...\",\n      \"description\": \"Stripe lining up funding round that would value company at more than $140 billion. CNBC's Mackenzie Sigalos delivers the latest news surrounding ...\"\n    },\n    {\n      \"link\": \"https://www.theinformation.com/articles/stripe-backed-fast-puts-job-cuts-on-the-table-as-it-tries-to-raise-money\",\n      \"title\": \"Stripe-Backed Fast Puts Job Cuts on the Table as It Tries to ...\",\n      \"description\": \"Mar 30, 2022 — Domm Holland, CEO of one-click checkout startup Fast, is telling potential new investors that the company plans to cut hundreds of jobs.Read more\"\n    },\n    {\n      \"link\": \"https://www.youtube.com/watch?v=IgSER8_8DoM\",\n      \"title\": \"Stripe likely to compete in financial ops solutions long-term ...\",\n      \"description\": \"CNBC's Kelly Evans discusses Stripe's upcoming IPO and its current valuation with Lisa Ellis, senior analyst at MoffettNathanson.\"\n    }\n  ],\n  \"current_page\": 1\n}",
               "tool": "search_engine"
             },
             "scraped": {
@@ -2328,15 +1926,92 @@
             },
             "via": "bd-mcp"
           },
+          "discover": {
+            "query": "stripe.com company news products competitors 2026",
+            "intent": "find official pages, news articles, and competitive intelligence about stripe.com",
+            "results": [
+              {
+                "link": "https://stripe.com/newsroom",
+                "title": "Stripe Newsroom: The Latest News & Announcements",
+                "description": "Read the latest news and information from Stripe, including corporate and product announcements, research reports, brand assets, and more.",
+                "relevance_score": 0.7734375
+              },
+              {
+                "link": "https://stripe.com/newsroom/news",
+                "title": "The Latest News & Announcements",
+                "description": "Read the latest news and information from Stripe, including corporate and product announcements, research reports, brand assets, and more.",
+                "relevance_score": 0.74609375
+              },
+              {
+                "link": "https://jobsbyculture.com/blog/stripe-layoffs-2026",
+                "title": "Stripe News & Layoffs 2026: What Happened, Recovery & Is ...",
+                "description": "The latest Stripe news: a $159B valuation, 288 product launches at Sessions 2026, and a new AI agent wallet. Plus the full Stripe layoffs timeline — and whether ...Read more",
+                "relevance_score": 0.65625
+              },
+              {
+                "link": "https://stripe.com/newsroom/news/stripe-named-a-leader-by-forrester-2026",
+                "title": "Stripe named a Leader by independent research firm for ...",
+                "description": "Mar 5, 2026 — Stripe was named a Leader in The Forrester Wave™: Merchant Payment Providers, Q1 2026.",
+                "relevance_score": 0.64453125
+              },
+              {
+                "link": "https://www.6sense.com/tech/payment-management/stripe-market-share",
+                "title": "Stripe - Market Share, Competitor Insights in Payment ...",
+                "description": "Stripe's Top competitors in the payment-management category are PayPal, Adyen, Venmo. You can view a full list of Stripe competitors here. 6sense uses advanced ...Read more",
+                "relevance_score": 0.609375
+              },
+              {
+                "link": "https://fueler.io/blog/stripe-usage-revenue-valuation-growth-statistics",
+                "title": "Stripe in 2026: Usage, Revenue, Valuation & Growth ...",
+                "description": "Oct 18, 2025 — Stripe commands dominant market share among enterprises: it's integrated at 62% of Fortune 500 companies, driving the payment stack for tech ...Read more",
+                "relevance_score": 0.609375
+              },
+              {
+                "link": "https://www.theinformation.com/articles/venture-capitalists-newest-threat-stripe",
+                "title": "Venture Capitalists' Newest Threat: Stripe",
+                "description": "Sep 2, 2020 — Stripe has become one of Silicon Valley's most prominent startups, valued at $36 billion thanks to its technology powering online purchases ...",
+                "relevance_score": 0.59765625
+              },
+              {
+                "link": "https://fintechboostup.com/stripe-expands-real-time-payments-with-orum-acquisition/",
+                "title": "Stripe Expands Real-Time Payments with Orum Acquisition",
+                "description": "Jul 21, 2025 — The acquisition strengthens Stripe's infrastructure for non-card payments and highlights increasing demand for faster, more reliable money ...Read more",
+                "relevance_score": 0.59375
+              },
+              {
+                "link": "https://paymentexpert.com/2025/07/23/what-stripes-orum-deal-payment-trends/",
+                "title": "Stripe expands US payment rails with Orum deal",
+                "description": "Jul 23, 2025 — Stripe's recent acquisitions highlight a broader industry move toward a hybrid payment infrastructure. Stripe has acquired Orum, ...Read more",
+                "relevance_score": 0.58203125
+              },
+              {
+                "link": "https://fintechmagazine.com/articles/stripe-completes-us-1-1bn-bridge-acquisition",
+                "title": "Stripe Completes US$1.1bn Bridge Acquisition",
+                "description": "Feb 6, 2025 — Stripe has completed its US$1.1bn acquisition of Bridge Network, a deal first announced in October 2024 that marks the payments company's largest purchase to ...Read more",
+                "relevance_score": 0.58203125
+              }
+            ],
+            "duration_seconds": 3
+          },
           "homepage": {
             "url": "https://stripe.com",
             "text": "",
             "status": 200,
             "chars": 0
           },
+          "linkedin": {
+            "url": "https://linkedin.com/company/stripe",
+            "text": "Skip to main content\nLinkedIn\nTop Content\nPeople\nLearning\nJobs\nGames\nGet the app\nSign in Join now \nStripe\nTechnology, Information and Internet\nSouth San Francisco, California 1,435,205 followers\nHelp increase the GDP of the internet.\nSee jobs Follow\n  \n\nDiscover all 15,302 employees\n\nReport this company\nOverview\nJobs\nLife\nAbout us\n\nStripe builds programmable financial services. Millions of companies—from the world’s largest enterprises to the most ambitious startups—use Stripe to accept payments, grow their revenue, and accelerate new business opportunities. Headquartered in San Francisco and Dublin, the company aims to increase the GDP of the internet.\n\nWebsite\nhttps://stripe.com\n\nExternal link for Stripe\n\nIndustry\nTechnology, Information and Internet\nCompany size\n5,001-10,000 employees\nHeadquarters\nSouth San Francisco, California\nType\nPrivately Held\nFounded\n2010\nProducts\n Stripe\n Stripe\nPayment Processing Software\n\nStripe is a financial infrastructure platform for businesses. Millions of companies—from the world’s largest enterprises to the most ambitious startups—use Stripe to accept payments, grow their revenue, and accelerate new business opportunities. Headquartered in San Francisco and Dublin, the company aims to increase the GDP of the internet.\n\nLocations\nPrimary\n\n354 Oyster Point Blvd\n\nSouth San Francisco, California 94080, US\n\nGet directions\n\n1 Wilton Park, Wilton Terrace\n\nDublin, County Dublin D02 FX04, IE\n\nGet directions\n\n920 5th Ave\n\nSeattle, Washington 98104, US\n\nGet directions\n\n201 Bishopsgate\n\nLondon, England EC2M 3NS, GB\n\nGet directions\n\n10, Boulevard Haussmann\n\nParis, Ile-de-France 75009, FR\n\nGet directions\n\n89 Neil Rd\n\nCentral Business District, Singapore 088894, SG\n\nGet directions\n\n1-5-8 Jingumae\n\nTokyo, Shibuya-ku 150-0001, JP\n\nGet directions\n\n515 N State St\n\nChicago, Illinois 60610, US\n\nGet directions\n\n28 Liberty Street\n\nNew York, NY 10005, US\n\nGet directions\n\nSingel 542\n\nAmsterdam, North Holland 1017, NL\n\nGet directions\n\nAvenida Paseo de la Reforma 296\n\nCiudad de Mexico, Colonia Juarez 06600, MX\n\nGet directions\n\n222 Exhibition St\n\nMelbourne, Victoria 3000, AU\n\nGet directions\n\nAvenida Paulista 1374\n\nPaulínia, São Paulo 13140-000, BR\n\nGet directions\n\nChurch Street Haridevpur, Shanthala Nagar, Ashok Nagar\n\nBengaluru, Karnataka 560001, IN\n\nGet directions\nShow more locations Show fewer locations\nEmployees at Stripe\nJason Horman\nBinoy G.\nClaire Hughes Johnson\nMark Mansour\nSee all employees\nUpdates\nStripe\n\n1,435,205 followers\n\n5d\nReport this post\n\nStarting today, you can set up machine payments with a single prompt to your agent. Get started: https://lnkd.in/dp6PJWPf.\n\n…more\n   166 29 Comments\nLike Comment Share\nStripe\n\n1,435,205 followers\n\n5d\nReport this post\n\nNat Friedman on temperature probing teams through production iteration loops at GitHub. Watch the full conversation: https://lnkd.in/eqfNkC7k.\n\n…more\nNat Friedman on temperature probing teams through production iteration loops at GitHub\n   47 2 Comments\nLike Comment Share\nStripe\n\n1,435,205 followers\n\n6d Edited\nReport this post\n\nYasser Elsaid on growing Chatbase from ramen profitability to $10M ARR.\n\n…more\nYasser on growing Chatbase from ramen profitability to $10M ARR.\n   311 17 Comments\nLike Comment Share\nStripe\n\n1,435,205 followers\n\n1w\nReport this post\n\nEvan Spiegel on how Snapchat broke the model of social media by prioritizing your inner circle over network size: “What Snapchat proved was actually that it’s not about the size of your network or the number of people you can contact on your network. It’s about who you actually talk to. That tends to be a much smaller group than the total size of the potential network, or even your total number of friends. That broke the model of social media, which was the more friends you have, the more engaged you have, the more value there is. I think people spend most of their time talking to the folks who are most important to them. If we design a service that’s all about talking to the people who are most important to you, your close friends, and we design a service that’s really, really great at that.” YouTube: https://lnkd.in/g3-B8JXZ Spotify: https://lnkd.in/g72cUfQs Apple Podcasts: https://lnkd.in/gFYwFPyV Full transcript on Substack: https://lnkd.in/gfMaGTTc\n\n…more\nEvan Spiegel on how Snapchat broke the model of social media\n   67 10 Comments\nLike Comment Share\n\nStripe reposted this\n\nCliff Weitzman\n1w Edited\nReport this post\n\nA massive thank you to Patrick Collison and John Collison for hosting me for their fireside chat to share the Speechify story at Stripe all-hands. What's always resonated with me about Patrick and John is how customer obsessed they've been since Day 1. There's the famous story of how during Y Combinator they would ask fellow founders to pull out their laptops and set up Stripe for payments right there on the spot. As they've grown to now thousands of teammates and millions of customers, that customer obsession remains. They're still hungry to know what can be improved. They invite customers to tell them what they need to work in front of the whole company. It's no surprise that in the AI era, they've remained the leader, helping support token-based business models that AI companies need to serve customers. As Speechify has evolved to serve professionals and companies in 200+ countries, paying with a wide set of currencies, Stripe has also made our global expansion as smooth as possible. We're lucky to have grown up with Stripe, to have expanded with Stripe, and to have entered the AI & now agent era with Stripe. Congrats Patrick, John, Jay Shah, Maia Josebachvili, and team for powering a staggering 1.6% of Global GDP. We're forever grateful. – Written with Speechify Voice Typing\n\n   475 30 Comments\nLike Comment Share\n\nStripe reposted this\n\nPrivy\n\n11,983 followers\n\n2w\nReport this post\n\nToday, we're proud to announce that Amazon Bedrock AgentCore payments by Amazon Web Services (AWS) is integrating Privy wallets. AI agents are starting to transact, not just reason and act. That shift requires payments to be built directly into how they operate. By combining AgentCore payments with Privy's embedded wallet infrastructure, this helps developers connect to their wallets for their agents, fund them (including via Stripe onramp), and define how they can spend—all within the same environment where agents are built and run. This helps developers to develop agentic payment solutions to pay for APIs, data, and services as part of their execution, without custom billing integrations or workflow interruptions. This builds on our work with agent wallets, including delegated signing—giving developers the tools to safely put money in motion for autonomous systems. Together with the Stripe Partner Ecosystem, we're excited to work with AWS to help define how payments integrate into the agent stack. Learn more 👉 https://lnkd.in/ePVrm6C8\n\n   192 5 Comments\nLike Comment Share\n\nStripe reposted this\n\nAmazon Web Services (AWS)\n\n10,776,904 followers\n\n2w\nReport this post\n\nAgents that reason, plan, and act can now transact. AgentCore payments in Amazon Bedrock AgentCore is now in preview. AI agents can instantly access and pay for APIs, MCP servers, web content, and other agents during execution—no bespoke billing integrations required. Built with Coinbase and Stripe, AgentCore payments handles wallet authentication, payment processing over x402, spending governance, and full observability. Payment is native to the AgentCore platform, governed by the same identity, policy engine, and controls as every other action the agent takes. https://go.aws/3R9NRf3\n\n…more\n   242 12 Comments\nLike Comment Share\n\nStripe reposted this\n\nNilofer Rajpurkar\n2w Edited\nReport this post\n\nStill buzzing after another incredible Stripe Sessions last week! I'm so proud of all of the new products and features we announced for developers and your agents. One of my favorite announcements was custom objects. You can now define your own data and bring your business logic directly into Stripe to customize your experience to match exactly how your business works. Read the docs on custom objects: https://lnkd.in/gftaMhsk. See all 288 products and features we announced at Stripe Sessions: https://lnkd.in/gpvUwSU4.\n\n…more\n   239 21 Comments\nLike Comment Share\nStripe\n\n1,435,205 followers\n\n2w Edited\nReport this post\n\nFrom day one, ElevenLabs has used Stripe to support its rapid growth. Today, the voice AI platform is expanding its use of Stripe Billing to power new pay-as-you-go plans and charge customers based on tokens consumed. https://lnkd.in/g9pmjxpi\n\n   248 33 Comments\nLike Comment Share\nStripe\n\n1,435,205 followers\n\n2w\nReport this post\n\nPlatform Growth Studio recommends tailored, revenue-boosting optimizations based on data and benchmarks across thousands of platforms running on Stripe. Identify opportunities (like helping users adopt higher-margin BNPLs) and run targeted campaigns (like promotional pricing for eligible accounts). All from your dashboard. Read the docs: https://lnkd.in/ewZfHJBt. \n\n…more\nIntroducing: Platform Growth Studio\n   97 6 Comments\nLike Comment Share\nJoin now to see what you are missing\nFind people you know at Stripe\nBrowse recommended jobs for you\nView all updates, news, and articles\nJoin now\nAffiliated pages\nStripe Partner Ecosystem\n\nInternet Publishing\n\nSouth San Francisco, California\n\nStripe Support\n\nTechnology, Information and Internet\n\nSimilar pages\nAtlassian\n\nSoftware Development\n\nSydney, NSW\n\nAirbnb\n\nSoftware Development\n\nSan Francisco, CA\n\nRevolut\n\nFinancial Services\n\nLondon, England\n\nGoogle\n\nSoftware Development\n\nMountain View, CA\n\nSalesforce\n\nSoftware Development\n\nSan Francisco, California\n\nRippling\n\nSoftware Development\n\nSan Francisco, California\n\nAnthropic\n\nResearch Services\n\nPayPal\n\nSoftware Development\n\nSan Jose, CA\n\nWise\n\nFinancial Services\n\nDatabricks\n\nSoftware Development\n\nSan Francisco, CA\n\nShow more similar pages Show fewer similar pages\nBrowse jobs\nAnalyst jobs\n3,411 open jobs\nMarketing Manager jobs\n3,742 open jobs\nScientist jobs\n6,219 open jobs\nRecruiter jobs\n9,349 open jobs\nSales Manager jobs\n5,333 open jobs\nMarketing Director jobs\n1,167 open jobs\nHuman Resources Manager jobs\n3,685 open jobs\nFinancial Analyst jobs\n1,717 open jobs\nHead of Product jobs\n3,214 open jobs\nChief Executive Officer jobs\n476 open jobs\nKey Account Manager jobs\n1,238 open jobs\nScrum Master jobs\n6,160 open jobs\nHead of Sales jobs\n1,804 open jobs\nQuantitative Analyst jobs\n138 open jobs\nTalent Acquisition Specialist jobs\n947 open jobs\nHuman Resources Director jobs\n1,046 open jobs\nDirector of Information Technology jobs\n540 open jobs\nInformation Technology Manager jobs\n3,399 open jobs\nMarketing Analyst jobs\n1,504 open jobs\nLawyer jobs\n876 open jobs\nShow more jobs like this Show fewer jobs like this\nFunding\nStripe 21 total rounds\n\nLast Round\n\nSecondary market Mar 27, 2025\nExternal Crunchbase Link for last round of funding\nSee more info on crunchbase\nMore searches More searches\nAnalyst jobs\nScientist jobs\nMarketing Manager jobs\nRecruiter jobs\nSales Manager jobs\nMarketing Director jobs\nScrum Master jobs\nTalent Acquisition Specialist jobs\nChief Executive Officer jobs\nQuantitative Analyst jobs\nHead of Sales jobs\nFinancial Analyst jobs\nMarketing Analyst jobs\nHuman Resources Manager jobs\nArchitect jobs\nHead of Product jobs\nArt Director jobs\nInformation Technology Manager jobs\nKey Account Manager jobs\nSenior Project Manager jobs\nLegal Counsel jobs\nResearcher jobs\nFinance Specialist jobs\nHuman Resources Director jobs\nMarketing Intern jobs\nCloud Architect jobs\nLawyer jobs\nFinance Manager jobs\nJunior Analyst jobs\nDirector of Information Technology jobs\nBuyer jobs\nHead of Human Resources jobs\nActuary jobs\nAnalysis Specialist jobs\nProject Director jobs\nJournalist jobs\nMarketing Assistant jobs\nInformation Technology Analyst jobs\nResearch Assistant jobs\nUnderwriter jobs\nTeacher jobs\nStatistician jobs\nGraphic Design Intern jobs\n3D Artist jobs\nTechnical Architect jobs\nEcommerce Manager jobs\nGeneral Counsel jobs\nFinancial Director jobs\nJunior Project Manager jobs\nRisk Management Specialist jobs\nProcurement Manager jobs\nMarketing Consultant jobs\nAgile Coach jobs\nInternal Auditor jobs\nHuman Resources Consultant jobs\nAccounting Analyst jobs\nBiostatistician jobs\nLogistics Manager jobs\nSAP Consultant jobs\nFinancial Planner jobs\nLinkedIn © 2026\nAbout\nAccessibility\nUser Agreement\nPrivacy Policy\nCookie Policy\nCopyright Policy\nBrand Policy\nGuest Controls\nCommunity Guidelines\nالعربية (Arabic)\nবাংলা (Bangla)\nČeština (Czech)\nDansk (Danish)\nDeutsch (German)\nΕλληνικά (Greek)\nEnglish (English)\nEspañol (Spanish)\nفارسی (Persian)\nSuomi (Finnish)\nFrançais (French)\nहिंदी (Hindi)\nMagyar (Hungarian)\nBahasa Indonesia (Indonesian)\nItaliano (Italian)\nעברית (Hebrew)\n日本語 (Japanese)\n한국어 (Korean)\nमराठी (Marathi)\nBahasa Malaysia (Malay)\nNederlands (Dutch)\nNorsk (Norwegian)\nਪੰਜਾਬੀ (Punjabi)\nPolski (Polish)\nPortuguês (Portuguese)\nRomână (Romanian)\nРусский (Russian)\nSvenska (Swedish)\nతెలుగు (Telugu)\nภาษาไทย (Thai)\nTagalog (Tagalog)\nTürkçe (Turkish)\nУкраїнська (Ukrainian)\nTiếng Việt (Vietnamese)\n简体中文 (Chinese (Simplified))\n正體中文 (Chinese (Traditional))\nLanguage\n\nAgree & Join LinkedIn\n\nBy clicking Continue to join or sign in, you agree to LinkedIn’s User Agreement, Privacy Policy, and Cookie Policy.\n\nSign in to see who you already know at Stripe\nEmail or phone\n\nPassword\n Show\n\nForgot password? Sign in\nSign in with Email\n\nor\n\nNew to LinkedIn? Join now\n\nBy clicking Continue to join or sign in, you agree to LinkedIn’s User Agreement, Privacy Policy, and Cookie Policy.\n\nLinkedIn\n\nLinkedIn is better on the app\n\nDon’t have the app? Get it in the Microsoft Store.\n\nOpen the app ",
+            "status": 200
+          },
+          "crunchbase": {
+            "url": "https://crunchbase.com/organization/stripe",
+            "text": "We must verify your session before you can proceed\n\nNeed help? Contact our support team.\n\nRay ID: a024f7e07c60d01c\n",
+            "status": 200
+          },
           "assistant": {
             "question": "Tell me what Bright Data products would best be used to research the company at stripe.com, and what data sources you would recommend for competitive intelligence on them.",
-            "answer": "Tool 'ask_brightdata_assistant' execution failed: Bright Data assistant timed out after 30s; retry with dialog_id=6a15f0f0e3fc5109e93250b1 to fetch the reply later"
+            "answer": "{\"answer\":\"Use these Bright Data products for Stripe research, in this order:\\n\\n1. [Datasets](https://brightdata.com/cp/datasets/browse)  \\n   Best for pre-collected structured data you can use for competitive intelligence.\\n\\n2. [Custom Scrapers](https://brightdata.com/cp/scrapers/request/create)  \\n   Best when you need Stripe-specific fields or sources that are not covered by an existing dataset.\\n\\n3. [IDE](https://brightdata.com/cp/scrapers/automation/chat)  \\n   Best if you want to build and test your own scraping workflow.\\n\\n4. [Web Unlocker](https://brightdata.com/cp/zones)  \\n   Best for accessing public web pages reliably when collecting Stripe-related source data.\\n\\nFor competitive intelligence on Stripe, collect public web data from these source types:\\n\\n- Stripe’s own website and product pages\\n- Job postings and hiring pages\\n- Tech stack and infrastructure pages\\n- Blog posts, press releases, and changelogs\\n- Developer docs and API documentation\\n- Partner/integration directories\\n- Customer case studies and testimonials\\n- Review sites and app marketplaces\\n- Pricing and plan pages\\n- Public company profiles and news mentions\\n- Competitor websites for feature, pricing, and positioning comparison\\n\\nFor datasets, focus on:\\n\\n- Company profiles\\n- Job listings\\n- Technology stack data\\n- App/review data\\n- B2B company datasets\\n- Public web content collections relevant to fintech and payments\\n\\nNo Stripe-specific Marketplace Dataset is currently listed, so a general public-web collection approach is the right fit.\\n\\nDo you want to develop your own scraper or for us to develop it for you?\\n\\nIf you want, I can also help you choose between [Datasets](https://brightdata.com/cp/datasets/browse) and [Custom Scrapers](https://brightdata.com/cp/scrapers/request/create) for this use case.\",\"dialog_id\":\"6a16e146f127c9ae539887d5\"}"
           },
           "batchSearch": {
             "queries": [
@@ -2347,13 +2022,13 @@
             "results": [
               {
                 "query": "stripe company overview news 2026",
-                "data": "[\n  {\n    \"query\": \"stripe company overview news 2026\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://stripe.com/newsroom/news\",\n          \"title\": \"The Latest News & Announcements\",\n          \"description\": \"Stripe partners with AWS to power AgentCore payments with Privy · May 7, 2026 ; ElevenLabs expands its use of Stripe to accelerate its growth · May 7, 2026 ...Read more\"\n        },\n        {\n          \"link\": \"https://stripe.com/en-mx/newsroom\",\n          \"title\": \"Stripe Newsroom: The Latest News & Announcements\",\n          \"description\": \"ElevenLabs expands its use of Stripe to accelerate its growth · May 7, 2026 ; Stripe partners with AWS to power AgentCore payments with Privy · May 7, 2026 ...Read more\"\n        },\n        {\n          \"link\": \"https://www.youtube.com/watch?v=8F4XyWYqZi8\",\n          \"title\": \"Stripe Sessions 2026 keynote in 12 minutes\",\n          \"description\": \"Everything Stripe launched at Sessions 2026 in 12 minutes. More information: https://stripesessions.com Full keynote: ...\"\n        },\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/54782-29\",\n          \"title\": \"Stripe 2026 Company Profile: Valuation, Funding & Investors\",\n          \"description\": \"Stripe has raised $8.73B. Who are Stripe's investors? Irving Investors, Robinhood Ventures Fund, Alpha Square Group, Bow River Capital, and Bridgeview Venture ...Read more\"\n        },\n        {\n          \"link\": \"https://www.chargeflow.io/blog/stripe-statistics\",\n          \"title\": \"Stripe Stats for 2026: The Most Accurate Stripe Statistics ...\",\n          \"description\": \"May 11, 2026 — Stripe's Revenue and Finance Automation Suite is on track to hit an annual run rate of $1 billion in 2026, up from $500 million in early 2025.Read more\"\n        },\n        {\n          \"link\": \"https://x.com/stripe/status/2026294241450979364\",\n          \"title\": \"Stripe (@stripe) on X\",\n          \"description\": \"Last year, businesses running on Stripe generated $1.9 trillion in total volume, up 34% from 2024, and equivalent to roughly 1.6% of global GDP.Read more\"\n        },\n        {\n          \"link\": \"https://stripe.com/blog/everything-we-announced-at-sessions-2026\",\n          \"title\": \"Everything we announced at Sessions 2026\",\n          \"description\": \"Apr 29, 2026 — This morning at our annual conference, Stripe Sessions, we shared 288 new products and features with more than 9,000 business leaders and ...Read more\"\n        },\n        {\n          \"link\": \"https://blog.mean.ceo/stripe-news-may-2026/\",\n          \"title\": \"Stripe News | May, 2026 (STARTUP EDITION)\",\n          \"description\": \"May 1, 2026 — Stripe news, May 2026: discover how Stripe's latest embedded finance moves can help founders launch faster, cut friction, and build smarter ...\"\n        },\n        {\n          \"link\": \"https://finance.yahoo.com/news/paypal-stripe-other-fintech-giants-080456699.html\",\n          \"title\": \"PayPal, Stripe and other fintech giants flex crypto muscles\",\n          \"description\": \"Jan 8, 2026 — Stripe is expected to roll out Tempo, its highly anticipated layer 1 blockchain, in 2026, following its December launch on a public testnet.Read more\"\n        },\n        {\n          \"link\": \"https://www.cnbc.com/2026/02/24/stripe-value-stock-sale-tender-offer.html\",\n          \"title\": \"Stripe valued at $159 billion after tender offer\",\n          \"description\": \"Feb 24, 2026 — Stripe said its revenue suite is on track to hit an annual run rate of $1 billion in 2026. Stripe co-founder and president John Collison told ...Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"stripe competitors alternatives\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://www.reddit.com/r/startups/comments/1ez1cqg/what_are_your_alternatives_to_stripe/\",\n          \"title\": \"What are your alternatives to stripe? : r/startups\",\n          \"description\": \"I’ve been exploring the payment processor space for a little while now and it sounds like the same problems keep coming up over and over again: * “handling ...\"\n        },\n        {\n          \"link\": \"https://memberful.com/blog/stripe-competitors/\",\n          \"title\": \"Stripe competitors: Finding the best payment processor for ...\",\n          \"description\": \"Mar 28, 2025 — What Stripe alternatives are best for mobile apps? Braintree and Adyen provide the best developer tools for integrating payments into mobile ...Read more\"\n        },\n        {\n          \"link\": \"https://attrock.com/blog/stripe-competitors/\",\n          \"title\": \"13 Stripe Competitors to Power Your Transactions\",\n          \"description\": \"Mar 6, 2026 — We've compiled a list of the top 13 Stripe alternatives, including key features, pros and cons, and potential money-saving avenues.Read more\"\n        },\n        {\n          \"link\": \"https://www.paddle.com/alternatives/stripe\",\n          \"title\": \"Stripe Alternatives | Top 7 Providers in 2026\",\n          \"description\": \"We've analyzed seven alternatives to Stripe, ranging from PSPs and payment gateways to more modern payment solutions like a merchant of record.Read more\"\n        },\n        {\n          \"link\": \"https://www.g2.com/products/stripe-stripe-payments/competitors/alternatives\",\n          \"title\": \"Top 10 Stripe Payments Alternatives & Competitors in 2026\",\n          \"description\": \"The best Stripe Payments alternatives are EBizCharge, PayPal Payments, and Amazon Pay for Business. Find top-ranking free & paid apps similar to Stripe ...\"\n        },\n        {\n          \"link\": \"https://www.xflowpay.com/blog/stripe-alternatives\",\n          \"title\": \"Best Stripe Alternatives for Global Payments in 2026\",\n          \"description\": \"Jun 10, 2025 — Top Stripe alternatives · 1. Xflow · 2. PayPal · 3. Razorpay · 4. Payoneer · 5. Wise (formerly TransferWise) · 6. Paddle · 7. Dodo Payments · 8.Read more\"\n        },\n        {\n          \"link\": \"https://tipalti.com/resources/learn/stripe-competitors-and-alternatives/\",\n          \"title\": \"Best Stripe Connect Alternatives for Business Payouts\",\n          \"description\": \"Mar 4, 2026 — Best Stripe Connect Alternatives for Business Payouts · 1. Tipalti · 2. Hyperwallet · 3. PayPal Payouts · 4. Payoneer · 5. Wise · 6. Trolley.Read more\"\n        },\n        {\n          \"link\": \"https://fastspring.com/blog/stripe-alternatives/\",\n          \"title\": \"Stripe Alternatives for 2025: In-Depth Guide and 8 Options\",\n          \"description\": \"Aug 27, 2025 — Square: Popular payment platform for startups. · PayPal for Business: Available on major ecommerce platforms. · Authorize.net: For merchants and ...Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"stripe funding investors valuation\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://tracxn.com/d/companies/stripe/__uahG_IGnVgsUsOG-f8otYHLkOkliWg7YFhJ5ZkNIkpI/funding-and-investors\",\n          \"title\": \"2026 Funding Rounds & List of Investors - Stripe\",\n          \"description\": \"Stripe's valuation is $159B as on Feb 25, 2026. How many funding rounds does Stripe have? Stripe has total 24 funding rounds: 19 ...Read more\"\n        },\n        {\n          \"link\": \"https://stripe.com/newsroom/news/stripe-series-i-employee-liquidity\",\n          \"title\": \"Stripe announces new round of funding and plan to ...\",\n          \"description\": \"Mar 15, 2023 — Stripe, which builds economic infrastructure for the internet, has signed agreements for a Series I fundraise of more than $6.5 billion (€6.15 billion) at a $ ...Read more\"\n        },\n        {\n          \"link\": \"https://www.fintechfutures.com/b2b-b2c-payments/stripe-achieves-91-5bn-valuation-with-employee-share-sale\",\n          \"title\": \"Stripe achieves $91.5bn valuation with employee share sale\",\n          \"description\": \"Feb 28, 2025 — With this share sale, the company has almost returned to its peak valuation of $95 billion, reached after a $600 million funding round in 2021 ...Read more\"\n        },\n        {\n          \"link\": \"https://equitybee.com/companies/company?company=stripe\",\n          \"title\": \"Fund Stripe stock options\",\n          \"description\": \"According to Crunchbase, Stripe has raised a total of $2.3 billion over 21 funding rounds; the company's latest funding rounds were a $600 million Series H ...Read more\"\n        },\n        {\n          \"link\": \"https://finance.yahoo.com/news/stripe-valuation-jumps-159-billion-131258707.html\",\n          \"title\": \"Stripe valuation jumps to $159 billion in latest employee ...\",\n          \"description\": \"Feb 24, 2026 — Stripe was valued at $159 billion in a tender offer for employees and shareholders, the fintech firm said ‌on Tuesday, a more than 70% jump ...\"\n        },\n        {\n          \"link\": \"https://exa.ai/websets/directory/stripe-funding\",\n          \"title\": \"Stripe, Inc. Funding and Investor Insights\",\n          \"description\": \"Stripe has raised a total of approximately $9.81 billion across 24 funding rounds, including seed, early, late-stage, and debt rounds. Major milestones include ...Read more\"\n        },\n        {\n          \"link\": \"https://pitchbook.com/profiles/company/54782-29\",\n          \"title\": \"Stripe 2026 Company Profile: Valuation, Funding & Investors\",\n          \"description\": \"How much funding has Stripe raised over time? Stripe has raised $8.73B. Who are Stripe's investors? Irving Investors, Robinhood Ventures Fund, Alpha Square ...Read more\"\n        },\n        {\n          \"link\": \"https://www.bloomberg.com/news/articles/2025-09-23/stripe-s-valuation-rises-above-its-2021-peak-to-106-7-billion\",\n          \"title\": \"Stripe's Valuation Rises Above Its 2021 Peak to $106.7 ...\",\n          \"description\": \"Sep 23, 2025 — Stripe Inc.'s valuation has climbed to $106.7 billion, according to a person with direct knowledge of the matter, ...\"\n        },\n        {\n          \"link\": \"https://wellfound.com/company/stripe/funding\",\n          \"title\": \"Stripe Funding Rounds, Valuation & Investors\",\n          \"description\": \"View information about the Stripe funding at Wellfound! Find out about the total amount raised, the number of rounds, and other funding information from ...\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  }\n]"
+                "data": "[\n  {\n    \"query\": \"stripe company overview news 2026\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://stripe.com/newsroom/news\",\n          \"title\": \"The Latest News & Announcements\",\n          \"description\": \"Stripe partners with AWS to power AgentCore payments with Privy · May 7, 2026 ; ElevenLabs expands its use of Stripe to accelerate its growth · May 7, 2026 ...Read more\"\n        },\n        {\n          \"link\": \"https://stripe.com/au/newsroom\",\n          \"title\": \"Stripe Newsroom: The Latest News & Announcements\",\n          \"description\": \"ElevenLabs expands its use of Stripe to accelerate its growth · May 7, 2026 ; Stripe partners with AWS to power AgentCore payments with Privy · May 7, 2026 ...Read more\"\n        },\n        {\n          \"link\": \"https://www.chargeflow.io/blog/stripe-statistics\",\n          \"title\": \"Stripe Stats for 2026: The Most Accurate Stripe Statistics ...\",\n          \"description\": \"11 May 2026 — Stripe's Revenue and Finance Automation Suite is on track to hit an annual run rate of $1 billion in 2026, up from $500 million in early 2025.Read more\"\n        },\n        {\n          \"link\": \"https://x.com/stripe/status/2026294241450979364\",\n          \"title\": \"Stripe (@stripe) on X\",\n          \"description\": \"Last year, businesses running on Stripe generated $1.9 trillion in total volume, up 34% from 2024, and equivalent to roughly 1.6% of global GDP.Read more\"\n        },\n        {\n          \"link\": \"https://stripe.com/blog/everything-we-announced-at-sessions-2026\",\n          \"title\": \"Everything we announced at Sessions 2026\",\n          \"description\": \"29 Apr 2026 — This morning at our annual conference, Stripe Sessions, we shared 288 new products and features with more than 9,000 business leaders and ...Read more\"\n        },\n        {\n          \"link\": \"https://www.dlnews.com/articles/markets/paypal-and-stripe-amond-fintechs-muscling-into-crypto-in-2026/\",\n          \"title\": \"PayPal, Stripe and other fintech giants flex crypto muscles\",\n          \"description\": \"8 Jan 2026 — Stripe is expected to roll out Tempo, its highly anticipated layer 1 blockchain, in 2026, following its December launch on a public testnet.Read more\"\n        },\n        {\n          \"link\": \"https://blog.mean.ceo/stripe-news-may-2026/\",\n          \"title\": \"Stripe News | May, 2026 (STARTUP EDITION)\",\n          \"description\": \"1 May 2026 — Stripe news, May 2026: discover how Stripe's latest embedded finance moves can help founders launch faster, cut friction, and build smarter ...\"\n        },\n        {\n          \"link\": \"https://www.linkedin.com/posts/jason-salt_what-to-expect-from-stripe-in-2026-stripes-activity-7405003295741640705-mG9c\",\n          \"title\": \"Jason Saltzman's Post\",\n          \"description\": \"What to expect from Stripe in 2026 Stripe's strategy map tells a clear story about how they're building to own the financial operating system ...Read more\"\n        },\n        {\n          \"link\": \"https://www.forbes.com/sites/danielwebber/2025/09/23/stripes-ipo-potential-is-stronger-than-ever/\",\n          \"title\": \"Stripe's IPO Potential Is Stronger Than Ever\",\n          \"description\": \"23 Sept 2025 — While 2026 is by no means a guarantee for a Stripe IPO, its current moves make it more likely than ever – assuming the current market conditions ...Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"stripe competitors alternatives\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://finix.com/resources/blogs/best-stripe-alternatives\",\n          \"title\": \"5 Best Stripe Alternatives in 2026 - Finix\",\n          \"description\": \"\"\n        },\n        {\n          \"link\": \"https://www.reddit.com/r/startups/comments/1ez1cqg/what_are_your_alternatives_to_stripe/\",\n          \"title\": \"What are your alternatives to stripe? : r/startups\",\n          \"description\": \"I’ve been exploring the payment processor space for a little while now and it sounds like the same problems keep coming up over and over again: * “handling ...\"\n        },\n        {\n          \"link\": \"https://tipalti.com/resources/learn/stripe-competitors-and-alternatives/\",\n          \"title\": \"Best Stripe Connect Alternatives for Business Payouts\",\n          \"description\": \"4 Mar 2026 — Best Stripe Connect Alternatives for Business Payouts · 1. Tipalti · 2. Hyperwallet · 3. PayPal Payouts · 4. Payoneer · 5. Wise · 6. Trolley.Read more\"\n        },\n        {\n          \"link\": \"https://www.g2.com/products/stripe-stripe-payments/competitors/alternatives\",\n          \"title\": \"Top 10 Stripe Payments Alternatives & Competitors in 2026\",\n          \"description\": \"The best Stripe Payments alternatives are EBizCharge, PayPal Payments, and Amazon Pay for Business. Find top-ranking free & paid apps similar to Stripe ...\"\n        },\n        {\n          \"link\": \"https://businessleadershiptoday.com/stripe-competitors-alternatives-to-stripe-square-paypal/\",\n          \"title\": \"The 12 Best Alternatives to Stripe, Square, PayPal, and ...\",\n          \"description\": \"The 12 best alternatives to Stripe, Square, PayPal, and other big tech payment processors include: Stax Payments Ayden WePay Authorize.net Braintree ...\"\n        },\n        {\n          \"link\": \"https://fastspring.com/blog/stripe-alternatives/\",\n          \"title\": \"Stripe Alternatives for 2025: In-Depth Guide and 8 Options\",\n          \"description\": \"27 Aug 2025 — Square: Popular payment platform for startups. · PayPal for Business: Available on major ecommerce platforms. · Authorize.net: For merchants and ...Read more\"\n        },\n        {\n          \"link\": \"https://www.paddle.com/alternatives/stripe\",\n          \"title\": \"Stripe Alternatives | Top 7 Providers in 2026\",\n          \"description\": \"We've analyzed seven alternatives to Stripe, ranging from PSPs and payment gateways to more modern payment solutions like a merchant of record.Read more\"\n        },\n        {\n          \"link\": \"https://www.appvizer.com/magazine/accounting-finance/payment-gateway/alternative-stripe\",\n          \"title\": \"11 alternatives to Stripe in 2026: which payment solution ...\",\n          \"description\": \"20 Dec 2025 — Adyen: a robust solution for large companies · Mollie: flexibility and ease of use · MONEI: the all-in-one payment solution for European e-tailers.Read more\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  },\n  {\n    \"query\": \"stripe funding investors valuation\",\n    \"engine\": \"google\",\n    \"result\": {\n      \"organic\": [\n        {\n          \"link\": \"https://tracxn.com/d/companies/stripe/__uahG_IGnVgsUsOG-f8otYHLkOkliWg7YFhJ5ZkNIkpI/funding-and-investors\",\n          \"title\": \"2026 Funding Rounds & List of Investors - Stripe\",\n          \"description\": \"4 days ago — Stripe's valuation is $159B as on Feb 25, 2026. How many funding rounds does Stripe have? Stripe has total 24 funding rounds: 19 ...\"\n        },\n        {\n          \"link\": \"https://www.fintechfutures.com/b2b-b2c-payments/stripe-achieves-91-5bn-valuation-with-employee-share-sale\",\n          \"title\": \"Stripe achieves $91.5bn valuation with employee share sale\",\n          \"description\": \"Feb 28, 2025 — With this share sale, the company has almost returned to its peak valuation of $95 billion, reached after a $600 million funding round in 2021 ...\"\n        },\n        {\n          \"link\": \"https://equitybee.com/companies/company?company=stripe\",\n          \"title\": \"Fund Stripe stock options\",\n          \"description\": \"Stripe has raised a total of $2.3 billion over 21 funding rounds; the company's latest funding rounds were a $600 million Series H round in March 2021.\"\n        },\n        {\n          \"link\": \"https://finance.yahoo.com/news/stripe-valuation-jumps-159-billion-131258707.html\",\n          \"title\": \"Stripe valuation jumps to $159 billion in latest employee ...\",\n          \"description\": \"Feb 24, 2026 — Stripe was valued at $159 billion in a tender offer for employees and shareholders, the fintech firm said ‌on Tuesday, a more than 70% jump ...\"\n        },\n        {\n          \"link\": \"https://exa.ai/websets/directory/stripe-funding\",\n          \"title\": \"Stripe, Inc. Funding and Investor Insights\",\n          \"description\": \"Stripe has raised a total of approximately $9.81 billion across 24 funding rounds, including seed, early, late-stage, and debt rounds. Major milestones include ...\"\n        },\n        {\n          \"link\": \"https://stripe.com/newsroom/news/stripe-series-i-employee-liquidity\",\n          \"title\": \"Stripe announces new round of funding and plan to ...\",\n          \"description\": \"Mar 15, 2023 — Stripe, which builds economic infrastructure for the internet, has signed agreements for a Series I fundraise of more than $6.5 billion (€6.15 billion) at a $ ...\"\n        },\n        {\n          \"link\": \"https://wellfound.com/company/stripe/funding\",\n          \"title\": \"Stripe Funding Rounds, Valuation & Investors\",\n          \"description\": \"View information about the Stripe funding at Wellfound! Find out about the total amount raised, the number of rounds, and other funding information from ...\"\n        },\n        {\n          \"link\": \"https://www.reddit.com/r/SaaS/comments/1c7924u/i_studied_how_stripe_went_from_being_bootstrapped/\",\n          \"title\": \"I studied how Stripe went from being bootstrapped to a $95 ...\",\n          \"description\": \"Stripe has captured millions of users in over 195 countries, processed a colossal $1 trillion in 2023 alone (around 1% of global GDP), and achieved a ...\"\n        },\n        {\n          \"link\": \"https://finovate.com/stripe-lands-6-5-billion-in-funding-at-50-billion-valuation/\",\n          \"title\": \"Stripe Lands $6.5 Billion in Funding at $50 Billion Valuation\",\n          \"description\": \"Mar 16, 2023 — Payments processing fintech Stripe received $6.5 billion in Series I funding, along with an updated valuation of $50 billion.\"\n        }\n      ],\n      \"current_page\": 1\n    }\n  }\n]"
               }
             ],
             "count": 1
           }
         },
-        "elapsed": 42.87,
+        "elapsed": 21.48,
         "cost": 2.2,
         "costBreakdown": {
           "webUnlocker": 0.3,
@@ -2366,14 +2041,12 @@
           "datasetsApi": 0
         },
         "bdHealth": {
-          "ok": 11,
-          "failed": 1,
-          "errors": [
-            "bd-scraping-browser: BD Scraping Browser zone=\"mcp_browser\" failed to load https://crunchbase.com/organization/stripe: page.goto: Timeout 300"
-          ]
+          "ok": 12,
+          "failed": 0,
+          "errors": []
         }
       },
-      "ts": 102990
+      "ts": 123836
     }
   ]
 }
