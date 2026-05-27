@@ -292,7 +292,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       }
 
       // REAL BD Scraping Browser - scrape top 3 SERP results (NOT LinkedIn - gated on trial)
-      const topUrls = serpResults.results.slice(0, 3).map(r => r.url).filter(Boolean);
+      const topUrls = serpResults.results.slice(0, 3).map(r => r.link || r.url).filter(Boolean);
       if (topUrls.length > 0) {
         emitter.emit('event', { agent: 'bd-scraping-browser', status: 'launching', urls: topUrls, elapsed: personElapsed() });
         try {
