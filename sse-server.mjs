@@ -849,17 +849,24 @@ app.post('/api/synthesize', reportLimiter, express.json({ limit: '2mb' }), async
 function formatFacts(facts) {
   const MAX_FACTS = 8000;
   const parts = [];
+  const sourceUrls = []; // Collect all URLs for evidence tracking
 
   if (facts.homepage) {
-    parts.push(`HOMEPAGE (BD Web Unlocker):\n${facts.homepage.text || facts.homepage.content || ''}`);
+    const url = facts.homepage.url || `https://${facts.homepage.domain || 'unknown'}`;
+    sourceUrls.push(url);
+    parts.push(`HOMEPAGE (BD Web Unlocker):\nURL: ${url}\n${facts.homepage.text || facts.homepage.content || ''}`);
   }
   if (facts.news) {
     const results = facts.news.results || [];
-    parts.push(`NEWS (BD SERP API):\n${results.map(r => `- ${r.title}: ${r.snippet} [${r.date || ''}]`).join('\n')}`);
+    parts.push(`NEWS (BD SERP API):\n${results.map(r => {
+      if (r.link) sourceUrls.push(r.link);
+      return `- ${r.title}: ${r.snippet} [${r.date || ''}]\n  URL: ${r.link || 'N/A'}`;
+    }).join('\n')}`);
   }
   if (facts.discover) {
     const results = facts.discover.results || [];
     const formatted = results.slice(0, 10).map((r, i) => {
+      if (r.link) sourceUrls.push(r.link);
       const score = r.relevance_score ? `[score ${r.relevance_score.toFixed(2)}]` : '';
       const desc = (r.description || '').substring(0, 200);
       return `  ${i + 1}. ${score} ${r.title}\n     ${r.link}\n     ${desc}`;
@@ -869,16 +876,21 @@ function formatFacts(facts) {
   if (facts.crawl) {
     const pages = facts.crawl.pages || [];
     const formatted = pages.map((page, i) => {
+      if (page.url) sourceUrls.push(page.url);
       const preview = (page.markdown || '').substring(0, 400).replace(/\n+/g, ' ');
       return `  ${i + 1}. ${page.url}\n     ${preview}${preview.length >= 400 ? '...' : ''}`;
     }).join('\n\n');
     parts.push(`CRAWLED SITE PAGES (via BD scrape_batch, multi-page harvest):\n${formatted}`);
   }
   if (facts.linkedin) {
-    parts.push(`LINKEDIN (BD Scraping Browser):\n${facts.linkedin.text || facts.linkedin.content || ''}`);
+    const url = facts.linkedin.url || 'https://linkedin.com';
+    sourceUrls.push(url);
+    parts.push(`LINKEDIN (BD Scraping Browser):\nURL: ${url}\n${facts.linkedin.text || facts.linkedin.content || ''}`);
   }
   if (facts.crunchbase) {
-    parts.push(`CRUNCHBASE (BD Scraping Browser):\n${facts.crunchbase.text || facts.crunchbase.content || ''}`);
+    const url = facts.crunchbase.url || 'https://crunchbase.com';
+    sourceUrls.push(url);
+    parts.push(`CRUNCHBASE (BD Scraping Browser):\nURL: ${url}\n${facts.crunchbase.text || facts.crunchbase.content || ''}`);
   }
   if (facts.structured) {
     parts.push(`STRUCTURED DATA (BD Web Scraper API):\n${JSON.stringify(facts.structured, null, 2)}`);
@@ -919,8 +931,46 @@ function formatFacts(facts) {
   const scoutNames = ['github', 'g2', 'trustpilot', 'glassdoor', 'techcrunch'];
   for (const name of scoutNames) {
     if (facts[name]) {
-      parts.push(`${name.toUpperCase()} (BD Scraping Browser):\n${facts[name].text || facts[name].content || JSON.stringify(facts[name])}`);
+      const url = facts[name].url || `https://${name}.com`;
+      sourceUrls.push(url);
+      parts.push(`${name.toUpperCase()} (BD Scraping Browser):\nURL: ${url}\n${facts[name].text || facts[name].content || JSON.stringify(facts[name])}`);
     }
+  }
+
+  // Redteam mode facts
+  if (facts.cve) {
+    const results = facts.cve.results || [];
+    results.forEach(r => { if (r.link) sourceUrls.push(r.link); });
+  }
+  if (facts.breach) {
+    const results = facts.breach.results || [];
+    results.forEach(r => { if (r.link) sourceUrls.push(r.link); });
+  }
+  if (facts.githubLeaks) {
+    const results = facts.githubLeaks.results || [];
+    results.forEach(r => { if (r.link) sourceUrls.push(r.link); });
+  }
+  if (facts.securityPages && Array.isArray(facts.securityPages)) {
+    facts.securityPages.forEach(p => { if (p.url) sourceUrls.push(p.url); });
+  }
+
+  // SEO mode facts
+  if (facts.seoSerpRankings) {
+    const results = facts.seoSerpRankings.results || [];
+    results.forEach(r => { if (r.link) sourceUrls.push(r.link); });
+  }
+  if (facts.sitemapPages && Array.isArray(facts.sitemapPages)) {
+    facts.sitemapPages.forEach(p => { if (p.url) sourceUrls.push(p.url); });
+  }
+
+  // Person mode facts
+  if (facts.search) {
+    const results = facts.search.results || [];
+    results.forEach(r => { if (r.link) sourceUrls.push(r.link); });
+  }
+  if (facts.linkedinProfile) {
+    const url = facts.linkedinProfile.url || 'https://linkedin.com';
+    sourceUrls.push(url);
   }
 
   let text = parts.join('\n\n---\n\n');
@@ -928,7 +978,10 @@ function formatFacts(facts) {
     const cut = text.lastIndexOf('\n', MAX_FACTS);
     text = text.substring(0, cut > 0 ? cut : MAX_FACTS) + '\n[truncated]';
   }
-  return text;
+
+  // Return both text and unique URLs
+  const uniqueUrls = [...new Set(sourceUrls)];
+  return { text, sourceUrls: uniqueUrls };
 }
 
 /**
@@ -1018,7 +1071,9 @@ async function synthesizeWithClaude(domain, facts, mode, emitter = null) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
-  const factsText = formatFacts(facts);
+  const factsData = formatFacts(facts);
+  const factsText = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
   const startTime = Date.now();
 
   const deepFields = mode === 'deep' ? `
@@ -1055,6 +1110,13 @@ GROUNDING RULES (CRITICAL — judges will fact-check):
 - Today is ${today}. Any "news" item with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
 - The Executive Summary must paraphrase the scraped data only — do NOT add facts that aren't supported.
 
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in signals[], competitive[], strategic[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SCRAPED WEB DATA that supports this claim (pick the most specific URL from the data above)
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred from sources
+- If NO URL in the scraped data supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta object: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+
 Output format: Start with human-readable markdown executive summary, then emit structured JSON.
 
 ## Executive Summary
@@ -1074,10 +1136,12 @@ Output format: Start with human-readable markdown executive summary, then emit s
     "companyName": "${companyName}",
     "analysisDate": "${today}",
     "mode": "${mode}",
-    "confidence": "medium-high"
+    "confidence": "medium-high",
+    "sources_count": 0,
+    "evidence_coverage": "X of Y claims have direct evidence"
   },
   "signals": [
-    {"level": "high|medium|positive", "text": "specific actionable insight about ${domain}", "icon": "🔴|🟡|🟢"}
+    {"level": "high|medium|positive", "text": "specific actionable insight about ${domain}", "icon": "🔴|🟡|🟢", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "snapshot": {
     "founded": "YYYY",
@@ -1101,15 +1165,13 @@ Output format: Start with human-readable markdown executive summary, then emit s
     {"name": "Product Name", "description": "What it does"}
   ],
   "competitive": [
-    {"competitor": "Company Name", "weakness": "specific weakness vs ${companyName}"}
+    {"competitor": "Company Name", "weakness": "specific weakness vs ${companyName}", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "hiring": [
     {"role": "Role Type", "count": 0, "signal": "what this signals about strategy"}
   ],
   "strategic": [
-    "Strategic direction 1",
-    "Strategic direction 2",
-    "Strategic direction 3"
+    {"text": "Strategic direction 1", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],${newFields}
   "cost": {
     "webUnlocker": 0.30,
@@ -1171,15 +1233,13 @@ Schema:
     {"name": "Product Name", "description": "What it does"}
   ],
   "competitive": [
-    {"competitor": "Company Name", "weakness": "specific weakness vs ${companyName}"}
+    {"competitor": "Company Name", "weakness": "specific weakness vs ${companyName}", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "hiring": [
     {"role": "Role Type", "count": 0, "signal": "what this signals about strategy"}
   ],
   "strategic": [
-    "Strategic direction 1",
-    "Strategic direction 2",
-    "Strategic direction 3"
+    {"text": "Strategic direction 1", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],${newFields}${deepFields}
   "cost": {
     "webUnlocker": 0.30,
@@ -1539,7 +1599,8 @@ async function synthesizeAgenticWithClaude(domain, facts, signals) {
   const r1Facts = { ...facts };
   delete r1Facts.agenticSignals;
   delete r1Facts.followupData;
-  const r1Text = formatFacts(r1Facts).substring(0, 3000);
+  const r1Data = formatFacts(r1Facts);
+  const r1Text = r1Data.text.substring(0, 3000);
 
   // Build R2 followup text
   const r2Parts = [];
@@ -1870,18 +1931,30 @@ function generateMockMcpReport(domain, facts) {
  */
 async function synthesizePersonWithClaude(personName, facts = {}) {
   const today = new Date().toISOString().split('T')[0];
-  const factsText = formatFacts(facts);
+  const factsData = formatFacts(facts);
+  const factsText = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
+
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   let response = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8192,
-    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data.',
+    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data. EVIDENCE: Every item in quotes, publicActivity, companies, network must cite source URL.',
     messages: [{
       role: 'user',
       content: `Produce an executive intelligence report on "${personName}".
 
 TODAY: ${today}
-${factsText ? `SCRAPED DATA:\n${factsText}\n\nUse ONLY facts from the scraped data above. Do not invent career history, companies, or dates.` : `Use your knowledge to produce a report.`}
+${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n\nUse ONLY facts from the scraped data above. Do not invent career history, companies, or dates.` : `Use your knowledge to produce a report.`}
+
+EVIDENCE REQUIREMENTS:
+- Every item in quotes[], publicActivity[], companies[], network[] MUST include:
+  * evidence_url (string): EXACT URL from SOURCE URLs AVAILABLE
+  * confidence (string): "high" (2+ sources) | "medium" (1 source) | "low" (inferred)
+- Every signal[] item MUST include confidence
+- If NO URL supports a claim, OMIT it.
+- Add to meta: sources_count, evidence_coverage
 
 Return valid JSON with this exact structure:
 {
@@ -1889,10 +1962,12 @@ Return valid JSON with this exact structure:
     "name": "${personName}",
     "analysisDate": "${today}",
     "mode": "person",
-    "confidence": "medium-high"
+    "confidence": "medium-high",
+    "sources_count": 0,
+    "evidence_coverage": "X of Y"
   },
   "signals": [
-    {"level": "high|medium|positive", "text": "specific signal about this person", "icon": "🔴|🟡|🟢"}
+    {"level": "high|medium|positive", "text": "specific signal about this person", "icon": "🔴|🟡|🟢", "confidence": "high|medium|low"}
   ],
   "profile": {
     "currentRole": "Title at Company",
@@ -1904,16 +1979,16 @@ Return valid JSON with this exact structure:
     {"company": "Company Name", "role": "Title", "period": "YYYY–YYYY or YYYY–present", "achievement": "key thing they did"}
   ],
   "companies": [
-    {"name": "Company Name", "role": "Co-founder & CEO", "domain": "company.com"}
+    {"name": "Company Name", "role": "Co-founder & CEO", "domain": "company.com", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "quotes": [
-    {"text": "actual or representative quote", "source": "Source name", "date": "Mon YYYY"}
+    {"text": "actual or representative quote", "source": "Source name", "date": "Mon YYYY", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "network": [
-    {"name": "Person Name", "relationship": "nature of connection"}
+    {"name": "Person Name", "relationship": "nature of connection", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "publicActivity": [
-    {"date": "Mon DD", "event": "What they did publicly", "signal": "HIGH|MED|LOW"}
+    {"date": "Mon DD", "event": "What they did publicly", "signal": "HIGH|MED|LOW", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "cost": {"total": 1.50}
 }`
@@ -1970,24 +2045,36 @@ async function synthesizeSeoWithClaude(domain, facts) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
-  const factsText = formatFacts(facts);
+  const factsData = formatFacts(facts);
+  const factsText = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
+
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
     max_tokens: 8192,
-    system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+    system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE: Every claim in opportunities, competitive, strategic must cite a source URL.',
     messages: [{
       role: 'user',
       content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
-${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+
+EVIDENCE REQUIREMENTS:
+- Every item in opportunities[], competitive[], strategic[] arrays MUST include:
+  * evidence_url (string): EXACT URL from SOURCE URLs AVAILABLE
+  * confidence (string): "high" (2+ sources) | "medium" (1 source) | "low" (inferred)
+- Every signal[] item MUST include confidence
+- If NO URL supports a claim, OMIT it. Do not fabricate.
+- Add to meta: sources_count, evidence_coverage
 
 Return ONLY valid JSON — be specific and realistic for ${domain}:
 {
-  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "seo", "confidence": "medium-high" },
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "seo", "confidence": "medium-high", "sources_count": 0, "evidence_coverage": "X of Y" },
   "signals": [
-    { "level": "high|medium|positive", "text": "specific SEO finding for ${domain}", "icon": "🔴|🟡|🟢" }
+    { "level": "high|medium|positive", "text": "specific SEO finding for ${domain}", "icon": "🔴|🟡|🟢", "confidence": "high|medium|low" }
   ],
   "snapshot": {
     "domainAuthority": 0,
@@ -2023,15 +2110,17 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     "peopleAlsoAsk": 0
   },
   "opportunities": [
-    { "keyword": "keyword opportunity", "volume": 0, "difficulty": 0, "opportunity": "why this is valuable" }
+    { "keyword": "keyword opportunity", "volume": 0, "difficulty": 0, "opportunity": "why this is valuable", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "competitive": [
-    { "competitor": "Competitor Domain", "weakness": "their specific SEO weakness" }
+    { "competitor": "Competitor Domain", "weakness": "their specific SEO weakness", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "hiring": [
     { "role": "SEO/Content Role", "count": 0, "signal": "what this signals" }
   ],
-  "strategic": ["strategic SEO observation 1", "strategic SEO observation 2"]
+  "strategic": [
+    { "text": "strategic SEO observation 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
+  ]
 }`
     }]
   });
@@ -2042,13 +2131,18 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
     response = await anthropic.messages.create({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE: Every claim in opportunities, competitive, strategic must cite a source URL.',
       messages: [{
         role: 'user',
         content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
-${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
+
+EVIDENCE REQUIREMENTS:
+- Every item in opportunities[], competitive[], strategic[] must include evidence_url + confidence
+- If NO URL supports a claim, OMIT it
+- Add to meta: sources_count, evidence_coverage
 
 Return ONLY valid JSON — be specific and realistic for ${domain}:
 {
@@ -2143,9 +2237,13 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
 async function synthesizeRedteamWithClaude(domain, facts) {
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const today = new Date().toISOString().split('T')[0];
-  const factsText = formatFacts(facts);
+  const factsData = formatFacts(facts);
+  const factsText = factsData.text;
+  const sourceUrls = factsData.sourceUrls || [];
 
   const companySlug = domain.split('.')[0];
+
+  const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
   let response = await anthropic.messages.create({
     model: 'claude-sonnet-4-6',
@@ -2156,17 +2254,21 @@ async function synthesizeRedteamWithClaude(domain, facts) {
       content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
-${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
+${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
 
-EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided scraped data. If no source supports a claim, OMIT IT rather than fabricate.
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in exposures[], socialEngineering[], recommendations[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- Every signal[] item MUST include confidence (string)
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
-  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high" },
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high", "sources_count": 0, "evidence_coverage": "X of Y" },
   "signals": [
-    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴" },
-    { "level": "medium", "text": "specific medium finding", "icon": "🟡" },
-    { "level": "positive", "text": "positive security signal", "icon": "🟢" }
+    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴", "confidence": "high|medium|low" }
   ],
   "snapshot": { "founded": "YYYY", "hq": "City, Country", "employees": "N (est.)", "stage": "Series X", "website": "${domain}", "linkedin": "linkedin.com/company/${companySlug}" },
   "attackSurface": {
@@ -2176,22 +2278,22 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     "headers": { "csp": true, "hsts": true, "xframe": true, "referrerPolicy": false, "score": "B+" }
   },
   "exposures": [
-    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY" }
+    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "socialEngineering": [
-    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}" }
+    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "competitive": [
-    { "competitor": "Competitor Name", "weakness": "their security weakness" }
+    { "competitor": "Competitor Name", "weakness": "their security weakness", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "hiring": [
     { "role": "Security Role", "count": 0, "signal": "what this means" }
   ],
-  "strategic": ["strategic security observation 1", "strategic security observation 2"],
+  "strategic": [
+    { "text": "strategic security observation 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
+  ],
   "recommendations": [
-    { "priority": "P0", "action": "most urgent fix for ${domain}" },
-    { "priority": "P1", "action": "high priority fix" },
-    { "priority": "P2", "action": "medium priority fix" }
+    { "priority": "P0", "action": "most urgent fix for ${domain}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ]
 }`
     }]
@@ -2209,17 +2311,21 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
         content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
-${factsText ? `SCRAPED DATA:\n${factsText}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
+${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
 
-EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided scraped data. If no source supports a claim, OMIT IT rather than fabricate.
+EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
+- Every item in exposures[], socialEngineering[], recommendations[] arrays MUST include:
+  * evidence_url (string): the EXACT URL from SOURCE URLs AVAILABLE that supports this claim
+  * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
+- Every signal[] item MUST include confidence (string)
+- If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
+- Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
-  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high" },
+  "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "redteam", "confidence": "high", "sources_count": 0, "evidence_coverage": "X of Y" },
   "signals": [
-    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴" },
-    { "level": "medium", "text": "specific medium finding", "icon": "🟡" },
-    { "level": "positive", "text": "positive security signal", "icon": "🟢" }
+    { "level": "high", "text": "specific high-severity finding for ${domain}", "icon": "🔴", "confidence": "high|medium|low" }
   ],
   "snapshot": { "founded": "YYYY", "hq": "City, Country", "employees": "N (est.)", "stage": "Series X", "website": "${domain}", "linkedin": "linkedin.com/company/${companySlug}" },
   "attackSurface": {
@@ -2229,22 +2335,22 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
     "headers": { "csp": true, "hsts": true, "xframe": true, "referrerPolicy": false, "score": "B+" }
   },
   "exposures": [
-    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY" }
+    { "type": "exposure type", "severity": "CRITICAL|HIGH|MED|LOW", "detail": "specific detail about ${domain}", "date": "Mon YYYY", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "socialEngineering": [
-    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}" }
+    { "vector": "attack vector name", "risk": "HIGH|MED|LOW", "detail": "specific detail for ${domain}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "competitive": [
-    { "competitor": "Competitor Name", "weakness": "their security weakness" }
+    { "competitor": "Competitor Name", "weakness": "their security weakness", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ],
   "hiring": [
     { "role": "Security Role", "count": 0, "signal": "what this means" }
   ],
-  "strategic": ["strategic security observation 1", "strategic security observation 2"],
+  "strategic": [
+    { "text": "strategic security observation 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
+  ],
   "recommendations": [
-    { "priority": "P0", "action": "most urgent fix for ${domain}" },
-    { "priority": "P1", "action": "high priority fix" },
-    { "priority": "P2", "action": "medium priority fix" }
+    { "priority": "P0", "action": "most urgent fix for ${domain}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ]
 }`
       }]
