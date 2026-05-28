@@ -25,6 +25,7 @@ export default function Home() {
   const [isRunning, setIsRunning] = useState(false);
   const [agents, setAgents] = useState<AgentState[]>([]);
   const [totalElapsed, setTotalElapsed] = useState(0);
+  const runStartRef = useRef<number | null>(null);
   const [reportContent, setReportContent] = useState('');
   const [reportData, setReportData] = useState<any>(null);
   const [currentMode, setCurrentMode] = useState<Mode>('standard');
@@ -60,6 +61,23 @@ export default function Home() {
   const [compareInputOpen, setCompareInputOpen] = useState(false);
   const completedRef2 = useRef(false);
   const creditDeductedRef = useRef(false);
+
+  // Live timer — ticks every 200ms while any scan is running, so totalElapsed updates
+  // smoothly between SSE events. Without this, the timer freezes between agent events.
+  useEffect(() => {
+    if (!isRunning && !isRunning2) return;
+    if (runStartRef.current == null) runStartRef.current = Date.now();
+    const id = setInterval(() => {
+      if (runStartRef.current == null) return;
+      setTotalElapsed((Date.now() - runStartRef.current) / 1000);
+    }, 200);
+    return () => clearInterval(id);
+  }, [isRunning, isRunning2]);
+
+  // Compare-side 2 streaming state (mirror of synthesisText/Tokens/livePreview)
+  const [synthesisText2, setSynthesisText2] = useState<string>('');
+  const [synthesisTokens2, setSynthesisTokens2] = useState<number>(0);
+  const [livePreview2, setLivePreview2] = useState<string>('');
   const [compareDomain1, setCompareDomain1] = useState('');
   const [compareDomain2, setCompareDomain2] = useState('');
 
@@ -150,6 +168,7 @@ export default function Home() {
     // Reset state
     completedRef.current = false;
     cacheHitRef.current = false;
+    runStartRef.current = Date.now();
     setIsRunning(true);
     setCurrentMode(effectiveMode);
     setAgents([]);
@@ -293,6 +312,7 @@ export default function Home() {
     completedRef.current = false;
     completedRef2.current = false;
     creditDeductedRef.current = false;
+    runStartRef.current = Date.now();
     setIsRunning(true);
     setIsRunning2(true);
     setCompareActive(true);
@@ -306,6 +326,9 @@ export default function Home() {
     setCacheTime(undefined);
     setFreshTime(undefined);
     setCostBreakdown(undefined);
+    // Reset streaming state for both sides
+    setSynthesisText(''); setSynthesisTokens(0); setLivePreview('');
+    setSynthesisText2(''); setSynthesisTokens2(0); setLivePreview2('');
     // Connect to first SSE stream (direct to Railway)
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://recon.whatshubb.co.za';
     const evtSource1 = new EventSource(
@@ -388,6 +411,16 @@ export default function Home() {
         const event = JSON.parse(e.data);
 
         if (event.agent) {
+          // Handle streaming synthesis deltas for side 2
+          if (event.agent === 'claude' && event.status === 'streaming' && event.delta) {
+            if (mode === 'standard') {
+              setLivePreview2(prev => prev + event.delta);
+            } else {
+              setSynthesisText2(prev => prev + event.delta);
+            }
+            if (event.tokens) setSynthesisTokens2(event.tokens);
+          }
+
           setAgents((prev) => {
             const { agent: _a, status, elapsed, message, type: _t, ...rest } = event;
             const extra = Object.keys(rest).length > 0 ? rest : undefined;
@@ -576,6 +609,13 @@ export default function Home() {
               isLoading2={isRunning2}
               domain1={compareDomain1}
               domain2={compareDomain2}
+              synthesisText1={synthesisText}
+              synthesisTokens1={synthesisTokens}
+              livePreview1={livePreview}
+              synthesisText2={synthesisText2}
+              synthesisTokens2={synthesisTokens2}
+              livePreview2={livePreview2}
+              isJsonPhase={isJsonPhaseRef.current}
             />
           ) : currentMode === 'seo' ? (
             <SeoPanel

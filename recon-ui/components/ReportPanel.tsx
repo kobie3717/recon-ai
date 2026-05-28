@@ -797,7 +797,19 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                       <div className="flex items-center gap-1.5 mb-1">
                         <span className="text-recon-cyan font-mono text-xs">{source.tool || source.agent}</span>
                       </div>
-                      <div className="text-recon-grey truncate">{source.url || source.dataType}</div>
+                      {source.url && /^https?:\/\//.test(source.url) ? (
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-recon-cyan/80 hover:text-recon-cyan hover:underline truncate block transition-colors"
+                          title={source.url}
+                        >
+                          {source.url}
+                        </a>
+                      ) : (
+                        <div className="text-recon-grey truncate">{source.url || source.dataType}</div>
+                      )}
                     </div>
                   ))}
                 </div>

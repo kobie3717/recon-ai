@@ -380,6 +380,220 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
   return y;
 }
 
+function addEntityGraph(doc: Doc, reportData: any, pageW: number, pageH: number, margin: number): number {
+  doc.addPage();
+  let y = margin + 4;
+
+  y = addSection(doc, 'ENTITY RELATIONSHIP GRAPH', y, pageH, margin);
+
+  // Extract company name for center node
+  const companyName = reportData?.meta?.companyName || reportData?.snapshot?.website || 'Unknown';
+
+  // Extract peripheral nodes
+  const peripheralNodes: Array<{ label: string; type: string; edgeLabel: string; r: number; g: number; b: number }> = [];
+
+  // Colors (RGB tuples)
+  const colors = {
+    company: { r: 6, g: 182, b: 212 },
+    competitor: { r: 239, g: 68, b: 68 },
+    investor: { r: 16, g: 185, b: 129 },
+    technology: { r: 245, g: 158, b: 11 },
+    product: { r: 236, g: 72, b: 153 },
+    news: { r: 96, g: 165, b: 250 },
+    strategic: { r: 34, g: 211, b: 238 },
+  };
+
+  // 1. Competitors (top 5)
+  try {
+    if (reportData?.competitive && Array.isArray(reportData.competitive)) {
+      reportData.competitive.slice(0, 5).forEach((comp: any) => {
+        peripheralNodes.push({
+          label: comp.competitor || comp.name || 'Unknown',
+          type: 'competitor',
+          edgeLabel: 'competes with',
+          ...colors.competitor,
+        });
+      });
+    }
+  } catch (e) { /* graceful */ }
+
+  // 2. Investors (top 3)
+  try {
+    if (reportData?.financials?.investors && Array.isArray(reportData.financials.investors)) {
+      reportData.financials.investors.slice(0, 3).forEach((investor: string) => {
+        peripheralNodes.push({
+          label: investor,
+          type: 'investor',
+          edgeLabel: 'invested in',
+          ...colors.investor,
+        });
+      });
+    }
+  } catch (e) { /* graceful */ }
+
+  // 3. Technologies (up to 4)
+  try {
+    const techList: string[] = [];
+    if (reportData?.techStack) {
+      if (Array.isArray(reportData.techStack)) {
+        reportData.techStack.forEach((item: any) => {
+          if (typeof item === 'string') {
+            techList.push(item);
+          } else if (item.items && Array.isArray(item.items)) {
+            techList.push(...item.items);
+          }
+        });
+      }
+    }
+    techList.slice(0, 4).forEach((tech: string) => {
+      peripheralNodes.push({
+        label: tech,
+        type: 'technology',
+        edgeLabel: 'uses',
+        ...colors.technology,
+      });
+    });
+  } catch (e) { /* graceful */ }
+
+  // 4. Products (top 4)
+  try {
+    if (reportData?.products && Array.isArray(reportData.products)) {
+      reportData.products.slice(0, 4).forEach((prod: any) => {
+        const label = typeof prod === 'string' ? prod
+          : (prod.name || prod.product || prod.title || (typeof prod.text === 'string' ? prod.text : null));
+        if (label) {
+          peripheralNodes.push({
+            label: String(label).slice(0, 30),
+            type: 'product',
+            edgeLabel: 'ships',
+            ...colors.product,
+          });
+        }
+      });
+    }
+  } catch (e) { /* graceful */ }
+
+  // 5. News (top 3)
+  try {
+    const newsItems = reportData?.news || reportData?.recentSignals || [];
+    if (Array.isArray(newsItems)) {
+      newsItems.slice(0, 3).forEach((item: any) => {
+        const label = typeof item === 'string' ? item
+          : (item.headline || item.title || item.text || '');
+        if (label) {
+          peripheralNodes.push({
+            label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+            type: 'news',
+            edgeLabel: 'covered by',
+            ...colors.news,
+          });
+        }
+      });
+    }
+  } catch (e) { /* graceful */ }
+
+  // 6. Strategic (top 3)
+  try {
+    if (reportData?.strategic && Array.isArray(reportData.strategic)) {
+      reportData.strategic.slice(0, 3).forEach((item: any) => {
+        const label = typeof item === 'string' ? item
+          : (item.text || item.title || '');
+        if (label) {
+          peripheralNodes.push({
+            label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+            type: 'strategic',
+            edgeLabel: 'plans',
+            ...colors.strategic,
+          });
+        }
+      });
+    }
+  } catch (e) { /* graceful */ }
+
+  // Check if we have any nodes
+  if (peripheralNodes.length === 0) {
+    doc.setFontSize(8);
+    doc.setTextColor(120, 120, 120);
+    doc.text('Sparse data — graph unavailable for this report', pageW / 2, y + 20, { align: 'center' });
+    return y + 30;
+  }
+
+  // Draw legend
+  doc.setFontSize(6);
+  const legendY = y;
+  const legendItems = [
+    { label: 'Company', ...colors.company },
+    { label: 'Competitor', ...colors.competitor },
+    { label: 'Investor', ...colors.investor },
+    { label: 'Technology', ...colors.technology },
+    { label: 'Product', ...colors.product },
+    { label: 'News', ...colors.news },
+    { label: 'Strategic', ...colors.strategic },
+  ];
+  let legendX = margin;
+  legendItems.forEach((item) => {
+    doc.setFillColor(item.r, item.g, item.b);
+    doc.circle(legendX + 1.5, legendY - 1, 1.5, 'F');
+    doc.setTextColor(80, 80, 80);
+    doc.text(item.label, legendX + 4, legendY);
+    legendX += doc.getTextWidth(item.label) + 10;
+  });
+
+  y = legendY + 10;
+
+  // Layout parameters (in mm)
+  const centerX = 105;
+  const centerY = 140;
+  const centerRadius = 8;
+  const peripheralRadius = 6;
+  const circleRadius = 60;
+
+  // Draw edges first
+  peripheralNodes.forEach((node, i) => {
+    const angle = (i / peripheralNodes.length) * 2 * Math.PI;
+    const periphX = centerX + circleRadius * Math.cos(angle);
+    const periphY = centerY + circleRadius * Math.sin(angle);
+
+    doc.setDrawColor(node.r, node.g, node.b);
+    doc.setLineWidth(0.3);
+    doc.line(centerX, centerY, periphX, periphY);
+
+    // Edge label at midpoint
+    const midX = (centerX + periphX) / 2;
+    const midY = (centerY + periphY) / 2;
+    doc.setFontSize(6);
+    doc.setTextColor(120, 120, 120);
+    doc.text(node.edgeLabel, midX, midY - 1, { align: 'center' });
+  });
+
+  // Draw center node
+  doc.setFillColor(colors.company.r, colors.company.g, colors.company.b);
+  doc.circle(centerX, centerY, centerRadius, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'bold');
+  const companyLabel = companyName.length > 18 ? companyName.slice(0, 17) + '…' : companyName;
+  doc.text(companyLabel, centerX, centerY + 1, { align: 'center' });
+  doc.setFont('helvetica', 'normal');
+
+  // Draw peripheral nodes
+  peripheralNodes.forEach((node, i) => {
+    const angle = (i / peripheralNodes.length) * 2 * Math.PI;
+    const x = centerX + circleRadius * Math.cos(angle);
+    const y = centerY + circleRadius * Math.sin(angle);
+
+    doc.setFillColor(node.r, node.g, node.b);
+    doc.circle(x, y, peripheralRadius, 'F');
+
+    doc.setTextColor(50, 50, 50);
+    doc.setFontSize(7);
+    const truncatedLabel = node.label.length > 24 ? node.label.slice(0, 23) + '…' : node.label;
+    doc.text(truncatedLabel, x, y + 11, { align: 'center' });
+  });
+
+  return centerY + circleRadius + 30;
+}
+
 export async function downloadPdf(filename: string, reportData: any): Promise<void> {
   const { jsPDF } = await import('jspdf');
 
@@ -429,8 +643,12 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
       y = addBundleHeader(doc, 'SECURITY ANALYSIS', y, pageH, margin, pageW);
       y = renderSections(doc, reportData.redteam, y, pageH, margin);
     }
+    // Add entity graph after all bundle sections
+    y = addEntityGraph(doc, reportData.standard || reportData, pageW, pageH, margin);
   } else {
     y = renderSections(doc, reportData, y, pageH, margin);
+    // Add entity graph after regular report sections
+    y = addEntityGraph(doc, reportData, pageW, pageH, margin);
   }
 
   // ── Page footer ───────────────────────────────────────────────────────────
