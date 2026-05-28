@@ -4,6 +4,9 @@ import { useState } from 'react';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
 
+// Customer price markup — must match backend SERVICE_FEE_MULTIPLIER (default 1.5 = 50%)
+const SERVICE_FEE_MULT = 1.5;
+
 interface UrlInputProps {
   onGenerate: (url: string, mode: Mode, cost: number) => void;
   onCompare: (url1: string, url2: string, mode: 'standard' | 'deep') => void;
@@ -135,7 +138,7 @@ export default function UrlInput({ onGenerate, onCompare, isRunning, url, onUrlC
                   title={description}
                 >
                   {icon && <span className="mr-1">{icon}</span>}
-                  {label} {!verified ? 'Coming soon' : (cost > 0 ? `$${cost.toFixed(2)}` : 'FREE')}
+                  {label} {!verified ? 'Coming soon' : (cost > 0 ? `$${(cost * SERVICE_FEE_MULT).toFixed(2)}` : 'FREE')}
                 </button>
               );
             })
