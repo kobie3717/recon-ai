@@ -401,7 +401,7 @@ function estimateOutput(opts) {
 
 async function waitForBudget(estimate, label = '') {
   const startWait = Date.now();
-  const FALLBACK_THRESHOLD_MS = 30000; // 30s wait triggers fallback
+  const FALLBACK_THRESHOLD_MS = 3000; // 3s wait triggers fallback (was 30s — too slow for live streaming UX)
 
   while (true) {
     const used = windowTotal();
@@ -418,7 +418,7 @@ async function waitForBudget(estimate, label = '') {
     if (!oldest) return 'cli';
     const waitMs = Math.max(250, (oldest.ts + CLI_WINDOW_MS) - Date.now() + 100);
     console.log(`[cli-queue] ${label} waiting ${waitMs}ms (${waitedMs}ms elapsed) — used ${used}/${CLI_OUTPUT_BUDGET} + reserve ${estimate}`);
-    await new Promise(r => setTimeout(r, Math.min(waitMs, 5000)));
+    await new Promise(r => setTimeout(r, Math.min(waitMs, 1000)));
   }
 }
 
