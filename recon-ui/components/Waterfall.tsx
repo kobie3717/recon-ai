@@ -266,7 +266,19 @@ export default function Waterfall({ agents, totalElapsed, cacheHit, cacheTime, f
   const [agentTimings, setAgentTimings] = useState<Record<string, { start: number; end?: number }>>({});
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // Only auto-scroll if user is already near the bottom (within 200px).
+    // Otherwise respect their manual scroll position so they can read earlier agents.
+    const el = bottomRef.current;
+    if (!el) return;
+    const scrollContainer = el.closest('.overflow-y-auto') as HTMLElement | null;
+    if (!scrollContainer) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    const distanceFromBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight;
+    if (distanceFromBottom < 200) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [agents]);
 
   // Track agent timings for timeline view
