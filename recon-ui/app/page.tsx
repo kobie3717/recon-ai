@@ -14,6 +14,7 @@ import FootprintPanel from '@/components/FootprintPanel';
 import WatchPanel from '@/components/WatchPanel';
 import LookupPanel from '@/components/LookupPanel';
 import McpPanel from '@/components/McpPanel';
+import SplashOverlay from '@/components/SplashOverlay';
 import { flattenEvidence } from '@/lib/flatten-evidence';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
@@ -509,6 +510,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen">
+      <SplashOverlay />
       <div id="recon-header"><Header credits={credits} /></div>
 
       <div id="url-input-bar">
