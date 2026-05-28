@@ -488,12 +488,14 @@ export async function runStandardWorker(domain, emitter, mode = 'standard') {
   ];
 
   // Wait for fast agents, then emit partial facts signal
+  // Pass live facts ref so sse-server can start synth immediately without awaiting workerPromise
   Promise.allSettled(fastAgents).then(() => {
     emitter.emit('event', {
       agent: 'orchestrator',
       status: 'facts-partial',
-      factCount: 6,
+      factCount: Object.keys(facts).length,
       message: 'Core facts collected — synthesis starting',
+      factsRef: facts,
       elapsed: parseFloat(elapsed())
     });
   });

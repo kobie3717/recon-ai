@@ -682,14 +682,12 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       const synthListener = (evt) => {
         if (evt.agent === 'orchestrator' && evt.status === 'facts-partial' && !synthPromise && anthropic) {
           emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Early-start synthesis on partial facts', elapsed: evt.elapsed });
-          // Start synthesis NOW — facts object in worker is already populated with fast agent results
-          // The worker result will have the facts object which is being mutated in real-time
-          synthPromise = (async () => {
-            // Wait for worker to complete so we have the facts reference
-            const workerResult = await workerPromise;
-            const factsData = workerResult.facts || {};
-            return await synthesizeWithClaude(domain, factsData, mode, emitter);
-          })();
+          // Start synthesis NOW with the LIVE facts reference from bd-worker.
+          // Previously this awaited workerPromise (~35s) defeating early synthesis. Now we use
+          // factsRef passed by the orchestrator event — facts object is mutated in-place by remaining
+          // agents but the synth prompt is built once at call time (whatever's in facts at t=5s).
+          const factsRef = evt.factsRef || {};
+          synthPromise = synthesizeWithClaude(domain, factsRef, mode, emitter);
         }
       };
       emitter.on('event', synthListener);
@@ -1359,7 +1357,7 @@ Schema:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -1785,7 +1783,7 @@ Return ONLY valid JSON:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: prompt }]
   });
@@ -1965,7 +1963,7 @@ Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came 
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -2196,7 +2194,7 @@ Return valid JSON with this exact structure:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -2365,7 +2363,7 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -2578,7 +2576,7 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -2801,7 +2799,7 @@ Return ONLY valid JSON with this exact structure:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
@@ -3080,7 +3078,7 @@ Return ONLY valid JSON with this exact structure:
 
   const stream = await anthropic.messages.stream({
     model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
+    max_tokens: 6000,
     system: systemPrompt,
     messages: [{ role: 'user', content: userPrompt }]
   });
