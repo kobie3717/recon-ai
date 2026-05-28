@@ -11,6 +11,7 @@ import { runStandardWorker, runDeepWorker, runFootprintWorker, runLookupWorker, 
 import { dataFirehose, serpApi, scrapingBrowser } from './bright-data-connector.mjs';
 import { startMonitorScheduler, getMonitorState, updateMonitorState, getDiffHistory, triggerDomainCheck } from './monitor-scheduler.mjs';
 import { createClaudeClient, calculateClaudeCost as adapterCalculateClaudeCost } from './claude-adapter.mjs';
+import { extractJson } from './lib/extract-json.mjs';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import path from 'path';
@@ -311,7 +312,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: personElapsed() });
 
       if (anthropic) {
-        const synthResult = await synthesizePersonWithClaude(personName, facts);
+        const synthResult = await synthesizePersonWithClaude(personName, facts, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { serpApi: 0.50, scrapingBrowser: 0.80, claude: claudeCost, total: parseFloat((1.30 + claudeCost).toFixed(2)) };
@@ -332,7 +333,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: workerResult.elapsed });
 
       if (anthropic) {
-        const synthResult = await synthesizeRedteamWithClaude(domain, workerResult.facts);
+        const synthResult = await synthesizeRedteamWithClaude(domain, workerResult.facts, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         const costBreakdown = { ...workerResult.costBreakdown, claude: claudeCost };
@@ -365,7 +366,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       emitter.emit('event', { agent: 'claude', status: 'synthesizing', elapsed: workerResult.elapsed });
 
       if (anthropic) {
-        const synthResult = await synthesizeSeoWithClaude(domain, workerResult.facts);
+        const synthResult = await synthesizeSeoWithClaude(domain, workerResult.facts, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         const costBreakdown = { ...workerResult.costBreakdown, claude: claudeCost };
@@ -429,9 +430,9 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       }
 
       const [standardResult, seoResult, redteamResult] = await Promise.all([
-        synthesizeWithClaude(domain, facts, 'standard'),
-        synthesizeSeoWithClaude(domain, facts),
-        synthesizeRedteamWithClaude(domain, facts),
+        synthesizeWithClaude(domain, facts, 'standard', emitter),
+        synthesizeSeoWithClaude(domain, facts, emitter),
+        synthesizeRedteamWithClaude(domain, facts, emitter),
       ]);
       emitter.emit('event', { agent: 'claude', status: 'complete', elapsed: bElapsed() });
 
@@ -485,7 +486,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = await runFootprintWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        const synthResult = await synthesizeFootprintWithClaude(domain, factsData);
+        const synthResult = await synthesizeFootprintWithClaude(domain, factsData, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
@@ -505,7 +506,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = await runLookupWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        const synthResult = await synthesizeLookupWithClaude(domain, factsData);
+        const synthResult = await synthesizeLookupWithClaude(domain, factsData, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { ...result.costBreakdown, claude: claudeCost, total: parseFloat((result.cost - (result.costBreakdown?.claude || 0) + claudeCost).toFixed(2)) };
@@ -525,7 +526,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       result = await runMcpWorker(domain, emitter);
       const factsData = result.facts || {};
       if (anthropic) {
-        const synthResult = await synthesizeMcpWithClaude(domain, factsData);
+        const synthResult = await synthesizeMcpWithClaude(domain, factsData, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         report.cost = { bdMcp: 0.20, claude: claudeCost, total: parseFloat((0.20 + claudeCost).toFixed(2)) };
@@ -624,7 +625,7 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       if (anthropic) {
         const claudeStart = Date.now();
         emitter.emit('event', { agent: 'claude', status: 'synthesizing', message: 'Final synthesis: R1 + R2 intelligence...', elapsed: result.elapsed });
-        const synthResult = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals);
+        const synthResult = await synthesizeAgenticWithClaude(domain, mergedFacts, agenticSignals, emitter);
         report = synthResult.report;
         const claudeCost = calculateClaudeCost(synthResult.usage, undefined, synthResult);
         // Agentic mode uses Haiku for signal extraction (~$0.02) + Sonnet for synthesis
@@ -753,6 +754,15 @@ app.get('/api/report', reportLimiter, async (req, res) => {
       } catch (screenshotErr) {
         console.error('[screenshot] Failed to save:', screenshotErr.message);
       }
+    }
+
+    // Apply service fee on top of raw cost (env: SERVICE_FEE_MULTIPLIER, default 1.5 = 50% markup)
+    const SERVICE_FEE_MULT = parseFloat(process.env.SERVICE_FEE_MULTIPLIER || '1.5');
+    if (report.cost && typeof report.cost.total === 'number') {
+      const rawTotal = report.cost.total;
+      report.cost.rawCost = parseFloat(rawTotal.toFixed(2));
+      report.cost.serviceFee = parseFloat((rawTotal * (SERVICE_FEE_MULT - 1)).toFixed(2));
+      report.cost.customerPrice = parseFloat((rawTotal * SERVICE_FEE_MULT).toFixed(2));
     }
 
     // Cache for AI-IQ instant replay
@@ -1565,7 +1575,7 @@ function parseSynthesisResult(rawText, domain, companySlug, mode, usage) {
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(text);
   } catch (parseErr) {
     // Log first 500 chars of failed output for debugging
     console.error(`[${mode}] JSON parse failed for ${domain}:`, parseErr.message);
@@ -1657,8 +1667,15 @@ Return ONLY this JSON:
     throw new Error(`Claude classify+extract truncated at max_tokens — increase budget`);
   }
 
-  const text = response.content[0].text.trim().replace(/^```json\n?/, '').replace(/^```\n?/, '').replace(/\n?```$/, '');
-  const parsed = JSON.parse(text);
+  const rawText = response.content[0].text.trim();
+  let parsed;
+  try {
+    parsed = extractJson(rawText);
+  } catch (parseErr) {
+    console.error('[agentic] classify+extract failed:', parseErr.message);
+    console.error('[agentic] Raw output (first 500 chars):', rawText.substring(0, 500));
+    throw new Error('Claude classify+extract returned invalid JSON');
+  }
   const classification = { type: parsed.type || 'unknown', stage: parsed.stage || 'unknown', scout_focus: parsed.scout_focus || 'general', priority_signals: [] };
   const signals = (parsed.signals || []).slice(0, 2).filter(s => s.followup_query && s.finding);
   return { classification, signals };
@@ -1678,7 +1695,8 @@ function getDefaultSignals(domain) {
 /**
  * Full agentic synthesis — includes signal context + R2 data
  */
-async function synthesizeAgenticWithClaude(domain, facts, signals) {
+async function synthesizeAgenticWithClaude(domain, facts, signals, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -1761,35 +1779,74 @@ Return ONLY valid JSON:
   "cost": {"webUnlocker":0.30,"serpApi":0.80,"scrapingBrowser":0.80,"webScraperApi":0.40,"claudeHaiku":0.02,"claudeSonnet":0.20,"total":2.52}
 }`;
 
-  let response = await anthropic.messages.create({
+  const systemPrompt = 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.';
+
+  const stream = await anthropic.messages.stream({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 8192,
-    system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.',
+    system: systemPrompt,
     messages: [{ role: 'user', content: prompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[agentic] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
-      system: 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.',
+      system: systemPrompt,
       messages: [{ role: 'user', content: prompt }]
     });
+
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
 
     if (response.stop_reason === 'max_tokens') {
       console.error(`[agentic] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[agentic] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[agentic] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -1824,7 +1881,8 @@ Return ONLY valid JSON:
 /**
  * Synthesize MCP intelligence report with Claude
  */
-async function synthesizeMcpWithClaude(domain, facts) {
+async function synthesizeMcpWithClaude(domain, facts, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -1844,13 +1902,8 @@ async function synthesizeMcpWithClaude(domain, facts) {
     factsContext += `\n\nMCP WEB UNLOCKER (/about page):\n${facts.unlocker.content || ''}`;
   }
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
-    messages: [{
-      role: 'user',
-      content: `Analyze "${domain}" (${companyName}) using MCP protocol intelligence data.
+  const systemPrompt = 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.';
+  const userPrompt = `Analyze "${domain}" (${companyName}) using MCP protocol intelligence data.
 
 TODAY: ${today}
 
@@ -1906,17 +1959,42 @@ Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came 
     { "tool": "BD MCP web_unlocker", "icon": "🔓", "target": "https://${domain}/about", "sections": ["Company Info"] }
   ],
   "cost": { "mcpSearch": 0.00, "mcpScrape": 0.00, "mcpUnlocker": 0.00, "claude": 2.00, "total": 2.00 }
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[mcp] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a competitive intelligence analyst using Bright Data MCP protocol. Output ONLY valid JSON — no markdown, no explanation, no code blocks.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `Analyze "${domain}" (${companyName}) using MCP protocol intelligence data.
@@ -1930,18 +2008,35 @@ Return ONLY valid JSON — see previous message for structure.`
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[mcp] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[mcp] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[mcp] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -2035,7 +2130,8 @@ function generateMockMcpReport(domain, facts) {
 /**
  * Synthesize person intelligence report with Claude
  */
-async function synthesizePersonWithClaude(personName, facts = {}) {
+async function synthesizePersonWithClaude(personName, facts = {}, emitter = null) {
+  const startTime = Date.now();
   const today = new Date().toISOString().split('T')[0];
   const factsData = formatFacts(facts);
   const factsText = factsData.text;
@@ -2043,13 +2139,10 @@ async function synthesizePersonWithClaude(personName, facts = {}) {
 
   const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
-  let response = await anthropic.messages.create({
-    model: 'claude-haiku-4-5-20251001',
-    max_tokens: 8192,
-    system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data. EVIDENCE: Every item in quotes, publicActivity, companies, network must cite source URL.',
-    messages: [{
-      role: 'user',
-      content: `Produce an executive intelligence report on "${personName}".
+  const systemPrompt = 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data. EVIDENCE: Every item in quotes, publicActivity, companies, network must cite source URL.';
+  const userPrompt = `You are receiving grounding data from live web sources (Bright Data agents) interleaved in this prompt. Treat all <grounding> blocks as authoritative live data, not training knowledge. Your job is to synthesize them into the JSON schema below. Do not refuse the task or cite a knowledge cutoff — every claim should cite a URL from the grounding data you receive.
+
+Produce an executive intelligence report on "${personName}".
 
 TODAY: ${today}
 ${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n\nUse ONLY facts from the scraped data above. Do not invent career history, companies, or dates.` : `Use your knowledge to produce a report.`}
@@ -2097,17 +2190,42 @@ Return valid JSON with this exact structure:
     {"date": "Mon DD", "event": "What they did publicly", "signal": "HIGH|MED|LOW", "evidence_url": "https://...", "confidence": "high|medium|low"}
   ],
   "cost": {"total": 1.50}
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[person] Claude truncated at 8192 tokens for ${personName}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
-      system: 'You are an executive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation. Ground all claims in the provided scraped data.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `Produce an executive intelligence report on "${personName}".
@@ -2118,18 +2236,35 @@ Return valid JSON — see previous message for structure.`
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[person] Claude STILL truncated at 16384 tokens for ${personName} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[person] JSON parse failed for ${personName}:`, parseErr.message);
     console.error(`[person] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -2147,7 +2282,8 @@ Return valid JSON — see previous message for structure.`
 /**
  * Synthesize SEO intelligence report with Claude
  */
-async function synthesizeSeoWithClaude(domain, facts) {
+async function synthesizeSeoWithClaude(domain, facts, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -2157,13 +2293,8 @@ async function synthesizeSeoWithClaude(domain, facts) {
 
   const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE: Every claim in opportunities, competitive, strategic must cite a source URL.',
-    messages: [{
-      role: 'user',
-      content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
+  const systemPrompt = 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE: Every claim in opportunities, competitive, strategic must cite a source URL.';
+  const userPrompt = `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
 ${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and SEO best practices for companies in this space.`}
@@ -2227,17 +2358,42 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
   "strategic": [
     { "text": "strategic SEO observation 1", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ]
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[seo] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are an SEO analyst and digital marketing strategist. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE: Every claim in opportunities, competitive, strategic must cite a source URL.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `Produce a comprehensive SEO intelligence report on "${domain}" (${companyName}).
@@ -2303,18 +2459,35 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[seo] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[seo] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[seo] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -2340,7 +2513,8 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
 /**
  * Synthesize red team security intelligence report with Claude
  */
-async function synthesizeRedteamWithClaude(domain, facts) {
+async function synthesizeRedteamWithClaude(domain, facts, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const today = new Date().toISOString().split('T')[0];
   const factsData = formatFacts(facts);
@@ -2351,13 +2525,8 @@ async function synthesizeRedteamWithClaude(domain, facts) {
 
   const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
-    messages: [{
-      role: 'user',
-      content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
+  const systemPrompt = 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.';
+  const userPrompt = `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
 
 TODAY: ${today}
 ${factsText ? `SCRAPED DATA:\n${factsText}${sourceUrlsList}\n` : `Use your knowledge of ${domain} and common attack patterns for companies in this space.`}
@@ -2401,17 +2570,42 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
   "recommendations": [
     { "priority": "P0", "action": "most urgent fix for ${domain}", "evidence_url": "https://...", "confidence": "high|medium|low" }
   ]
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[redteam] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a red team security analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in exposures, socialEngineering, and recommendations MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `You are a red team security analyst. Produce a security intelligence report on "${domain}" (${companyName}).
@@ -2462,18 +2656,35 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[redteam] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[redteam] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[redteam] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -2499,7 +2710,8 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
 /**
  * Synthesize footprint intelligence report with Claude
  */
-async function synthesizeFootprintWithClaude(domain, facts) {
+async function synthesizeFootprintWithClaude(domain, facts, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -2509,13 +2721,8 @@ async function synthesizeFootprintWithClaude(domain, facts) {
 
   const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, socialPresence, competitive, and strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
-    messages: [{
-      role: 'user',
-      content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
+  const systemPrompt = 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, socialPresence, competitive, and strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.';
+  const userPrompt = `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
 
 TODAY: ${today}
 
@@ -2585,17 +2792,42 @@ Return ONLY valid JSON with this exact structure:
     { "tool": "BD SERP API", "icon": "🔍", "target": "site:reddit.com OR site:twitter.com mentions", "sections": ["Public Sentiment"] }
   ],
   "cost": { "discoverApi": 0.00, "crawlApi": 1.20, "linkedinScraper": 0.80, "socialScraper": 0.60, "serpApi": 0.30, "claude": 2.10, "total": 5.00 }
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[footprint] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a digital intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, socialPresence, competitive, and strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `Analyze the digital footprint of "${domain}" (${companyName}) and produce a comprehensive footprint intelligence report.
@@ -2609,18 +2841,34 @@ Return ONLY valid JSON — see previous message for structure with evidence_url 
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[footprint] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
-
+  const rawText = accumulatedText.trim();
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[footprint] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[footprint] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);
@@ -2746,7 +2994,8 @@ function generateMockFootprintReport(domain, facts) {
 /**
  * Synthesize lookup report with Claude
  */
-async function synthesizeLookupWithClaude(domain, facts) {
+async function synthesizeLookupWithClaude(domain, facts, emitter = null) {
+  const startTime = Date.now();
   const companyName = domain.split('.')[0].charAt(0).toUpperCase() + domain.split('.')[0].slice(1);
   const companySlug = domain.split('.')[0];
   const today = new Date().toISOString().split('T')[0];
@@ -2756,13 +3005,8 @@ async function synthesizeLookupWithClaude(domain, facts) {
 
   const sourceUrlsList = sourceUrls.length > 0 ? `\n\nSOURCE URLs AVAILABLE (you may ONLY cite URLs from this list):\n${sourceUrls.map((u, i) => `${i + 1}. ${u}`).join('\n')}` : '';
 
-  let response = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 8192,
-    system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, deepInsights items, competitive, strategic, and hiring arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
-    messages: [{
-      role: 'user',
-      content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
+  const systemPrompt = 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, deepInsights items, competitive, strategic, and hiring arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.';
+  const userPrompt = `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
 
 TODAY: ${today}
 
@@ -2827,17 +3071,42 @@ Return ONLY valid JSON with this exact structure:
     { "tool": "BD Web Unlocker", "icon": "🌐", "target": "https://${domain}", "sections": ["Homepage"] }
   ],
   "cost": { "deepLookup": 5.00, "serpApi": 0.30, "webUnlocker": 0.20, "claude": 2.50, "total": 8.00 }
-}`
-    }]
+}`;
+
+  const stream = await anthropic.messages.stream({
+    model: 'claude-sonnet-4-6',
+    max_tokens: 8192,
+    system: systemPrompt,
+    messages: [{ role: 'user', content: userPrompt }]
   });
+
+  let accumulatedText = '';
+  let tokenCount = 0;
+  for await (const chunk of stream) {
+    if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+      accumulatedText += chunk.delta.text;
+      tokenCount++;
+      if (emitter) {
+        emitter.emit('event', {
+          agent: 'claude',
+          status: 'streaming',
+          delta: chunk.delta.text,
+          tokens: tokenCount,
+          elapsed: (Date.now() - startTime) / 1000
+        });
+      }
+    }
+  }
+
+  let response = await stream.finalMessage();
 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[lookup] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    response = await anthropic.messages.create({
+    const retryStream = await anthropic.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
-      system: 'You are a competitive intelligence analyst with access to web-scale indexed data. Output ONLY valid JSON — no markdown, no explanation, no code blocks. EVIDENCE RULE: Every finding in signals, deepInsights items, competitive, strategic, and hiring arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT. Do not fabricate.',
+      system: systemPrompt,
       messages: [{
         role: 'user',
         content: `Analyze "${domain}" (${companyName}) using Deep Lookup intelligence — this is web-scale indexed data, not just scraped pages.
@@ -2851,18 +3120,35 @@ Return ONLY valid JSON — see previous message for structure with evidence_url 
       }]
     });
 
+    accumulatedText = '';
+    for await (const chunk of retryStream) {
+      if (chunk.type === 'content_block_delta' && chunk.delta?.type === 'text_delta') {
+        accumulatedText += chunk.delta.text;
+        tokenCount++;
+        if (emitter) {
+          emitter.emit('event', {
+            agent: 'claude',
+            status: 'streaming',
+            delta: chunk.delta.text,
+            tokens: tokenCount,
+            elapsed: (Date.now() - startTime) / 1000
+          });
+        }
+      }
+    }
+
+    response = await retryStream.finalMessage();
+
     if (response.stop_reason === 'max_tokens') {
       console.error(`[lookup] Claude STILL truncated at 16384 tokens for ${domain} (${response.usage?.output_tokens || 'unknown'} tokens used)`);
     }
   }
 
-  const rawText = response.content[0].text.trim();
-  const jsonMatch = rawText.match(/\{[\s\S]*\}/);
-  const text = jsonMatch ? jsonMatch[0] : rawText.replace(/^```json\n?|^```\n?|\n?```$/g, '');
+  const rawText = accumulatedText.trim();
 
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = extractJson(rawText);
   } catch (parseErr) {
     console.error(`[lookup] JSON parse failed for ${domain}:`, parseErr.message);
     console.error(`[lookup] stop_reason: ${response.stop_reason}, output_tokens: ${response.usage?.output_tokens || 'unknown'}`);

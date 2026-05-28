@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface RedteamPanelProps {
   reportData: any;
@@ -151,7 +152,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                         {r.priority}
                       </span>
                       <span className="text-white flex-1">
-                        {r.action}
+                        <S v={r.action} />
                         <EvidencePill url={r.evidence_url} confidence={r.confidence} />
                       </span>
                     </div>
@@ -216,11 +217,11 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                     <div key={i} className="border-l-2 border-red-500/30 pl-3">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${severityClasses[e.severity] || severityClasses.LOW}`}>{e.severity}</span>
-                        <span className="text-white text-sm font-medium">{e.type}</span>
-                        <span className="text-recon-grey text-xs ml-auto">{e.date}</span>
+                        <span className="text-white text-sm font-medium"><S v={e.type} /></span>
+                        <span className="text-recon-grey text-xs ml-auto"><S v={e.date} /></span>
                         <EvidencePill url={e.evidence_url} confidence={e.confidence} />
                       </div>
-                      <p className="text-recon-grey text-sm">{e.detail}</p>
+                      <p className="text-recon-grey text-sm"><S v={e.detail} /></p>
                     </div>
                   ))}
                 </div>
@@ -237,10 +238,10 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                       <span className={`px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap ${severityClasses[v.risk] || severityClasses.LOW}`}>{v.risk}</span>
                       <div className="flex-1">
                         <div className="text-white font-medium">
-                          {v.vector}
+                          <S v={v.vector} />
                           <EvidencePill url={v.evidence_url} confidence={v.confidence} />
                         </div>
-                        <div className="text-recon-grey text-xs mt-0.5">{v.detail}</div>
+                        <div className="text-recon-grey text-xs mt-0.5"><S v={v.detail} /></div>
                       </div>
                     </div>
                   ))}
@@ -263,7 +264,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                         }}
                       >{c.competitor}</span>
                       <span className="text-recon-grey flex-1">
-                        {c.weakness}
+                        <S v={c.weakness} />
                         <EvidencePill url={c.evidence_url} confidence={c.confidence} />
                       </span>
                     </div>
@@ -295,10 +296,22 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
             {/* Cost */}
             {reportData.cost && (
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
-                <div className="flex justify-between text-white font-semibold">
-                  <span>Total cost</span>
-                  <span>${reportData.cost.total?.toFixed(2)}</span>
-                </div>
+                {reportData.cost.customerPrice !== undefined ? (
+                  <>
+                    <div className="flex justify-between text-white font-semibold">
+                      <span>Customer Price</span>
+                      <span className="text-recon-green">${reportData.cost.customerPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs text-recon-grey/70 mt-1">
+                      Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between text-white font-semibold">
+                    <span>Total cost</span>
+                    <span>${reportData.cost.total?.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

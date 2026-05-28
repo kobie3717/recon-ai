@@ -4,6 +4,7 @@ import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { downloadPdf } from '@/lib/downloadPdf';
 import GraphView from './GraphView';
+import { S } from '@/lib/safe-render';
 
 function getSectionPills(sectionName: string, sources?: any[]) {
   if (!sources?.length) return [];
@@ -48,6 +49,9 @@ interface ReportPanelProps {
     scrapingBrowser?: number;
     webScraper?: number;
     total?: number;
+    rawCost?: number;
+    serviceFee?: number;
+    customerPrice?: number;
   };
   isRunning: boolean;
   onDrillDown?: (domain: string) => void;
@@ -99,7 +103,16 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
             <div className="flex items-center justify-between text-sm">
               <div className="text-recon-grey">Report generated successfully</div>
               <div className="flex items-center gap-4">
-                <span className="text-recon-grey">Cost: <span className="text-recon-green font-semibold">${costBreakdown.total.toFixed(2)}</span></span>
+                {costBreakdown.customerPrice !== undefined ? (
+                  <div className="text-right">
+                    <div className="text-recon-grey">Customer Price: <span className="text-recon-green font-semibold">${costBreakdown.customerPrice.toFixed(2)}</span></div>
+                    <div className="text-xs text-recon-grey/70">
+                      Our cost: ${costBreakdown.rawCost?.toFixed(2) ?? costBreakdown.total?.toFixed(2)} · Service fee: ${costBreakdown.serviceFee?.toFixed(2) ?? '0.00'}
+                    </div>
+                  </div>
+                ) : (
+                  <span className="text-recon-grey">Cost: <span className="text-recon-green font-semibold">${costBreakdown.total.toFixed(2)}</span></span>
+                )}
               </div>
             </div>
           </div>
@@ -377,15 +390,15 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <tbody>
                       {reportData.news.map((item: any, idx: number) => (
                         <tr key={idx} className="border-b border-recon-blue/10">
-                          <td className="py-2 text-recon-grey whitespace-nowrap">{item.date}</td>
-                          <td className="py-2 text-white">{item.headline}</td>
+                          <td className="py-2 text-recon-grey whitespace-nowrap"><S v={item.date} /></td>
+                          <td className="py-2 text-white"><S v={item.headline} /></td>
                           <td className="py-2">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${
                               item.signal === 'HIGH' ? 'bg-red-500/20 text-red-400' :
                               item.signal === 'MED' ? 'bg-amber-500/20 text-amber-400' :
                               'bg-gray-500/20 text-gray-400'
                             }`}>
-                              {item.signal}
+                              <S v={item.signal} />
                             </span>
                           </td>
                         </tr>
@@ -414,7 +427,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   {reportData.products.map((product: any, idx: number) => (
                     <div key={idx} className="text-sm">
                       <span className="text-white font-semibold">{product.name}</span>
-                      <span className="text-recon-grey"> — {product.description}</span>
+                      <span className="text-recon-grey"> — <S v={product.description} /></span>
                     </div>
                   ))}
                 </div>
@@ -461,7 +474,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                               <span className="text-white font-medium">{comp.competitor}</span>
                             )}
                           </td>
-                          <td className="py-2 text-recon-grey">{comp.weakness}</td>
+                          <td className="py-2 text-recon-grey"><S v={comp.weakness} /></td>
                         </tr>
                       ))}
                     </tbody>
@@ -488,9 +501,9 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   {reportData.hiring.map((hire: any, idx: number) => (
                     <div key={idx} className="flex items-start gap-3">
                       <span className="bg-recon-blue/20 text-recon-cyan px-2 py-1 rounded text-xs font-semibold whitespace-nowrap">
-                        {hire.role} ({hire.count})
+                        <S v={hire.role} /> ({hire.count})
                       </span>
-                      <span className="text-recon-grey text-sm">→ {hire.signal}</span>
+                      <span className="text-recon-grey text-sm">→ <S v={hire.signal} /></span>
                     </div>
                   ))}
                 </div>
@@ -714,14 +727,14 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <tbody>
                       {reportData.risks.map((risk: any, idx: number) => (
                         <tr key={idx} className="border-b border-recon-blue/10">
-                          <td className="py-2 text-white">{risk.factor}</td>
+                          <td className="py-2 text-white"><S v={risk.factor} /></td>
                           <td className="py-2">
                             <span className={`px-2 py-1 rounded text-xs font-semibold ${
                               risk.severity === 'HIGH' ? 'bg-red-500/20 text-red-400' :
                               risk.severity === 'MED' ? 'bg-amber-500/20 text-amber-400' :
                               'bg-gray-500/20 text-gray-400'
                             }`}>
-                              {risk.severity}
+                              <S v={risk.severity} />
                             </span>
                           </td>
                         </tr>
@@ -737,8 +750,22 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
               <div className="bg-recon-navy/40 border border-recon-blue/30 rounded-lg p-4">
                 <h3 className="text-recon-cyan font-bold text-sm uppercase mb-3">Intelligence Cost</h3>
                 <div className="flex items-center justify-between mb-3">
-                  <div className="text-3xl font-mono font-bold text-white">
-                    ${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : reportData.cost.total}
+                  <div>
+                    {reportData.cost.customerPrice !== undefined ? (
+                      <>
+                        <div className="text-sm text-recon-grey mb-1">Customer Price</div>
+                        <div className="text-3xl font-mono font-bold text-recon-green">
+                          ${reportData.cost.customerPrice.toFixed(2)}
+                        </div>
+                        <div className="text-xs text-recon-grey/70 mt-1">
+                          Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-3xl font-mono font-bold text-white">
+                        ${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : reportData.cost.total}
+                      </div>
+                    )}
                   </div>
                   <div className="text-right">
                     <div className="text-recon-grey text-xs">vs manual research</div>
@@ -813,10 +840,22 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     </div>
                   )}
                   <div className="border-t border-recon-blue/30 my-2"></div>
-                  <div className="flex justify-between text-white font-semibold">
-                    <span>Total</span>
-                    <span>${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : (reportData.cost.total ?? 0)}</span>
-                  </div>
+                  {reportData.cost.customerPrice !== undefined ? (
+                    <>
+                      <div className="flex justify-between text-white font-semibold">
+                        <span>Customer Price</span>
+                        <span className="text-recon-green">${reportData.cost.customerPrice.toFixed(2)}</span>
+                      </div>
+                      <div className="text-xs text-recon-grey/70 mt-1">
+                        Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between text-white font-semibold">
+                      <span>Total</span>
+                      <span>${typeof reportData.cost.total === 'number' ? reportData.cost.total.toFixed(2) : (reportData.cost.total ?? 0)}</span>
+                    </div>
+                  )}
                   <div className="text-recon-cyan text-xs mt-3">
                     Intelligence stored in AI-IQ memory. Next query instant. ⚡
                   </div>

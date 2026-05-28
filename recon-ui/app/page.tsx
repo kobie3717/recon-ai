@@ -500,7 +500,7 @@ export default function Home() {
                       return;
                     }
                     setCurrentMode(entry.mode as Mode);
-                    setReportData(entry.report);
+                    setReportData(flattenEvidence(entry.report));
                     setUrl(entry.domain);
                     setShowHistory(false);
                     setCompareActive(false);

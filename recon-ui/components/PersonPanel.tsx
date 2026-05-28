@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface PersonPanelProps {
   reportData: any;
@@ -177,10 +178,10 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                 <div className="space-y-3">
                   {reportData.career.map((job: any, idx: number) => (
                     <div key={idx} className="border-l-2 border-recon-blue/40 pl-3">
-                      <div className="text-white font-semibold text-sm">{job.role} — {job.company}</div>
-                      <div className="text-recon-grey text-xs mb-1">{job.period}</div>
+                      <div className="text-white font-semibold text-sm"><S v={job.role} /> — <S v={job.company} /></div>
+                      <div className="text-recon-grey text-xs mb-1"><S v={job.period} /></div>
                       {job.achievement && (
-                        <div className="text-recon-light text-sm">{job.achievement}</div>
+                        <div className="text-recon-light text-sm"><S v={job.achievement} /></div>
                       )}
                     </div>
                   ))}
@@ -204,7 +205,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                           >
                             {co.name}
                           </button>
-                          <span className="text-recon-grey ml-2">— {co.role}</span>
+                          <span className="text-recon-grey ml-2">— <S v={co.role} /></span>
                           <EvidencePill url={co.evidence_url} confidence={co.confidence} />
                         </div>
                         {co.domain && (
@@ -232,9 +233,9 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                   <tbody>
                     {reportData.publicActivity.map((item: any, idx: number) => (
                       <tr key={idx} className="border-b border-recon-blue/10">
-                        <td className="py-2 text-recon-grey whitespace-nowrap">{item.date}</td>
+                        <td className="py-2 text-recon-grey whitespace-nowrap"><S v={item.date} /></td>
                         <td className="py-2 text-white">
-                          {item.event}
+                          <S v={item.event} />
                           <EvidencePill url={item.evidence_url} confidence={item.confidence} />
                         </td>
                         <td className="py-2">
@@ -243,7 +244,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                             item.signal === 'MED' ? 'bg-amber-500/20 text-amber-400' :
                             'bg-gray-500/20 text-gray-400'
                           }`}>
-                            {item.signal}
+                            <S v={item.signal} />
                           </span>
                         </td>
                       </tr>
@@ -260,9 +261,9 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                 <div className="space-y-3">
                   {reportData.quotes.map((q: any, idx: number) => (
                     <div key={idx} className="border-l-2 border-purple-500/50 pl-3">
-                      <p className="text-white text-sm italic">"{q.text}"</p>
+                      <p className="text-white text-sm italic">"<S v={q.text} />"</p>
                       <p className="text-recon-grey text-xs mt-1">
-                        {q.source} · {q.date}
+                        <S v={q.source} /> · <S v={q.date} />
                         <EvidencePill url={q.evidence_url} confidence={q.confidence} />
                       </p>
                     </div>
@@ -290,7 +291,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                         </div>
                       </div>
                       {n.relationship && (
-                        <div className="text-recon-grey text-xs mt-0.5 pl-5">{n.relationship}</div>
+                        <div className="text-recon-grey text-xs mt-0.5 pl-5"><S v={n.relationship} /></div>
                       )}
                     </div>
                   ))}
@@ -313,7 +314,16 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
             {/* Cost */}
             {reportData.cost?.total && (
               <div className="text-right text-xs text-recon-grey">
-                Cost: <span className="text-recon-green font-semibold">${reportData.cost.total.toFixed(2)}</span>
+                {reportData.cost.customerPrice !== undefined ? (
+                  <>
+                    <div>Customer Price: <span className="text-recon-green font-semibold">${reportData.cost.customerPrice.toFixed(2)}</span></div>
+                    <div className="text-recon-grey/70 mt-0.5">
+                      Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                    </div>
+                  </>
+                ) : (
+                  <>Cost: <span className="text-recon-green font-semibold">${reportData.cost.total.toFixed(2)}</span></>
+                )}
               </div>
             )}
           </div>

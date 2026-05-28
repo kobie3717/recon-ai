@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface FootprintPanelProps {
   reportData: any;
@@ -125,7 +126,7 @@ export default function FootprintPanel({ reportData, isRunning, onDrillDown }: F
                       <div className="grid grid-cols-2 gap-2">
                         {reportData.digitalFootprint.webProperties.map((p: any, i: number) => (
                           <div key={i} className="bg-recon-dark border border-recon-blue/20 rounded px-3 py-2 flex items-center gap-2 text-xs">
-                            <span className="text-recon-cyan">{p.type}</span>
+                            <span className="text-recon-cyan"><S v={p.type} /></span>
                             <a href={p.url} target="_blank" rel="noopener noreferrer" className="text-white hover:text-teal-400 transition-colors truncate flex-1">{p.url}</a>
                             {p.followers && <span className="text-recon-grey">{p.followers}</span>}
                           </div>
@@ -280,7 +281,7 @@ export default function FootprintPanel({ reportData, isRunning, onDrillDown }: F
                         className="text-teal-400 font-medium cursor-pointer hover:underline whitespace-nowrap"
                         onClick={() => onDrillDown?.(c.competitor.toLowerCase().replace(/\s+/g, '') + '.com')}
                       >{c.competitor}</span>
-                      <span className="text-recon-grey">{c.weakness}</span>
+                      <span className="text-recon-grey"><S v={c.weakness} /></span>
                     </div>
                   ))}
                 </div>
@@ -360,9 +361,23 @@ export default function FootprintPanel({ reportData, isRunning, onDrillDown }: F
                       <span>${reportData.cost.claude.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-white font-semibold pt-2 border-t border-recon-blue/30 mt-2">
-                    <span>Total</span>
-                    <span>${reportData.cost.total?.toFixed(2)}</span>
+                  <div className="pt-2 border-t border-recon-blue/30 mt-2">
+                    {reportData.cost.customerPrice !== undefined ? (
+                      <>
+                        <div className="flex justify-between text-white font-semibold">
+                          <span>Customer Price</span>
+                          <span className="text-recon-green">${reportData.cost.customerPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="text-xs text-recon-grey/70 mt-1">
+                          Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-white font-semibold">
+                        <span>Total</span>
+                        <span>${reportData.cost.total?.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

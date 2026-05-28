@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface BundlePanelProps {
   reportData: any;
@@ -134,7 +135,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                       const d = c.competitor?.toLowerCase().replace(/\s+/g,'') || '';
                       onDrillDown?.(d.includes('.') ? d : `${d}.com`);
                     }}>{c.competitor}</span>
-                    <span className="text-recon-grey">{c.weakness}</span>
+                    <span className="text-recon-grey"><S v={c.weakness} /></span>
                   </div>
                 ))}
               </div>
@@ -172,7 +173,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                   <thead><tr className="text-recon-grey text-xs"><th className="text-left pb-2">Keyword</th><th className="text-right pb-2">Pos</th><th className="text-right pb-2">Vol</th></tr></thead>
                   <tbody>{seo.topKeywords.slice(0, 5).map((k: any, i: number) => (
                     <tr key={i} className="border-t border-recon-blue/10">
-                      <td className="py-1.5 text-white">{k.keyword}</td>
+                      <td className="py-1.5 text-white"><S v={k.keyword} /></td>
                       <td className="py-1.5 text-right text-green-400">#{k.position}</td>
                       <td className="py-1.5 text-right text-recon-grey">{k.volume?.toLocaleString()}</td>
                     </tr>
@@ -203,7 +204,7 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                 {redteam.recommendations.map((r: any, i: number) => (
                   <div key={i} className="flex gap-3 text-sm mb-2">
                     <span className={`px-2 py-0.5 rounded text-xs font-bold whitespace-nowrap ${r.priority === 'P0' ? 'bg-red-600/20 text-red-300 border border-red-600/40' : r.priority === 'P1' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>{r.priority}</span>
-                    <span className="text-white">{r.action}</span>
+                    <span className="text-white"><S v={r.action} /></span>
                   </div>
                 ))}
               </div>
@@ -215,9 +216,9 @@ export default function BundlePanel({ reportData, isRunning, onDrillDown }: Bund
                   <div key={i} className="mb-3 border-l-2 border-red-500/30 pl-3">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className={`px-2 py-0.5 rounded text-xs font-bold ${e.severity === 'CRITICAL' ? 'bg-red-600/20 text-red-300' : e.severity === 'HIGH' ? 'bg-red-500/20 text-red-400' : e.severity === 'MED' ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-500/20 text-gray-400'}`}>{e.severity}</span>
-                      <span className="text-white text-sm font-medium">{e.type}</span>
+                      <span className="text-white text-sm font-medium"><S v={e.type} /></span>
                     </div>
-                    <p className="text-recon-grey text-xs">{e.detail}</p>
+                    <p className="text-recon-grey text-xs"><S v={e.detail} /></p>
                   </div>
                 ))}
               </div>

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface SeoPanelProps {
   reportData: any;
@@ -399,7 +400,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                     <div key={i} className="bg-recon-dark border border-green-500/20 rounded p-3">
                       <div className="flex items-start justify-between mb-2">
                         <div className="text-white font-medium flex-1">
-                          {opp.keyword}
+                          <S v={opp.keyword} />
                           <EvidencePill url={opp.evidence_url} confidence={opp.confidence} />
                         </div>
                         <div className="text-green-400 text-sm">{opp.volume?.toLocaleString()} vol</div>
@@ -441,7 +442,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                         }}
                       >{c.competitor}</span>
                       <span className="text-recon-grey flex-1">
-                        {c.weakness}
+                        <S v={c.weakness} />
                         <EvidencePill url={c.evidence_url} confidence={c.confidence} />
                       </span>
                     </div>
@@ -473,10 +474,22 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
             {/* Cost */}
             {reportData.cost && (
               <div className="bg-recon-navy/80 border border-recon-blue/30 rounded-lg p-4 font-mono text-sm">
-                <div className="flex justify-between text-white font-semibold">
-                  <span>Total cost</span>
-                  <span>${reportData.cost.total?.toFixed(2)}</span>
-                </div>
+                {reportData.cost.customerPrice !== undefined ? (
+                  <>
+                    <div className="flex justify-between text-white font-semibold">
+                      <span>Customer Price</span>
+                      <span className="text-recon-green">${reportData.cost.customerPrice.toFixed(2)}</span>
+                    </div>
+                    <div className="text-xs text-recon-grey/70 mt-1">
+                      Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex justify-between text-white font-semibold">
+                    <span>Total cost</span>
+                    <span>${reportData.cost.total?.toFixed(2)}</span>
+                  </div>
+                )}
               </div>
             )}
           </div>

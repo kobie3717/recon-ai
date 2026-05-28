@@ -400,7 +400,7 @@ export async function mcpScrapeMarkdown(url) {
 }
 
 /**
- * Run web_unlocker tool (if available)
+ * Run scrape_as_markdown tool (replaces web_unlocker which is not entitled on trial tier)
  * @param {string} url - Target URL
  * @returns {Promise<Object>}
  */
@@ -426,7 +426,7 @@ export async function mcpWebUnlocker(url) {
     clearTimeout(timeoutHandle);
 
     const result = await Promise.race([
-      client.callTool({ name: 'web_unlocker', arguments: { url } }),
+      client.callTool({ name: 'scrape_as_markdown', arguments: { url } }),
       makeTimeout()
     ]);
     clearTimeout(timeoutHandle);
@@ -439,7 +439,7 @@ export async function mcpWebUnlocker(url) {
       url,
       content,
       chars: content.length,
-      tool: 'web_unlocker',
+      tool: 'scrape_as_markdown',
       via: 'bd-mcp'
     };
   } finally {

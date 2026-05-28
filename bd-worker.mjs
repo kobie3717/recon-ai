@@ -8,6 +8,9 @@ import { mcpFetch, mcpSearch, mcpComprehensive, mcpBrowserCapture, mcpGeoIntel }
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Feature flag: enable trial-tier-gated BD agents (requires paid tier)
+const ENABLE_GATED_AGENTS = process.env.RECON_ENABLE_GATED_AGENTS === '1';
+
 /**
  * Standard recon worker - 8 parallel BD calls (including MCP + Discover API + Datasets API)
  * @param {string} domain - Target domain (e.g. "chain.link")
@@ -639,6 +642,17 @@ export async function runDeepWorker(domain, emitter) {
 
   // Launch all scouts in parallel
   const scoutPromises = scouts.map(async (scout) => {
+    // Gate trustpilot and g2 (require paid tier - robots.txt restricted / timeouts)
+    if (!ENABLE_GATED_AGENTS && (scout.name === 'trustpilot' || scout.name === 'g2')) {
+      emitter.emit('event', {
+        agent: `scout-${scout.name}`,
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / robots.txt restricted',
+        elapsed: parseFloat(elapsed())
+      });
+      return { scout: scout.name, tierLocked: true };
+    }
+
     emitter.emit('event', {
       agent: `scout-${scout.name}`,
       status: 'launching',
@@ -678,8 +692,11 @@ export async function runDeepWorker(domain, emitter) {
   });
 
   const scoutData = await Promise.all(scoutPromises);
-  scoutData.forEach(({ scout, data, error }) => {
-    if (error) {
+  scoutData.forEach(({ scout, data, error, tierLocked }) => {
+    if (tierLocked) {
+      // Tier-locked scouts don't count as failures or successes
+      scoutResults[scout] = { tierLocked: true };
+    } else if (error) {
       bdHealth.failed++;
       bdHealth.errors.push(`scout-${scout}: ${error.slice(0, 120)}`);
       scoutResults[scout] = { error };
@@ -767,6 +784,15 @@ export async function runFootprintWorker(domain, emitter) {
   const facts = {};
 
   const domainDiscoveryPromise = (async () => {
+    if (!ENABLE_GATED_AGENTS) {
+      emitter.emit('event', {
+        agent: 'bd-domain-discovery',
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / not entitled on trial',
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
     emitter.emit('event', {
       agent: 'bd-domain-discovery',
       status: 'scanning',
@@ -784,6 +810,15 @@ export async function runFootprintWorker(domain, emitter) {
   })();
 
   const crawlPromise = (async () => {
+    if (!ENABLE_GATED_AGENTS) {
+      emitter.emit('event', {
+        agent: 'bd-crawl',
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / not entitled on trial',
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
     emitter.emit('event', {
       agent: 'bd-crawl',
       status: 'crawling',
@@ -801,6 +836,15 @@ export async function runFootprintWorker(domain, emitter) {
   })();
 
   const linkedinPromise = (async () => {
+    if (!ENABLE_GATED_AGENTS) {
+      emitter.emit('event', {
+        agent: 'bd-linkedin-scraper',
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / not entitled on trial',
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
     emitter.emit('event', {
       agent: 'bd-linkedin-scraper',
       status: 'fetching',
@@ -818,6 +862,15 @@ export async function runFootprintWorker(domain, emitter) {
   })();
 
   const socialPromise = (async () => {
+    if (!ENABLE_GATED_AGENTS) {
+      emitter.emit('event', {
+        agent: 'bd-social',
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / not entitled on trial',
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
     emitter.emit('event', {
       agent: 'bd-social',
       status: 'scanning',
@@ -1135,6 +1188,15 @@ export async function runLookupWorker(domain, emitter) {
 
   // Fire 3 BD calls in parallel with individual event tracking
   const deepLookupPromise = (async () => {
+    if (!ENABLE_GATED_AGENTS) {
+      emitter.emit('event', {
+        agent: 'bd-deep-lookup',
+        status: 'tier-locked',
+        reason: 'Requires BD paid tier / not entitled on trial',
+        elapsed: parseFloat(elapsed())
+      });
+      return null;
+    }
     const queries = [
       'What are their main revenue streams?',
       'Who are their biggest customers?',

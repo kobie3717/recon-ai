@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
+import { S } from '@/lib/safe-render';
 
 interface McpPanelProps {
   reportData: any;
@@ -224,7 +225,7 @@ export default function McpPanel({ reportData, isRunning, onDrillDown }: McpPane
                         className="text-orange-400 font-medium cursor-pointer hover:underline whitespace-nowrap"
                         onClick={() => onDrillDown?.(c.competitor.toLowerCase().replace(/\s+/g, '') + '.com')}
                       >{c.competitor}</span>
-                      <span className="text-recon-grey">{c.weakness}</span>
+                      <span className="text-recon-grey"><S v={c.weakness} /></span>
                     </div>
                   ))}
                 </div>
@@ -239,14 +240,14 @@ export default function McpPanel({ reportData, isRunning, onDrillDown }: McpPane
                   {reportData.hiring.map((h: any, i: number) => (
                     <div key={i} className="border-l-2 border-amber-500/30 pl-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-white font-medium">{h.role}</span>
+                        <span className="text-white font-medium"><S v={h.role} /></span>
                         {h.count > 0 && (
                           <span className="bg-amber-500/20 border border-amber-500/30 text-amber-400 px-2 py-0.5 rounded text-xs font-bold">
                             {h.count} open
                           </span>
                         )}
                       </div>
-                      <p className="text-recon-grey text-sm">{h.signal}</p>
+                      <p className="text-recon-grey text-sm"><S v={h.signal} /></p>
                     </div>
                   ))}
                 </div>
@@ -312,9 +313,23 @@ export default function McpPanel({ reportData, isRunning, onDrillDown }: McpPane
                       <span>${reportData.cost.claude.toFixed(2)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-orange-400 font-semibold pt-2 border-t border-orange-500/30 mt-2">
-                    <span>Total</span>
-                    <span>${reportData.cost.total?.toFixed(2)}</span>
+                  <div className="pt-2 border-t border-orange-500/30 mt-2">
+                    {reportData.cost.customerPrice !== undefined ? (
+                      <>
+                        <div className="flex justify-between text-orange-400 font-semibold">
+                          <span>Customer Price</span>
+                          <span>${reportData.cost.customerPrice.toFixed(2)}</span>
+                        </div>
+                        <div className="text-xs text-orange-400/60 mt-1">
+                          Our cost: ${reportData.cost.rawCost?.toFixed(2) ?? reportData.cost.total?.toFixed(2)} · Service fee: ${reportData.cost.serviceFee?.toFixed(2) ?? '0.00'}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-orange-400 font-semibold">
+                        <span>Total</span>
+                        <span>${reportData.cost.total?.toFixed(2)}</span>
+                      </div>
+                    )}
                   </div>
                 </div>
                 <p className="text-orange-400/70 text-xs mt-3 italic">
