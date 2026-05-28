@@ -1,11 +1,11 @@
-# Recon — Multi-Agent Competitive Intelligence
+# Recon — Observable AI Web Intelligence
 
 ![Recon Dashboard](./cover.jpg)
 
 > **Bright Data AI Agents Web Data Hackathon** · May 2026
 > Live demo: [recon.whatshubb.co.za](https://recon.whatshubb.co.za) · GitHub: [kobie3717/recon-ai](https://github.com/kobie3717/recon-ai)
 
-Recon deploys a parallel fleet of AI agents powered by **9 Bright Data products** to build comprehensive competitive intelligence reports in real time — streamed live to the UI as each agent completes.
+RECON is **observable AI web intelligence** — a multi-agent system that researches companies live in front of you, powered by **9 Bright Data products** and Claude Sonnet 4.6. Every claim links to its source. Every confidence is shown. **No fake AI.**
 
 ---
 
@@ -21,18 +21,20 @@ Type a company URL (or executive name) and Recon:
 
 **Modes:**
 
-| Mode | Time | Agents | What |
-|------|------|--------|------|
-| Standard | ~8s | 4 BD parallel | Company snapshot, financials, hiring, competitors |
-| Agentic | ~15s | 4 + 2 round | Self-directing: classify → scout → reason → follow-up |
-| Person Intel | ~6s | 3 BD parallel | Executive profile, career, network, public quotes |
-| Deep Search | ~20s | 10 parallel | GitHub, Glassdoor, G2, Crunchbase, TechCrunch + more |
-| Red Team | ~25s | 6 parallel | Attack surface, CVEs, social engineering exposure |
-| SEO Analysis | ~20s | 5 parallel | Keywords, backlinks, Core Web Vitals, competitor gaps |
-| Footprint | ~15s | 4 parallel | Subdomains, social accounts, web properties |
-| MCP Intel | ~10s | BD MCP Server | BD's native MCP tools: search + scrape |
-| Bundle All | ~45s | 15+ parallel | Standard + SEO + Red Team in one pass |
-| Watch Live | live | streaming | Real-time web mentions as they appear |
+| Mode | UI Label | Time (fresh) | What |
+|------|----------|--------------|------|
+| standard | Business Intelligence | ~30-45s | Company snapshot, financials, hiring, competitors |
+| mcp | MCP Lite | ~10s | BD's native MCP tools: search + scrape |
+| person | Person Lookup | ~20s | Executive profile, career, network, public quotes |
+| footprint | Digital Presence | ~25s | Subdomains, social accounts, web properties |
+| seo | Search Visibility | ~30s | Keywords, backlinks, Core Web Vitals, competitor gaps |
+| lookup | Deep Research | ~30s | 47+ web-scale sources, revenue and tech insights |
+| redteam | Security Review | ~35s | Attack surface, CVEs, social engineering exposure |
+| deep | Full Intelligence | ~45s | 10 parallel scouts: GitHub, Glassdoor, G2, Crunchbase, TechCrunch |
+| bundle | Full Report Bundle | ~60s | Standard + SEO + Red Team in one pass |
+| watch | Live Monitor | streaming | Real-time web mentions as they appear |
+
+Cache hit time: **0.3s** (99% faster).
 
 ---
 
@@ -115,6 +117,20 @@ The waterfall UI streams every step live — classify → quality gate → agent
 
 ---
 
+## Live Streaming UX
+
+Backend streams SSE (Server-Sent Events) to the browser for every agent tick:
+
+```javascript
+{agent: 'FIELD-OPS', status: 'running', elapsed: 1200, message: 'Fetching homepage...', extra: {...}}
+```
+
+Claude synthesis streams **token-by-token** via SDK API (not CLI subprocess) for fast TTFT. **First synthesis token arrives ~10s after click** — was 60-80s before optimization.
+
+Synthesis starts at `facts-partial` event when **6 of 9 BD agents complete** — does NOT wait for slow agents (`bd-assistant`, `bd-scraping-browser`). Agent cards auto-expand when each completes. Composite timer is monotonic — never rewinds even on out-of-order SSE events.
+
+---
+
 ## Architecture
 
 ```
@@ -143,7 +159,7 @@ sse-server.mjs  (Express / Node.js)
 ```
 
 **Stack:**
-- Frontend: Next.js 14, TypeScript, Tailwind CSS
+- Frontend: Next.js 16, TypeScript, Tailwind CSS, Server-Sent Events, react-markdown for synth rendering
 - Backend: Node.js ES modules, Express, SSE — PM2 on VPS
 - AI: Anthropic Claude Sonnet (`claude-sonnet-4-6`) + Haiku (`claude-haiku-4-5`)
 - Data: Bright Data — Web Unlocker, SERP API, Scraping Browser, Web Scraper API, MCP Server
@@ -202,6 +218,39 @@ Every competitor and person name in a report is a clickable drill-down:
 
 ---
 
+## Trust Layer — Observable AI
+
+Every report includes a **trust layer** to surface confidence and evidence grounding:
+
+**Intelligence Score (0-100)**: Composite per-report score calculated from:
+- Evidence coverage: 50% (X of Y claims have direct source URLs)
+- Weighted confidence: 30% (HIGH=1.0, MED=0.6, LOW=0.3)
+- Source diversity: 20% (more unique BD products = higher score)
+
+Bands: **HIGH** (75-100, green) / **MEDIUM** (50-74, amber) / **LOW** (0-49, red).
+
+**Confidence pills**: Every signal, competitive insight, and strategic item displays HIGH / MED / LOW confidence based on evidence strength.
+
+**Source ↗ links**: Every claim links to the specific Bright Data result URL (`evidence_url`). Click opens the source in a new tab. Backend grounding validator strips synthetic output that lacks `evidence_url` before returning to user.
+
+**Evidence coverage**: Report meta includes `"evidence_coverage": "14 of 18 claims have direct evidence"`.
+
+**Cost transparency**: Per-report cost breakdown shown to user. Example:
+```json
+{
+  "total": 2.20,
+  "breakdown": {
+    "Web Unlocker": 0.30,
+    "SERP API": 0.50,
+    "Scraping Browser": 0.80,
+    "Web Scraper": 0.40,
+    "MCP Server": 0.20
+  }
+}
+```
+
+---
+
 ## Running Locally
 
 ```bash
@@ -212,9 +261,9 @@ npm install
 npm start   # Express server on :3001
 
 # Frontend
-cd ui
+cd recon-ui
 npm install
-npm run dev  # Next.js on :3000
+npm run dev  # Next.js on :3002
 ```
 
 Without API keys, server runs in **mock mode** — realistic synthetic data with artificial delays matching real BD latency. All UI features work, agentic loop runs, reports generate.
@@ -237,9 +286,9 @@ curl "http://localhost:3001/api/report?domain=stripe.com&mode=agentic"
 
 ## Hackathon Tracks
 
-**Track 1: UNLOCKED-AGENT** — autonomous multi-agent pipeline with classify→scout→reason→follow-up loop. Claude Haiku acts as the decision-making agent between rounds. Every BD call is parallelized. Waterfall UI streams every agent tick in real time.
+**Primary submission: Track 1 — GTM Intelligence** — sales/BD intelligence, account research, competitor monitoring. Observable AI surfaces funding signals, hiring trends, strategic moves, executive profiles, attack surface, SEO position. 10 report modes covering B2B SaaS, fintech, enterprise, consumer use cases.
 
-**Track 2: UNLOCKED-INTELLIGENCE** — sales and competitive intelligence platform surfacing real-time company data: funding signals, hiring trends, strategic moves, executive profiles, attack surface, SEO position. Covers B2B SaaS, fintech, enterprise, consumer — 10 report modes.
+**Also qualifies for: Scrape and Synthesize** — multi-source web data with grounded synthesis (general track). Parallel BD agents (Web Unlocker, SERP, Scraping Browser, Web Scraper, MCP) → Claude synth with confidence scores + source attribution per claim.
 
 ---
 
