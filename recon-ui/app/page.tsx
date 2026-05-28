@@ -18,6 +18,9 @@ import { flattenEvidence } from '@/lib/flatten-evidence';
 
 type Mode = 'standard' | 'seo' | 'redteam' | 'deep' | 'bundle' | 'person' | 'footprint' | 'watch' | 'lookup' | 'mcp' | 'agentic';
 
+// Customer price markup — must match UrlInput.tsx + backend SERVICE_FEE_MULTIPLIER
+const SERVICE_FEE_MULT = 1.5;
+
 export default function Home() {
   const [url, setUrl] = useState('');
   const [url2, setUrl2] = useState('');
@@ -61,6 +64,9 @@ export default function Home() {
   const [compareInputOpen, setCompareInputOpen] = useState(false);
   const completedRef2 = useRef(false);
   const creditDeductedRef = useRef(false);
+  // Track actual report costs per side for compare mode (use markup for customer)
+  const actualCost1Ref = useRef(0);
+  const actualCost2Ref = useRef(0);
 
   // Live timer — ticks every 200ms while any scan is running, so totalElapsed updates
   // smoothly between SSE events. Without this, the timer freezes between agent events.
@@ -253,11 +259,18 @@ export default function Home() {
             setCostBreakdown(event.costBreakdown || { total: event.cost });
           }
           setIsRunning(false);
-          if (!cacheHitRef.current) setCredits(prev => prev - cost);
+          // Deduct actual customer-facing cost (raw cost × markup), fallback to button estimate
+          if (!cacheHitRef.current) {
+            const actualCost = event.cost ? event.cost * SERVICE_FEE_MULT : cost;
+            setCredits(prev => prev - actualCost);
+          }
           evtSource.close();
         } else if (event.type === 'complete') {
           setIsRunning(false);
-          if (!cacheHitRef.current) setCredits(prev => prev - cost);
+          if (!cacheHitRef.current) {
+            const actualCost = event.cost ? event.cost * SERVICE_FEE_MULT : cost;
+            setCredits(prev => prev - actualCost);
+          }
           completedRef.current = true;
           evtSource.close();
         } else if (event.type === 'error') {
@@ -312,6 +325,8 @@ export default function Home() {
     completedRef.current = false;
     completedRef2.current = false;
     creditDeductedRef.current = false;
+    actualCost1Ref.current = 0;
+    actualCost2Ref.current = 0;
     runStartRef.current = Date.now();
     setIsRunning(true);
     setIsRunning2(true);
@@ -360,23 +375,27 @@ export default function Home() {
           } else {
             setReportContent(event.report || event.content || '');
           }
+          if (event.cost) actualCost1Ref.current = event.cost * SERVICE_FEE_MULT;
           setIsRunning(false);
           completedRef.current = true;
           evtSource1.close();
 
-          // Deduct credits only when both complete
+          // Deduct credits only when both complete — use actual costs if available, fallback to button estimate
           if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
             creditDeductedRef.current = true;
-            setCredits(prev => prev - cost);
+            const totalActual = actualCost1Ref.current + actualCost2Ref.current;
+            setCredits(prev => prev - (totalActual > 0 ? totalActual : cost));
           }
         } else if (event.type === 'complete') {
+          if (event.cost) actualCost1Ref.current = event.cost * SERVICE_FEE_MULT;
           setIsRunning(false);
           completedRef.current = true;
           evtSource1.close();
 
           if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
             creditDeductedRef.current = true;
-            setCredits(prev => prev - cost);
+            const totalActual = actualCost1Ref.current + actualCost2Ref.current;
+            setCredits(prev => prev - (totalActual > 0 ? totalActual : cost));
           }
         } else if (event.type === 'error') {
           console.error('Report 1 error:', event.message);
@@ -439,23 +458,27 @@ export default function Home() {
             setReportData2(flattened);
             saveToHistory(domain2, `compare-${mode}`, flattened);
           }
+          if (event.cost) actualCost2Ref.current = event.cost * SERVICE_FEE_MULT;
           setIsRunning2(false);
           completedRef2.current = true;
           evtSource2.close();
 
-          // Deduct credits only when both complete
+          // Deduct credits only when both complete — use actual costs if available, fallback to button estimate
           if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
             creditDeductedRef.current = true;
-            setCredits(prev => prev - cost);
+            const totalActual = actualCost1Ref.current + actualCost2Ref.current;
+            setCredits(prev => prev - (totalActual > 0 ? totalActual : cost));
           }
         } else if (event.type === 'complete') {
+          if (event.cost) actualCost2Ref.current = event.cost * SERVICE_FEE_MULT;
           setIsRunning2(false);
           completedRef2.current = true;
           evtSource2.close();
 
           if (completedRef.current && completedRef2.current && !creditDeductedRef.current) {
             creditDeductedRef.current = true;
-            setCredits(prev => prev - cost);
+            const totalActual = actualCost1Ref.current + actualCost2Ref.current;
+            setCredits(prev => prev - (totalActual > 0 ? totalActual : cost));
           }
         } else if (event.type === 'error') {
           console.error('Report 2 error:', event.message);

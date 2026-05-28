@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "RECON - Competitive Intelligence",
-  description: "Real-time competitive intelligence platform",
+  title: "RECON — Observable AI Web Intelligence",
+  description: "Watch AI agents research the web live. Every claim sourced. No fake AI.",
 };
 
 export default function RootLayout({
@@ -20,7 +20,7 @@ export default function RootLayout({
             <div className="flex items-center gap-3">
               <span className="font-mono text-recon-cyan">RECON</span>
               <span>·</span>
-              <span>Multi-agent competitive intelligence</span>
+              <span>Observable AI Web Intelligence · No Fake AI</span>
             </div>
             <div className="flex items-center gap-3">
               <span>Powered by</span>

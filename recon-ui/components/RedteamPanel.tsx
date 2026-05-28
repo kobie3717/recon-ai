@@ -23,6 +23,21 @@ const priorityClasses: Record<string, string> = {
   P2: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
 };
 
+function ConfidencePill({ confidence }: { confidence?: string | number }) {
+  if (!confidence) return null;
+  const val = typeof confidence === 'string' ? confidence.toLowerCase() : confidence;
+  const isHigh = val === 'high' || (typeof val === 'number' && val >= 80);
+  const isLow = val === 'low' || (typeof val === 'number' && val < 50);
+  const color = isHigh ? 'green' : isLow ? 'red' : 'yellow';
+  const label = typeof confidence === 'number' ? `${confidence}%` : String(confidence).toUpperCase();
+  const classes = {
+    green: 'bg-green-500/10 text-green-400 border-green-500/30',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+    red: 'bg-red-500/10 text-red-400 border-red-500/30',
+  }[color];
+  return <span className={`inline-block ml-2 px-1.5 py-0.5 rounded text-[10px] font-mono border ${classes}`}>{label}</span>;
+}
+
 const confidenceColors: Record<string, string> = {
   high: 'bg-green-500',
   medium: 'bg-amber-500',
@@ -133,9 +148,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                   }`}>
                     <span>{s.icon}</span>
                     <span>{s.text}</span>
-                    {s.confidence && (
-                      <span className={`w-2 h-2 rounded-full ${confidenceColors[s.confidence] || confidenceColors.low}`} title={`Confidence: ${s.confidence}`} />
-                    )}
+                    <ConfidencePill confidence={s.confidence} />
                   </div>
                 ))}
               </div>
@@ -153,6 +166,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                       </span>
                       <span className="text-white flex-1">
                         <S v={r.action} />
+                        <ConfidencePill confidence={r.confidence} />
                         <EvidencePill url={r.evidence_url} confidence={r.confidence} />
                       </span>
                     </div>
@@ -219,6 +233,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                         <span className={`px-2 py-0.5 rounded text-xs font-bold ${severityClasses[e.severity] || severityClasses.LOW}`}>{e.severity}</span>
                         <span className="text-white text-sm font-medium"><S v={e.type} /></span>
                         <span className="text-recon-grey text-xs ml-auto"><S v={e.date} /></span>
+                        <ConfidencePill confidence={e.confidence} />
                         <EvidencePill url={e.evidence_url} confidence={e.confidence} />
                       </div>
                       <p className="text-recon-grey text-sm"><S v={e.detail} /></p>
@@ -239,6 +254,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                       <div className="flex-1">
                         <div className="text-white font-medium">
                           <S v={v.vector} />
+                          <ConfidencePill confidence={v.confidence} />
                           <EvidencePill url={v.evidence_url} confidence={v.confidence} />
                         </div>
                         <div className="text-recon-grey text-xs mt-0.5"><S v={v.detail} /></div>
@@ -265,6 +281,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                       >{c.competitor}</span>
                       <span className="text-recon-grey flex-1">
                         <S v={c.weakness} />
+                        <ConfidencePill confidence={c.confidence} />
                         <EvidencePill url={c.evidence_url} confidence={c.confidence} />
                       </span>
                     </div>

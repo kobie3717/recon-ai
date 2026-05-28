@@ -10,6 +10,21 @@ interface LookupPanelProps {
   onDrillDown?: (q: string) => void;
 }
 
+function ConfidencePill({ confidence }: { confidence?: string | number }) {
+  if (!confidence) return null;
+  const val = typeof confidence === 'string' ? confidence.toLowerCase() : confidence;
+  const isHigh = val === 'high' || (typeof val === 'number' && val >= 80);
+  const isLow = val === 'low' || (typeof val === 'number' && val < 50);
+  const color = isHigh ? 'green' : isLow ? 'red' : 'yellow';
+  const label = typeof confidence === 'number' ? `${confidence}%` : String(confidence).toUpperCase();
+  const classes = {
+    green: 'bg-green-500/10 text-green-400 border-green-500/30',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+    red: 'bg-red-500/10 text-red-400 border-red-500/30',
+  }[color];
+  return <span className={`inline-block ml-2 px-1.5 py-0.5 rounded text-[10px] font-mono border ${classes}`}>{label}</span>;
+}
+
 export default function LookupPanel({ reportData, isRunning, onDrillDown }: LookupPanelProps) {
   const [isPrinting, setIsPrinting] = useState(false);
   const showLoading = isRunning && !reportData;
@@ -73,7 +88,9 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                     s.level === 'medium' ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' :
                     'bg-green-500/20 text-green-400 border border-green-500/30'
                   }`}>
-                    <span>{s.icon}</span><span>{s.text}</span>
+                    <span>{s.icon}</span>
+                    <span>{s.text}</span>
+                    <ConfidencePill confidence={s.confidence} />
                   </div>
                 ))}
               </div>
@@ -215,7 +232,10 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                         className="text-violet-400 font-medium cursor-pointer hover:underline whitespace-nowrap"
                         onClick={() => onDrillDown?.(c.competitor.toLowerCase().replace(/\s+/g, '') + '.com')}
                       >{c.competitor}</span>
-                      <span className="text-recon-grey"><S v={c.weakness} /></span>
+                      <span className="text-recon-grey">
+                        <S v={c.weakness} />
+                        <ConfidencePill confidence={c.confidence} />
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -249,8 +269,11 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
               <div className="bg-recon-navy/50 border border-recon-blue/20 rounded-lg p-4">
                 <h3 className="text-recon-cyan text-sm font-semibold uppercase tracking-wide mb-3">Strategic Insights</h3>
                 <ol className="space-y-2 list-decimal list-inside">
-                  {reportData.strategic.map((s: string, i: number) => (
-                    <li key={i} className="text-white text-sm">{s}</li>
+                  {reportData.strategic.map((s: any, i: number) => (
+                    <li key={i} className="text-white text-sm">
+                      {typeof s === 'string' ? s : s.text || s}
+                      <ConfidencePill confidence={typeof s === 'object' ? s.confidence : undefined} />
+                    </li>
                   ))}
                 </ol>
               </div>

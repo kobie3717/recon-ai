@@ -17,6 +17,21 @@ const intentClasses: Record<string, string> = {
   navigational: 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
 };
 
+function ConfidencePill({ confidence }: { confidence?: string | number }) {
+  if (!confidence) return null;
+  const val = typeof confidence === 'string' ? confidence.toLowerCase() : confidence;
+  const isHigh = val === 'high' || (typeof val === 'number' && val >= 80);
+  const isLow = val === 'low' || (typeof val === 'number' && val < 50);
+  const color = isHigh ? 'green' : isLow ? 'red' : 'yellow';
+  const label = typeof confidence === 'number' ? `${confidence}%` : String(confidence).toUpperCase();
+  const classes = {
+    green: 'bg-green-500/10 text-green-400 border-green-500/30',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+    red: 'bg-red-500/10 text-red-400 border-red-500/30',
+  }[color];
+  return <span className={`inline-block ml-2 px-1.5 py-0.5 rounded text-[10px] font-mono border ${classes}`}>{label}</span>;
+}
+
 const confidenceColors: Record<string, string> = {
   high: 'bg-green-500',
   medium: 'bg-amber-500',
@@ -130,9 +145,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                   }`}>
                     <span>{s.icon}</span>
                     <span>{s.text}</span>
-                    {s.confidence && (
-                      <span className={`w-2 h-2 rounded-full ${confidenceColors[s.confidence] || confidenceColors.low}`} title={`Confidence: ${s.confidence}`} />
-                    )}
+                    <ConfidencePill confidence={s.confidence} />
                   </div>
                 ))}
               </div>
@@ -401,6 +414,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                       <div className="flex items-start justify-between mb-2">
                         <div className="text-white font-medium flex-1">
                           <S v={opp.keyword} />
+                          <ConfidencePill confidence={opp.confidence} />
                           <EvidencePill url={opp.evidence_url} confidence={opp.confidence} />
                         </div>
                         <div className="text-green-400 text-sm">{opp.volume?.toLocaleString()} vol</div>
@@ -443,6 +457,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                       >{c.competitor}</span>
                       <span className="text-recon-grey flex-1">
                         <S v={c.weakness} />
+                        <ConfidencePill confidence={c.confidence} />
                         <EvidencePill url={c.evidence_url} confidence={c.confidence} />
                       </span>
                     </div>

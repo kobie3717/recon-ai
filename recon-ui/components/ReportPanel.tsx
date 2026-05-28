@@ -12,6 +12,21 @@ function getSectionPills(sectionName: string, sources?: any[]) {
   return sources.filter(s => Array.isArray(s.sections) && s.sections.some((sec: string) => sec.toLowerCase() === target));
 }
 
+function ConfidencePill({ confidence }: { confidence?: string | number }) {
+  if (!confidence) return null;
+  const val = typeof confidence === 'string' ? confidence.toLowerCase() : confidence;
+  const isHigh = val === 'high' || (typeof val === 'number' && val >= 80);
+  const isLow = val === 'low' || (typeof val === 'number' && val < 50);
+  const color = isHigh ? 'green' : isLow ? 'red' : 'yellow';
+  const label = typeof confidence === 'number' ? `${confidence}%` : String(confidence).toUpperCase();
+  const classes = {
+    green: 'bg-green-500/10 text-green-400 border-green-500/30',
+    yellow: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30',
+    red: 'bg-red-500/10 text-red-400 border-red-500/30',
+  }[color];
+  return <span className={`inline-block ml-2 px-1.5 py-0.5 rounded text-[10px] font-mono border ${classes}`}>{label}</span>;
+}
+
 const confidenceColors: Record<string, string> = {
   high: 'bg-green-500',
   medium: 'bg-amber-500',
@@ -256,6 +271,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   >
                     <span>{signal.icon}</span>
                     <span>{signal.text}</span>
+                    <ConfidencePill confidence={signal.confidence} />
                   </div>
                 ))}
               </div>
@@ -474,7 +490,10 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                               <span className="text-white font-medium">{comp.competitor}</span>
                             )}
                           </td>
-                          <td className="py-2 text-recon-grey"><S v={comp.weakness} /></td>
+                          <td className="py-2 text-recon-grey">
+                            <S v={comp.weakness} />
+                            <ConfidencePill confidence={comp.confidence} />
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -525,10 +544,13 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   </div>
                 </div>
                 <div className="space-y-3">
-                  {reportData.strategic.map((strategy: string, idx: number) => (
+                  {reportData.strategic.map((strategy: any, idx: number) => (
                     <div key={idx} className="flex gap-3 text-sm">
                       <span className="text-recon-cyan font-bold text-lg leading-none">{idx + 1}</span>
-                      <span className="text-white">{strategy}</span>
+                      <span className="text-white">
+                        {typeof strategy === 'string' ? strategy : strategy.text || strategy}
+                        <ConfidencePill confidence={typeof strategy === 'object' ? strategy.confidence : undefined} />
+                      </span>
                     </div>
                   ))}
                 </div>
