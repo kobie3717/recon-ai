@@ -6,6 +6,7 @@ import { downloadPdf } from '@/lib/downloadPdf';
 import GraphView from './GraphView';
 import { S } from '@/lib/safe-render';
 import { SourceLink } from '@/lib/SourceLink';
+import IntelligenceScoreBadge from './IntelligenceScoreBadge';
 
 function getSectionPills(sectionName: string, sources?: any[]) {
   if (!sources?.length) return [];
@@ -258,6 +259,9 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
 
         {reportData && (
           <div className="space-y-6 pb-6">
+            {/* Intelligence Confidence Score — sticky composite headline */}
+            <IntelligenceScoreBadge reportData={reportData} />
+
             {/* Signal Banner */}
             {reportData.signals && (
               <div className="flex flex-wrap gap-2">

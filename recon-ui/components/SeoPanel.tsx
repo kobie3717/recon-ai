@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
 import { SourceLink } from '@/lib/SourceLink';
+import IntelligenceScoreBadge from './IntelligenceScoreBadge';
 
 interface SeoPanelProps {
   reportData: any;
@@ -119,6 +120,8 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
 
         {reportData && (
           <div className="space-y-6 pb-6">
+            <IntelligenceScoreBadge reportData={reportData} />
+
             {/* Domain header */}
             <div className="border-b border-recon-blue/20 pb-4">
               <h1 className="text-3xl font-bold text-white">{reportData.meta?.domain}</h1>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
 import { SourceLink } from '@/lib/SourceLink';
+import IntelligenceScoreBadge from './IntelligenceScoreBadge';
 
 interface PersonPanelProps {
   reportData: any;
@@ -117,6 +118,8 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
 
         {reportData && (
           <div className="space-y-6 pb-6">
+            <IntelligenceScoreBadge reportData={reportData} />
+
             {/* Signals */}
             {reportData.signals && (
               <div className="flex flex-wrap gap-2">
