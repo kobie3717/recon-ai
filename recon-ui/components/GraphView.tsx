@@ -9,7 +9,7 @@ interface GraphViewProps {
 interface GraphNode {
   id: string;
   label: string;
-  type: 'company' | 'competitor' | 'investor' | 'technology' | 'person';
+  type: 'company' | 'competitor' | 'investor' | 'technology' | 'person' | 'product' | 'news' | 'strategic';
   x: number;
   y: number;
   radius: number;
@@ -104,6 +104,61 @@ export default function GraphView({ reportData }: GraphViewProps) {
       // Graceful degradation
     }
 
+    // Products (top 4) — visual density + storytelling
+    try {
+      if (reportData?.products && Array.isArray(reportData.products)) {
+        reportData.products.slice(0, 4).forEach((prod: any) => {
+          const label = typeof prod === 'string' ? prod
+            : (prod.name || prod.product || prod.title || (typeof prod.text === 'string' ? prod.text : null));
+          if (label) {
+            peripheralNodes.push({
+              label: String(label).slice(0, 30),
+              type: 'product',
+              edgeLabel: 'ships',
+              source: typeof prod === 'object' ? (prod.description || '') : '',
+            });
+          }
+        });
+      }
+    } catch (e) { /* graceful */ }
+
+    // Recent news / signals (top 3) — time-aware nodes
+    try {
+      const newsItems = reportData?.news || reportData?.recentSignals || [];
+      if (Array.isArray(newsItems)) {
+        newsItems.slice(0, 3).forEach((item: any) => {
+          const label = typeof item === 'string' ? item
+            : (item.headline || item.title || item.text || '');
+          if (label) {
+            peripheralNodes.push({
+              label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+              type: 'news',
+              edgeLabel: 'covered by',
+              source: typeof item === 'object' ? (item.date || '') : '',
+            });
+          }
+        });
+      }
+    } catch (e) { /* graceful */ }
+
+    // Strategic direction (top 3)
+    try {
+      if (reportData?.strategic && Array.isArray(reportData.strategic)) {
+        reportData.strategic.slice(0, 3).forEach((item: any) => {
+          const label = typeof item === 'string' ? item
+            : (item.text || item.title || '');
+          if (label) {
+            peripheralNodes.push({
+              label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+              type: 'strategic',
+              edgeLabel: 'plans',
+              source: '',
+            });
+          }
+        });
+      }
+    } catch (e) { /* graceful */ }
+
     // People — extract CEO or founder if available (mock for now)
     // In person/deep modes, this could be enhanced with real data
     // For now, we gracefully skip if not present
@@ -128,6 +183,9 @@ export default function GraphView({ reportData }: GraphViewProps) {
         investor: '#10b981', // green
         technology: '#f59e0b', // amber
         person: '#a855f7', // purple
+        product: '#ec4899', // pink
+        news: '#60a5fa', // blue
+        strategic: '#22d3ee', // light cyan
       };
 
       const nodeId = `node-${i}`;
@@ -188,6 +246,18 @@ export default function GraphView({ reportData }: GraphViewProps) {
           <div className="w-3 h-3 rounded-full bg-[#a855f7]"></div>
           <span className="text-recon-grey">Person</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#ec4899]"></div>
+          <span className="text-recon-grey">Product</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#60a5fa]"></div>
+          <span className="text-recon-grey">News</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-3 h-3 rounded-full bg-[#22d3ee]"></div>
+          <span className="text-recon-grey">Strategic</span>
+        </div>
       </div>
 
       {/* SVG Graph */}
@@ -209,18 +279,17 @@ export default function GraphView({ reportData }: GraphViewProps) {
                 strokeWidth="1.5"
                 strokeOpacity="0.4"
               />
-              {/* Edge label (optional — commented out for cleaner look)
               <text
                 x={(fromNode.x + toNode.x) / 2}
-                y={(fromNode.y + toNode.y) / 2}
-                fill="#6b7280"
-                fontSize="8"
+                y={(fromNode.y + toNode.y) / 2 - 3}
+                fill="#94a3b8"
+                fontSize="9"
                 textAnchor="middle"
                 dominantBaseline="middle"
+                style={{ pointerEvents: 'none', fontFamily: 'ui-monospace, monospace' }}
               >
                 {edge.label}
               </text>
-              */}
             </g>
           );
         })}
