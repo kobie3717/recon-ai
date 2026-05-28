@@ -89,7 +89,8 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
     y = addSection(doc, 'Financials', y, pageH, margin);
     const { investors, ...rest } = d.financials;
     for (const [k, v] of Object.entries(rest)) {
-      if (v != null) y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+      // Skip empty/null/undefined values and empty strings
+      if (v != null && String(v).trim() !== '') y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
     }
     if (investors?.length) y = addRow(doc, 'Investors', investors.join(', '), y, pageH, margin);
     y += 2;
@@ -369,12 +370,34 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
   if (d?.cost) {
     y = addSection(doc, 'Cost Breakdown', y, pageH, margin);
     const c = d.cost;
-    if (c.webUnlocker > 0) y = addRow(doc, 'Web Unlocker', `$${c.webUnlocker.toFixed(2)}`, y, pageH, margin);
-    if (c.serpApi > 0) y = addRow(doc, 'SERP API', `$${c.serpApi.toFixed(2)}`, y, pageH, margin);
-    if (c.scrapingBrowser > 0) y = addRow(doc, 'Scraping Browser', `$${c.scrapingBrowser.toFixed(2)}`, y, pageH, margin);
-    if (c.webScraperApi > 0) y = addRow(doc, 'Web Scraper API', `$${c.webScraperApi.toFixed(2)}`, y, pageH, margin);
-    if (c.claude > 0) y = addRow(doc, 'Claude Synthesis', `$${c.claude.toFixed(2)}`, y, pageH, margin);
-    if (c.total != null) y = addRow(doc, 'TOTAL', `$${Number(c.total).toFixed(2)}`, y, pageH, margin);
+
+    // Calculate sum of shown line items for reconciliation
+    let shownTotal = 0;
+    const lineItems = [];
+
+    if (c.webUnlocker > 0) { lineItems.push(['Web Unlocker', c.webUnlocker]); shownTotal += c.webUnlocker; }
+    if (c.serpApi > 0) { lineItems.push(['SERP API', c.serpApi]); shownTotal += c.serpApi; }
+    if (c.scrapingBrowser > 0) { lineItems.push(['Scraping Browser', c.scrapingBrowser]); shownTotal += c.scrapingBrowser; }
+    if (c.webScraperApi > 0) { lineItems.push(['Web Scraper API', c.webScraperApi]); shownTotal += c.webScraperApi; }
+    if (c.bdMcp > 0) { lineItems.push(['MCP Tools', c.bdMcp]); shownTotal += c.bdMcp; }
+    if (c.claude > 0) { lineItems.push(['Claude Synthesis', c.claude]); shownTotal += c.claude; }
+    if (c.claudeHaiku > 0) { lineItems.push(['Claude Haiku', c.claudeHaiku]); shownTotal += c.claudeHaiku; }
+    if (c.claudeSonnet > 0) { lineItems.push(['Claude Sonnet', c.claudeSonnet]); shownTotal += c.claudeSonnet; }
+
+    // Render line items
+    for (const [label, value] of lineItems) {
+      y = addRow(doc, label, `$${value.toFixed(2)}`, y, pageH, margin);
+    }
+
+    // Check for missing costs (other BD services)
+    const actualTotal = Number(c.total) || 0;
+    const diff = actualTotal - shownTotal;
+    if (diff > 0.01) {
+      // Add "Other Services" row to reconcile the difference
+      y = addRow(doc, 'Other Services', `$${diff.toFixed(2)}`, y, pageH, margin);
+    }
+
+    if (c.total != null) y = addRow(doc, 'TOTAL', `$${actualTotal.toFixed(2)}`, y, pageH, margin);
   }
 
   return y;

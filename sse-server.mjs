@@ -1200,6 +1200,7 @@ GROUNDING RULES (CRITICAL — judges will fact-check):
 - Better to return an empty array or "" than to fabricate.
 - Today is ${today}. Any "news" item with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
 - The Executive Summary must paraphrase the scraped data only — do NOT add facts that aren't supported.
+- "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data. Don't be over-cautious — if Discover/Crunchbase surfaced competitors, include them.
 
 EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Every item in signals[], competitive[], strategic[] arrays MUST include:
@@ -1289,6 +1290,7 @@ GROUNDING RULES (CRITICAL — judges will fact-check):
 - "financials" numbers: only include what the data states. Omit fields (set to "") if not present.
 - Better to return an empty array or "" than to fabricate.
 - Today is ${today}. Any "news" with a date later than today, or a date you cannot point to in the scraped data, is a hallucination and must be omitted.
+- "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data. Don't be over-cautious — if Discover/Crunchbase surfaced competitors, include them.
 
 EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Every item in signals[], competitive[], strategic[] arrays, and deep mode risks[] MUST include:
@@ -2306,6 +2308,7 @@ EVIDENCE REQUIREMENTS:
 - Every signal[] item MUST include confidence
 - If NO URL supports a claim, OMIT it. Do not fabricate.
 - Add to meta: sources_count, evidence_coverage
+- "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data.
 
 Return ONLY valid JSON — be specific and realistic for ${domain}:
 {
@@ -2538,6 +2541,7 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Every signal[] item MUST include confidence (string)
 - If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+- "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data.
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
@@ -2620,6 +2624,7 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Every signal[] item MUST include confidence (string)
 - If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+- "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data.
 
 Return ONLY valid JSON with this exact structure — be specific and realistic for ${domain}, not generic:
 {
