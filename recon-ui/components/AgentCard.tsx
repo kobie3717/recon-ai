@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AgentStatus } from './Waterfall';
 
 interface AgentCardProps {
@@ -69,6 +69,16 @@ export default function AgentCard({
   bdBadge,
 }: AgentCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [autoOpened, setAutoOpened] = useState(false);
+
+  // Auto-expand card when agent finishes (complete/unavailable/error) — only once,
+  // user can still toggle closed afterward
+  useEffect(() => {
+    if (!autoOpened && (status === 'complete' || status === 'unavailable' || status === 'error')) {
+      setIsExpanded(true);
+      setAutoOpened(true);
+    }
+  }, [status, autoOpened]);
 
   const statusIcon = getStatusIcon(status);
   const statusColor = getStatusColor(status);
