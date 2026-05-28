@@ -524,33 +524,64 @@ export default function Home() {
           {showHistory && (
             <div className="absolute top-full left-0 right-0 z-50 bg-recon-navy border-b border-recon-blue/30 shadow-xl max-h-64 overflow-y-auto">
               {history.map((entry, i) => (
-                <button
+                <div
                   key={i}
-                  onClick={() => {
-                    if (isRunning || isRunning2) {
-                      // Scan in progress — just close dropdown, don't interrupt
-                      setShowHistory(false);
-                      return;
-                    }
-                    setCurrentMode(entry.mode as Mode);
-                    setReportData(flattenEvidence(entry.report));
-                    setUrl(entry.domain);
-                    setShowHistory(false);
-                    setCompareActive(false);
-                    setReportData2(null);
-                    setErrorMessage('');
-                  }}
-                  className={`w-full text-left px-6 py-3 hover:bg-recon-blue/10 border-b border-recon-blue/10 flex items-center justify-between group ${
-                    isRunning || isRunning2 ? 'opacity-50 cursor-not-allowed' : ''
+                  className={`flex items-center border-b border-recon-blue/10 hover:bg-recon-blue/10 group ${
+                    isRunning || isRunning2 ? 'opacity-50' : ''
                   }`}
-                  title={isRunning || isRunning2 ? 'Scan in progress' : ''}
                 >
-                  <div>
-                    <span className="text-white text-sm font-medium">{entry.domain}</span>
-                    <span className="text-recon-grey text-xs ml-2 uppercase">{entry.mode}</span>
-                  </div>
-                  <span className="text-recon-grey/60 text-xs">{relativeTime(entry.savedAt)}</span>
-                </button>
+                  <button
+                    onClick={() => {
+                      if (isRunning || isRunning2) {
+                        setShowHistory(false);
+                        return;
+                      }
+                      setCurrentMode(entry.mode as Mode);
+                      setReportData(flattenEvidence(entry.report));
+                      setUrl(entry.domain);
+                      setShowHistory(false);
+                      setCompareActive(false);
+                      setReportData2(null);
+                      setErrorMessage('');
+                    }}
+                    disabled={isRunning || isRunning2}
+                    className="flex-1 text-left px-6 py-3 flex items-center justify-between disabled:cursor-not-allowed"
+                    title={isRunning || isRunning2 ? 'Scan in progress' : 'Load this saved report'}
+                  >
+                    <div>
+                      <span className="text-white text-sm font-medium">{entry.domain}</span>
+                      <span className="text-recon-grey text-xs ml-2 uppercase">{entry.mode}</span>
+                    </div>
+                    <span className="text-recon-grey/60 text-xs">{relativeTime(entry.savedAt)}</span>
+                  </button>
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      if (isRunning || isRunning2) return;
+                      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '';
+                      try {
+                        const res = await fetch(
+                          `${backendUrl}/api/cache?domain=${encodeURIComponent(entry.domain)}&mode=${encodeURIComponent(entry.mode)}`,
+                          { method: 'DELETE' }
+                        );
+                        const data = await res.json().catch(() => ({}));
+                        setErrorMessage(
+                          data.ok
+                            ? `✓ Cache cleared for ${entry.domain}/${entry.mode}${data.flagshipDisabled ? ' (incl. flagship recording)' : ''}`
+                            : `Cache clear failed: ${data.error || res.status}`
+                        );
+                        setTimeout(() => setErrorMessage(''), 4000);
+                      } catch (err) {
+                        setErrorMessage(`Cache clear failed: ${(err as Error).message}`);
+                      }
+                    }}
+                    disabled={isRunning || isRunning2}
+                    title="Clear cache for this report (next run will be fresh)"
+                    className="px-3 py-3 text-recon-grey/60 hover:text-recon-cyan hover:bg-recon-blue/20 transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    🗑
+                  </button>
+                </div>
               ))}
             </div>
           )}

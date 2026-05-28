@@ -3582,6 +3582,43 @@ const REPORTS_DIR = path.join(process.cwd(), 'reports');
 
 /**
  * Serve screenshot files
+/**
+ * DELETE /api/cache?domain=X&mode=Y
+ * Manually invalidate cache for a specific report (both in-memory + flagship recording).
+ * Used by the "Clear Cache" button in the saved reports dropdown.
+ */
+app.delete('/api/cache', (req, res) => {
+  try {
+    const domain = String(req.query.domain || '').trim();
+    const mode = String(req.query.mode || '').trim();
+    if (!domain || !mode) {
+      res.status(400).json({ error: 'domain and mode query params required' });
+      return;
+    }
+    // Compare modes save as `compare-<mode>` — also try the raw mode for cache key
+    const effectiveMode = mode.startsWith('compare-') ? mode.slice('compare-'.length) : mode;
+    const key1 = `${domain}:${mode}`;
+    const key2 = `${domain}:${effectiveMode}`;
+    let cleared = 0;
+    if (reportCache.has(key1)) { reportCache.delete(key1); cleared++; }
+    if (key2 !== key1 && reportCache.has(key2)) { reportCache.delete(key2); cleared++; }
+    // Flagship cache file (disk) — rename to .disabled so it's recoverable
+    const flagshipPath = path.join(process.cwd(), 'cache', 'flagship', `${domain}-${effectiveMode}.json`);
+    let flagshipDisabled = false;
+    try {
+      if (fs.existsSync(flagshipPath)) {
+        fs.renameSync(flagshipPath, `${flagshipPath}.cleared-${Date.now()}`);
+        flagshipDisabled = true;
+      }
+    } catch (e) { /* ignore flagship rename failure */ }
+    console.log(`[cache] cleared ${cleared} in-memory + flagship=${flagshipDisabled} for ${domain}/${mode}`);
+    res.json({ ok: true, cleared, flagshipDisabled, domain, mode });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * GET /screenshots/:filename
  */
 app.get('/screenshots/:filename', (req, res) => {
