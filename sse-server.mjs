@@ -75,6 +75,13 @@ function validateDomain(input) {
 // Claude client — adapter routes to CLI (USE_CLAUDE_CLI=on) or SDK (default)
 const anthropic = createClaudeClient();
 
+// Direct SDK client for SYNTH STREAMING ONLY — bypasses CLI queue.
+// CLI subprocess startup adds 15-25s before first token, while SDK API TTFT is 2-3s.
+// We accept the paid API cost for streaming UX. Non-streaming/cheap tasks still use `anthropic`.
+const synthStreamClient = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : anthropic;
+
 // AI-IQ in-memory cache: "domain:mode" -> { report, elapsed, timestamp }
 const reportCache = new Map();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
@@ -1355,7 +1362,7 @@ Schema:
     ? 'You are a competitive intelligence analyst. First write a human-readable executive summary in markdown, then emit structured JSON inside a ```json fence. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate. EVIDENCE RULE: Every finding in signals, competitive, strategic arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.'
     : 'You are a competitive intelligence analyst. Output ONLY valid JSON — no markdown, no explanation, no code blocks. Be concise. GROUND every claim in the scraped data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. If the data does not support a field, leave it empty rather than fabricate. EVIDENCE RULE: Every finding in signals, competitive, strategic, and risks arrays MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.';
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -1401,7 +1408,7 @@ Schema:
   if (finalMessage.stop_reason === 'max_tokens') {
     console.warn(`[${mode}] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
 
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
@@ -1781,7 +1788,7 @@ Return ONLY valid JSON:
 
   const systemPrompt = 'Competitive intelligence analyst. Output ONLY valid JSON. No markdown. Be very concise — short strings. GROUND every claim in the data provided in the user message — do NOT invent dated news, headlines, funding rounds, or product launches from training memory. Empty array beats fabrication. EVIDENCE RULE: Every finding MUST cite a source URL from the provided facts. If no source supports a claim, OMIT IT.';
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 6000,
     system: systemPrompt,
@@ -1811,7 +1818,7 @@ Return ONLY valid JSON:
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[agentic] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
       system: systemPrompt,
@@ -1961,7 +1968,7 @@ Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came 
   "cost": { "mcpSearch": 0.00, "mcpScrape": 0.00, "mcpUnlocker": 0.00, "claude": 2.00, "total": 2.00 }
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -1991,7 +1998,7 @@ Return ONLY valid JSON with this exact structure. EMPHASIZE that this data came 
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[mcp] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
@@ -2192,7 +2199,7 @@ Return valid JSON with this exact structure:
   "cost": {"total": 1.50}
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-haiku-4-5-20251001',
     max_tokens: 6000,
     system: systemPrompt,
@@ -2222,7 +2229,7 @@ Return valid JSON with this exact structure:
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[person] Claude truncated at 8192 tokens for ${personName}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 16384,
       system: systemPrompt,
@@ -2361,7 +2368,7 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
   ]
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -2391,7 +2398,7 @@ Return ONLY valid JSON — be specific and realistic for ${domain}:
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[seo] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
@@ -2574,7 +2581,7 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
   ]
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -2604,7 +2611,7 @@ Return ONLY valid JSON with this exact structure — be specific and realistic f
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[redteam] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
@@ -2797,7 +2804,7 @@ Return ONLY valid JSON with this exact structure:
   "cost": { "discoverApi": 0.00, "crawlApi": 1.20, "linkedinScraper": 0.80, "socialScraper": 0.60, "serpApi": 0.30, "claude": 2.10, "total": 5.00 }
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -2827,7 +2834,7 @@ Return ONLY valid JSON with this exact structure:
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[footprint] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
@@ -3076,7 +3083,7 @@ Return ONLY valid JSON with this exact structure:
   "cost": { "deepLookup": 5.00, "serpApi": 0.30, "webUnlocker": 0.20, "claude": 2.50, "total": 8.00 }
 }`;
 
-  const stream = await anthropic.messages.stream({
+  const stream = await synthStreamClient.messages.stream({
     model: 'claude-sonnet-4-6',
     max_tokens: 6000,
     system: systemPrompt,
@@ -3106,7 +3113,7 @@ Return ONLY valid JSON with this exact structure:
   // Retry once with doubled token budget if truncated
   if (response.stop_reason === 'max_tokens') {
     console.warn(`[lookup] Claude truncated at 8192 tokens for ${domain}, retrying with 16384 tokens`);
-    const retryStream = await anthropic.messages.stream({
+    const retryStream = await synthStreamClient.messages.stream({
       model: 'claude-sonnet-4-6',
       max_tokens: 16384,
       system: systemPrompt,
