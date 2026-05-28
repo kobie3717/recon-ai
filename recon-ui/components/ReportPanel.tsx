@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { downloadPdf } from '@/lib/downloadPdf';
 import GraphView from './GraphView';
 import { S } from '@/lib/safe-render';
+import { SourceLink } from '@/lib/SourceLink';
 
 function getSectionPills(sectionName: string, sources?: any[]) {
   if (!sources?.length) return [];
@@ -272,6 +273,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     <span>{signal.icon}</span>
                     <span>{signal.text}</span>
                     <ConfidencePill confidence={signal.confidence} />
+                    <SourceLink url={signal.evidence_url} />
                   </div>
                 ))}
               </div>
@@ -309,19 +311,31 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Founded</span>
-                      <span className="text-white">{reportData.snapshot.founded}</span>
+                      <span className="text-white">
+                        {reportData.snapshot.founded}
+                        <SourceLink url={reportData.snapshot.founded_evidence_url} />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Headquarters</span>
-                      <span className="text-white">{reportData.snapshot.hq}</span>
+                      <span className="text-white">
+                        {reportData.snapshot.hq}
+                        <SourceLink url={reportData.snapshot.hq_evidence_url} />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Employees</span>
-                      <span className="text-white">{reportData.snapshot.employees}</span>
+                      <span className="text-white">
+                        {reportData.snapshot.employees}
+                        <SourceLink url={reportData.snapshot.employees_evidence_url} />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Stage</span>
-                      <span className="text-white">{reportData.snapshot.stage}</span>
+                      <span className="text-white">
+                        {reportData.snapshot.stage}
+                        <SourceLink url={reportData.snapshot.stage_evidence_url} />
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-recon-grey">Website</span>
@@ -493,6 +507,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                           <td className="py-2 text-recon-grey">
                             <S v={comp.weakness} />
                             <ConfidencePill confidence={comp.confidence} />
+                            <SourceLink url={comp.evidence_url || comp.text_evidence_url} />
                           </td>
                         </tr>
                       ))}
@@ -550,6 +565,7 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                       <span className="text-white">
                         {typeof strategy === 'string' ? strategy : strategy.text || strategy}
                         <ConfidencePill confidence={typeof strategy === 'object' ? strategy.confidence : undefined} />
+                        <SourceLink url={typeof strategy === 'object' ? strategy.evidence_url : undefined} />
                       </span>
                     </div>
                   ))}

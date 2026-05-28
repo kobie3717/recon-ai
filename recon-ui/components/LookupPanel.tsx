@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
+import { SourceLink } from '@/lib/SourceLink';
 
 interface LookupPanelProps {
   reportData: any;
@@ -91,6 +92,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                     <span>{s.icon}</span>
                     <span>{s.text}</span>
                     <ConfidencePill confidence={s.confidence} />
+                    <SourceLink url={s.evidence_url} />
                   </div>
                 ))}
               </div>
@@ -235,6 +237,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                       <span className="text-recon-grey">
                         <S v={c.weakness} />
                         <ConfidencePill confidence={c.confidence} />
+                        <SourceLink url={c.evidence_url || c.text_evidence_url} />
                       </span>
                     </div>
                   ))}
@@ -273,6 +276,7 @@ export default function LookupPanel({ reportData, isRunning, onDrillDown }: Look
                     <li key={i} className="text-white text-sm">
                       {typeof s === 'string' ? s : s.text || s}
                       <ConfidencePill confidence={typeof s === 'object' ? s.confidence : undefined} />
+                      <SourceLink url={typeof s === 'object' ? s.evidence_url : undefined} />
                     </li>
                   ))}
                 </ol>

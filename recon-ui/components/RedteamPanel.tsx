@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
+import { SourceLink } from '@/lib/SourceLink';
 
 interface RedteamPanelProps {
   reportData: any;
@@ -149,6 +150,7 @@ export default function RedteamPanel({ reportData, isRunning, onDrillDown }: Red
                     <span>{s.icon}</span>
                     <span>{s.text}</span>
                     <ConfidencePill confidence={s.confidence} />
+                    <SourceLink url={s.evidence_url} />
                   </div>
                 ))}
               </div>

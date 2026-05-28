@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
+import { SourceLink } from '@/lib/SourceLink';
 
 interface SeoPanelProps {
   reportData: any;
@@ -146,6 +147,7 @@ export default function SeoPanel({ reportData, isRunning, onDrillDown }: SeoPane
                     <span>{s.icon}</span>
                     <span>{s.text}</span>
                     <ConfidencePill confidence={s.confidence} />
+                    <SourceLink url={s.evidence_url} />
                   </div>
                 ))}
               </div>

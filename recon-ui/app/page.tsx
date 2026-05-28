@@ -234,7 +234,10 @@ export default function Home() {
             });
             return found ? next : [...next, { name: event.agent, status: event.status as AgentStatus, elapsed: event.elapsed ?? 0, message: event.message, extra }];
           });
-          if (event.elapsed) setTotalElapsed(event.elapsed);
+          // Monotonic — only advance forward. Late/buffered SSE events can carry stale elapsed values
+          // that would jump the timer backwards. The 200ms client tick (Date.now()-runStartRef) is the
+          // authoritative wall-clock; server elapsed only nudges it forward if ahead.
+          if (event.elapsed) setTotalElapsed(prev => Math.max(prev, event.elapsed));
         } else if (event.type === 'cache-hit' || event.type === 'cache_hit') {
           setCacheHit(true);
           cacheHitRef.current = true;

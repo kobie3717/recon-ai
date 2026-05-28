@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { downloadPdf } from '@/lib/downloadPdf';
 import { S } from '@/lib/safe-render';
+import { SourceLink } from '@/lib/SourceLink';
 
 interface PersonPanelProps {
   reportData: any;
@@ -133,6 +134,7 @@ export default function PersonPanel({ reportData, isRunning, onDrillDown }: Pers
                     {signal.confidence && (
                       <span className={`w-2 h-2 rounded-full ${confidenceColors[signal.confidence] || confidenceColors.low}`} title={`Confidence: ${signal.confidence}`} />
                     )}
+                    <SourceLink url={signal.evidence_url} />
                   </div>
                 ))}
               </div>
