@@ -1214,6 +1214,9 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - If NO URL in the scraped data supports a claim, OMIT that claim entirely. Do not fabricate URLs.
 - Add to meta object: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
+FINANCIALS GUIDANCE:
+- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+
 Output format: Start with human-readable markdown executive summary, then emit structured JSON.
 
 ## Executive Summary
@@ -1303,6 +1306,9 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
   * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
 - If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+
+FINANCIALS GUIDANCE:
+- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
 
 Schema:
 {
@@ -2315,6 +2321,9 @@ EVIDENCE REQUIREMENTS:
 - Add to meta: sources_count, evidence_coverage
 - "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data.
 
+FINANCIALS GUIDANCE:
+- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+
 Return ONLY valid JSON — be specific and realistic for ${domain}:
 {
   "meta": { "domain": "${domain}", "companyName": "${companyName}", "analysisDate": "${today}", "mode": "seo", "confidence": "medium-high", "sources_count": 0, "evidence_coverage": "X of Y" },
@@ -3029,6 +3038,9 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
   * confidence (string): "high" if 2+ sources support it | "medium" if 1 source | "low" if inferred
 - If NO URL supports a claim, OMIT that claim entirely. Do not fabricate URLs.
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
+
+FINANCIALS GUIDANCE:
+- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
 
 Return ONLY valid JSON with this exact structure:
 {

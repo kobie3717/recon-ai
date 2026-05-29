@@ -54,7 +54,50 @@ function addBundleHeader(doc: Doc, title: string, y: number, pageH: number, marg
   return y + 14;
 }
 
-function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: number): number {
+function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: number, pageW: number): number {
+  // ── Intelligence Score Badge ──────────────────────────────────────────────
+  // Only show if there's meaningful data (not all empty)
+  const hasData = (d?.signals?.length || d?.competitive?.length || d?.strategic?.length);
+  if (hasData) {
+    const { computeIntelligenceScore } = require('./intelligence-score');
+    const { score, band, evidenceRatio, sourcesCount, claimsCount } = computeIntelligenceScore(d);
+
+    if (score > 0) {
+      y = checkPage(doc, y, pageH, margin);
+      const badgeHeight = 16;
+      const badgeWidth = pageW - margin * 2;
+
+      // Color by band
+      const colors: Record<'high' | 'medium' | 'low', { bg: number[], text: number[] }> = {
+        high: { bg: [16, 185, 129], text: [255, 255, 255] },
+        medium: { bg: [245, 158, 11], text: [255, 255, 255] },
+        low: { bg: [239, 68, 68], text: [255, 255, 255] }
+      };
+      const color = colors[band as 'high' | 'medium' | 'low'];
+
+      doc.setFillColor(color.bg[0], color.bg[1], color.bg[2]);
+      doc.roundedRect(margin, y, badgeWidth, badgeHeight, 2, 2, 'F');
+
+      // Score number (left side)
+      doc.setTextColor(color.text[0], color.text[1], color.text[2]);
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${score} / 100`, margin + 4, y + 10);
+
+      // Label (right side)
+      doc.setFontSize(8);
+      doc.setFont('helvetica', 'bold');
+      const bandLabel = band.toUpperCase();
+      doc.text(`INTELLIGENCE CONFIDENCE: ${bandLabel}`, margin + 35, y + 7);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      const breakdown = `${Math.round(evidenceRatio * 100)}% evidenced · ${sourcesCount} sources · ${claimsCount} claims`;
+      doc.text(breakdown, margin + 35, y + 12);
+
+      y += badgeHeight + 4;
+    }
+  }
+
   // ── Signals ───────────────────────────────────────────────────────────────
   if (d?.signals?.length) {
     y = addSection(doc, 'Signals', y, pageH, margin);
@@ -70,7 +113,8 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
     const isSeop = d?.meta?.mode === 'seo' || 'domainAuthority' in d.snapshot;
     y = addSection(doc, isSeop ? 'SEO Snapshot' : 'Company Snapshot', y, pageH, margin);
     for (const [k, v] of Object.entries(d.snapshot)) {
-      if (v != null) y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+      // Skip empty/null/undefined values and empty strings
+      if (v != null && String(v).trim() !== '') y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
     }
     y += 2;
   }
@@ -505,7 +549,7 @@ function addEntityGraph(doc: Doc, reportData: any, pageW: number, pageH: number,
           : (item.headline || item.title || item.text || '');
         if (label) {
           peripheralNodes.push({
-            label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+            label: String(label),
             type: 'news',
             edgeLabel: 'covered by',
             ...colors.news,
@@ -523,7 +567,7 @@ function addEntityGraph(doc: Doc, reportData: any, pageW: number, pageH: number,
           : (item.text || item.title || '');
         if (label) {
           peripheralNodes.push({
-            label: String(label).slice(0, 32) + (label.length > 32 ? '…' : ''),
+            label: String(label),
             type: 'strategic',
             edgeLabel: 'plans',
             ...colors.strategic,
@@ -610,8 +654,12 @@ function addEntityGraph(doc: Doc, reportData: any, pageW: number, pageH: number,
 
     doc.setTextColor(50, 50, 50);
     doc.setFontSize(7);
-    const truncatedLabel = node.label.length > 24 ? node.label.slice(0, 23) + '…' : node.label;
-    doc.text(truncatedLabel, x, y + 11, { align: 'center' });
+    // Wrap to 2 lines instead of truncating
+    const wrappedLines = doc.splitTextToSize(node.label, 35);
+    const displayLines = wrappedLines.slice(0, 2); // Cap at 2 lines
+    displayLines.forEach((line: string, lineIdx: number) => {
+      doc.text(line, x, y + 11 + (lineIdx * 3), { align: 'center' });
+    });
   });
 
   return centerY + circleRadius + 30;
@@ -652,24 +700,24 @@ export async function downloadPdf(filename: string, reportData: any): Promise<vo
     // ── Bundle: render each sub-report with a section banner ────────────────
     if (reportData.standard) {
       y = addBundleHeader(doc, 'INTELLIGENCE REPORT', y, pageH, margin, pageW);
-      y = renderSections(doc, reportData.standard, y, pageH, margin);
+      y = renderSections(doc, reportData.standard, y, pageH, margin, pageW);
     }
     if (reportData.seo) {
       doc.addPage();
       y = margin + 4;
       y = addBundleHeader(doc, 'SEO INTELLIGENCE', y, pageH, margin, pageW);
-      y = renderSections(doc, reportData.seo, y, pageH, margin);
+      y = renderSections(doc, reportData.seo, y, pageH, margin, pageW);
     }
     if (reportData.redteam) {
       doc.addPage();
       y = margin + 4;
       y = addBundleHeader(doc, 'SECURITY ANALYSIS', y, pageH, margin, pageW);
-      y = renderSections(doc, reportData.redteam, y, pageH, margin);
+      y = renderSections(doc, reportData.redteam, y, pageH, margin, pageW);
     }
     // Add entity graph after all bundle sections
     y = addEntityGraph(doc, reportData.standard || reportData, pageW, pageH, margin);
   } else {
-    y = renderSections(doc, reportData, y, pageH, margin);
+    y = renderSections(doc, reportData, y, pageH, margin, pageW);
     // Add entity graph after regular report sections
     y = addEntityGraph(doc, reportData, pageW, pageH, margin);
   }
