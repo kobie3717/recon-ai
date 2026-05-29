@@ -111,12 +111,14 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
   // ── Snapshot (standard / SEO / deep) ─────────────────────────────────────
   if (d?.snapshot) {
     const isSeop = d?.meta?.mode === 'seo' || 'domainAuthority' in d.snapshot;
-    y = addSection(doc, isSeop ? 'SEO Snapshot' : 'Company Snapshot', y, pageH, margin);
-    for (const [k, v] of Object.entries(d.snapshot)) {
-      // Skip empty/null/undefined values and empty strings
-      if (v != null && String(v).trim() !== '') y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+    const visibleRows = Object.entries(d.snapshot).filter(([, v]) => v != null && String(v).trim() !== '');
+    if (visibleRows.length > 0) {
+      y = addSection(doc, isSeop ? 'SEO Snapshot' : 'Company Snapshot', y, pageH, margin);
+      for (const [k, v] of visibleRows) {
+        y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+      }
+      y += 2;
     }
-    y += 2;
   }
 
   // ── Profile (person) ──────────────────────────────────────────────────────
@@ -130,14 +132,18 @@ function renderSections(doc: Doc, d: any, y: number, pageH: number, margin: numb
 
   // ── Financials ────────────────────────────────────────────────────────────
   if (d?.financials) {
-    y = addSection(doc, 'Financials', y, pageH, margin);
     const { investors, ...rest } = d.financials;
-    for (const [k, v] of Object.entries(rest)) {
-      // Skip empty/null/undefined values and empty strings
-      if (v != null && String(v).trim() !== '') y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+    // Pre-filter rows so we know if there's anything to show before drawing the header
+    const visibleRows = Object.entries(rest).filter(([, v]) => v != null && String(v).trim() !== '');
+    const hasInvestors = Array.isArray(investors) && investors.length > 0;
+    if (visibleRows.length > 0 || hasInvestors) {
+      y = addSection(doc, 'Financials', y, pageH, margin);
+      for (const [k, v] of visibleRows) {
+        y = addRow(doc, k.charAt(0).toUpperCase() + k.slice(1).replace(/([A-Z])/g, ' $1'), String(v), y, pageH, margin);
+      }
+      if (hasInvestors) y = addRow(doc, 'Investors', investors.join(', '), y, pageH, margin);
+      y += 2;
     }
-    if (investors?.length) y = addRow(doc, 'Investors', investors.join(', '), y, pageH, margin);
-    y += 2;
   }
 
   // ── Recent Signals / News ─────────────────────────────────────────────────
