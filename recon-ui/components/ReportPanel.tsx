@@ -313,42 +313,24 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Founded</span>
-                      <span className="text-white">
-                        {reportData.snapshot.founded}
-                        <SourceLink url={reportData.snapshot.founded_evidence_url} />
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Headquarters</span>
-                      <span className="text-white">
-                        {reportData.snapshot.hq}
-                        <SourceLink url={reportData.snapshot.hq_evidence_url} />
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Employees</span>
-                      <span className="text-white">
-                        {reportData.snapshot.employees}
-                        <SourceLink url={reportData.snapshot.employees_evidence_url} />
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Stage</span>
-                      <span className="text-white">
-                        {reportData.snapshot.stage}
-                        <SourceLink url={reportData.snapshot.stage_evidence_url} />
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Website</span>
-                      <span className="text-recon-cyan">{reportData.snapshot.website}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">LinkedIn</span>
-                      <span className="text-recon-cyan text-xs">{reportData.snapshot.linkedin}</span>
-                    </div>
+                    {[
+                      { label: 'Founded', value: reportData.snapshot.founded, url: reportData.snapshot.founded_evidence_url },
+                      { label: 'Headquarters', value: reportData.snapshot.hq, url: reportData.snapshot.hq_evidence_url },
+                      { label: 'Employees', value: reportData.snapshot.employees, url: reportData.snapshot.employees_evidence_url },
+                      { label: 'Stage', value: reportData.snapshot.stage, url: reportData.snapshot.stage_evidence_url },
+                      { label: 'Website', value: reportData.snapshot.website, cyan: true },
+                      { label: 'LinkedIn', value: reportData.snapshot.linkedin, cyan: true, small: true },
+                    ]
+                      .filter((row) => row.value != null && String(row.value).trim() !== '')
+                      .map((row) => (
+                        <div key={row.label} className="flex justify-between">
+                          <span className="text-recon-grey">{row.label}</span>
+                          <span className={`${row.cyan ? 'text-recon-cyan' : 'text-white'} ${row.small ? 'text-xs' : ''}`}>
+                            {row.value}
+                            {row.url && <SourceLink url={row.url} />}
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
@@ -367,22 +349,22 @@ export default function ReportPanel({ content, reportData, costBreakdown, isRunn
                     </div>
                   </div>
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Total Raised</span>
-                      <span className="text-white font-semibold">{reportData.financials.totalRaised}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Last Round</span>
-                      <span className="text-white">{reportData.financials.lastRound}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Valuation</span>
-                      <span className="text-white">{reportData.financials.valuation}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-recon-grey">Revenue</span>
-                      <span className="text-white">{reportData.financials.revenue}</span>
-                    </div>
+                    {[
+                      { label: 'Total Raised', value: reportData.financials.totalRaised, bold: true },
+                      { label: 'Last Round', value: reportData.financials.lastRound },
+                      { label: 'Valuation', value: reportData.financials.valuation },
+                      { label: 'Revenue', value: reportData.financials.revenue },
+                      // Synth prompt also surfaces tpv (total payment volume) — same source as Snapshot.tpv
+                      { label: 'TPV', value: reportData.financials.tpv },
+                      { label: 'ARR', value: reportData.financials.arr },
+                    ]
+                      .filter((row) => row.value != null && String(row.value).trim() !== '')
+                      .map((row) => (
+                        <div key={row.label} className="flex justify-between">
+                          <span className="text-recon-grey">{row.label}</span>
+                          <span className={`text-white ${row.bold ? 'font-semibold' : ''}`}>{row.value}</span>
+                        </div>
+                      ))}
                     {reportData.financials.investors?.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-recon-blue/20">
                         <div className="text-recon-grey text-xs mb-1">Key Investors</div>
