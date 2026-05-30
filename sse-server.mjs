@@ -1215,7 +1215,14 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Add to meta object: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 FINANCIALS GUIDANCE:
-- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+- CRITICAL: If ANY financial figure appears in your signals, recent_signals, strategic, or executive summary, you MUST also populate the matching financials.* field with the same figure. Do not mention numbers in narrative without mirroring them into the structured financials object.
+- financials.tpv: total payment volume / processed volume / transaction volume (e.g., "$1.4T (2024)")
+- financials.valuation: most recent valuation (e.g., "$140B (tender offer Feb 2026)" or "$91.5B (Feb 2025)")
+- financials.total_raised: cumulative funding raised across all rounds (e.g., "$9.81B (24 rounds)")
+- financials.last_round: most recent funding round name + amount + date (e.g., "Series I — $6.5B (Mar 2023)")
+- financials.revenue: annual revenue if explicitly stated (e.g., "$3.7B (2024 est.)"). NOT the same as TPV.
+- financials.arr: annual recurring revenue if disclosed (e.g., "$1B ARR (2026 run-rate)")
+- For each field: if the scraped data does not state it, leave the field as empty string "". Never fabricate.
 
 Output format: Start with human-readable markdown executive summary, then emit structured JSON.
 
@@ -1308,7 +1315,14 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 FINANCIALS GUIDANCE:
-- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+- CRITICAL: If ANY financial figure appears in your signals, recent_signals, strategic, or executive summary, you MUST also populate the matching financials.* field with the same figure. Do not mention numbers in narrative without mirroring them into the structured financials object.
+- financials.tpv: total payment volume / processed volume / transaction volume (e.g., "$1.4T (2024)")
+- financials.valuation: most recent valuation (e.g., "$140B (tender offer Feb 2026)" or "$91.5B (Feb 2025)")
+- financials.total_raised: cumulative funding raised across all rounds (e.g., "$9.81B (24 rounds)")
+- financials.last_round: most recent funding round name + amount + date (e.g., "Series I — $6.5B (Mar 2023)")
+- financials.revenue: annual revenue if explicitly stated (e.g., "$3.7B (2024 est.)"). NOT the same as TPV.
+- financials.arr: annual recurring revenue if disclosed (e.g., "$1B ARR (2026 run-rate)")
+- For each field: if the scraped data does not state it, leave the field as empty string "". Never fabricate.
 
 Schema:
 {
@@ -2322,7 +2336,14 @@ EVIDENCE REQUIREMENTS:
 - "competitive" array: You MAY name competitors IF they appear in BD Discover results, Crunchbase data, news mentions, or scraped pages. Only output "not determinable" if NO competitor signals exist in the data.
 
 FINANCIALS GUIDANCE:
-- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+- CRITICAL: If ANY financial figure appears in your signals, recent_signals, strategic, or executive summary, you MUST also populate the matching financials.* field with the same figure. Do not mention numbers in narrative without mirroring them into the structured financials object.
+- financials.tpv: total payment volume / processed volume / transaction volume (e.g., "$1.4T (2024)")
+- financials.valuation: most recent valuation (e.g., "$140B (tender offer Feb 2026)" or "$91.5B (Feb 2025)")
+- financials.total_raised: cumulative funding raised across all rounds (e.g., "$9.81B (24 rounds)")
+- financials.last_round: most recent funding round name + amount + date (e.g., "Series I — $6.5B (Mar 2023)")
+- financials.revenue: annual revenue if explicitly stated (e.g., "$3.7B (2024 est.)"). NOT the same as TPV.
+- financials.arr: annual recurring revenue if disclosed (e.g., "$1B ARR (2026 run-rate)")
+- For each field: if the scraped data does not state it, leave the field as empty string "". Never fabricate.
 
 Return ONLY valid JSON — be specific and realistic for ${domain}:
 {
@@ -3040,7 +3061,14 @@ EVIDENCE REQUIREMENTS (P1 — traceability for hackathon judges):
 - Add to meta: sources_count (number of unique URLs cited), evidence_coverage (string like "X of Y claims have direct evidence")
 
 FINANCIALS GUIDANCE:
-- If the SCRAPED WEB DATA mentions total payment volume, processed volume, transaction volume, or TPV, populate financials.tpv with the figure (e.g., "$1.4T (2024)"). This is separate from revenue.
+- CRITICAL: If ANY financial figure appears in your signals, recent_signals, strategic, or executive summary, you MUST also populate the matching financials.* field with the same figure. Do not mention numbers in narrative without mirroring them into the structured financials object.
+- financials.tpv: total payment volume / processed volume / transaction volume (e.g., "$1.4T (2024)")
+- financials.valuation: most recent valuation (e.g., "$140B (tender offer Feb 2026)" or "$91.5B (Feb 2025)")
+- financials.total_raised: cumulative funding raised across all rounds (e.g., "$9.81B (24 rounds)")
+- financials.last_round: most recent funding round name + amount + date (e.g., "Series I — $6.5B (Mar 2023)")
+- financials.revenue: annual revenue if explicitly stated (e.g., "$3.7B (2024 est.)"). NOT the same as TPV.
+- financials.arr: annual recurring revenue if disclosed (e.g., "$1B ARR (2026 run-rate)")
+- For each field: if the scraped data does not state it, leave the field as empty string "". Never fabricate.
 
 Return ONLY valid JSON with this exact structure:
 {
